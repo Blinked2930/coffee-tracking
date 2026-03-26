@@ -63,6 +63,17 @@ export default function Feed({ logs, getUserMap }: FeedProps) {
                   "{log.notes}"
                 </p>
               )}
+              
+              {log.photo_url && (
+                <div className="mt-3 overflow-hidden rounded-xl border border-gray-100 shadow-sm">
+                  <img 
+                    src={log.photo_url} 
+                    alt="Kafe moment" 
+                    className="w-full h-auto max-h-60 object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              )}
             </div>
           </div>
         );

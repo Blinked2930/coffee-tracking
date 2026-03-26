@@ -43,3 +43,22 @@ CREATE POLICY "Allow anon insert kafes" ON kafes FOR INSERT WITH CHECK (true);
 
 -- Enable Realtime for the kafes table so the UI updates instantly
 alter publication supabase_realtime add table kafes;
+
+-- --------------------------------------------------------
+-- STORAGE CONFIGURATION
+-- --------------------------------------------------------
+
+-- 1. Create the 'kafes' storage bucket (Set to public)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('kafes', 'kafes', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 2. Allow public access to view any kafe photo
+CREATE POLICY "Public Access Configuration" 
+ON storage.objects FOR SELECT 
+USING (bucket_id = 'kafes');
+
+-- 3. Allow anyone using the app to upload a Kafe photo
+CREATE POLICY "Allow anon uploads to Kafes bucket" 
+ON storage.objects FOR INSERT 
+WITH CHECK (bucket_id = 'kafes');
