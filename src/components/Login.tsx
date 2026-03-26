@@ -27,13 +27,13 @@ export default function Login({ users, onLogin }: LoginProps) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
-      <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl p-8 space-y-8">
+      <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl p-8 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
             <Coffee size={32} />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">{t('welcomeBack')}</h1>
-          <p className="text-gray-500 mt-2 text-center">Kafe Tracker</p>
+          <h2 className="text-3xl font-black text-gray-900 mb-2">{t('welcomeBack')}</h2>
+          <p className="text-gray-500 font-medium text-center">Kafe Tracker</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -61,7 +61,7 @@ export default function Login({ users, onLogin }: LoginProps) {
               value={pin}
               onChange={(e) => setPin(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-center tracking-[0.5em] text-xl font-mono"
-              placeholder={t('enterPin')}
+              placeholder="••••"
               required
             />
           </div>
