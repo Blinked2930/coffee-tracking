@@ -18,6 +18,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
+  const [rating, setRating] = useState<number>(0);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -55,7 +56,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       type: selectedType,
       location: location || null,
       notes: notes || null,
-      photo_url: uploadedPhotoUrl
+      photo_url: uploadedPhotoUrl,
+      rating: rating > 0 ? rating : null
     });
     
     if (error) {
@@ -82,6 +84,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       setShowSuccess(false);
       setLocation('');
       setNotes('');
+      setRating(0);
       setIsAddingDetails(false);
       setSelectedType('kafe');
       setPhotoFile(null);
@@ -153,9 +156,32 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </div>
         </div>
 
+        {/* Rating row directly on the homescreen */}
+        <div className="mt-6 w-full max-w-sm flex flex-col items-center">
+          <div className="flex items-center gap-2 mb-3">
+             <div className="h-px w-8 bg-gray-200" />
+             <p className="text-center text-xs font-bold text-gray-300 uppercase tracking-widest">Rating</p>
+             <div className="h-px w-8 bg-gray-200" />
+          </div>
+          <div className="flex justify-between w-full px-2">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+              <button
+                key={num}
+                onClick={() => setRating(num === rating ? 0 : num)}
+                className={clsx(
+                  "text-2xl transition-all active:scale-75",
+                  rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-30 hover:opacity-60"
+                )}
+              >
+                ☕️
+              </button>
+            ))}
+          </div>
+        </div>
+
         <button 
           onClick={() => setIsAddingDetails(true)}
-          className="mt-8 px-6 py-3 rounded-full bg-white text-gray-600 font-medium shadow-sm border border-gray-100 active:scale-95 transition-all text-sm flex items-center justify-center min-w-[160px]"
+          className="mt-6 px-6 py-2.5 rounded-full bg-white text-gray-500 font-medium shadow-sm border border-gray-100 active:scale-95 transition-all text-xs uppercase tracking-wider flex items-center justify-center"
         >
           Add Details
         </button>
@@ -184,6 +210,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </button>
         </div>
         <div className="space-y-4 mb-2">
+          {/* Location */}
           <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl focus-within:ring-2 focus-within:ring-amber-500 transition-all">
             <MapPin className="text-amber-500" size={20} />
             <input 

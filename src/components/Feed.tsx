@@ -74,6 +74,14 @@ export default function Feed({ logs, getUserMap }: FeedProps) {
                   />
                 </div>
               )}
+              
+              {log.rating && (
+                <div className="flex items-center gap-0.5 mt-3">
+                  {[...Array(log.rating)].map((_, i) => (
+                    <span key={i} className="text-xl drop-shadow-sm">☕️</span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         );

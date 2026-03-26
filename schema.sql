@@ -62,3 +62,13 @@ USING (bucket_id = 'kafes');
 CREATE POLICY "Allow anon uploads to Kafes bucket" 
 ON storage.objects FOR INSERT 
 WITH CHECK (bucket_id = 'kafes');
+
+-- --------------------------------------------------------
+-- UPDATES
+-- --------------------------------------------------------
+
+-- Add Rating Column
+ALTER TABLE kafes ADD COLUMN rating INTEGER CHECK (rating >= 1 AND rating <= 8);
+
+-- Add Rating Column
+ALTER TABLE kafes ADD COLUMN rating INTEGER CHECK (rating >= 1 AND rating <= 8);

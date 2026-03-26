@@ -13,4 +13,5 @@ export type KafeLog = {
   location?: string;
   notes?: string;
   photo_url?: string;
+  rating?: number;
 };
