@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Coffee, MapPin, Camera, Type } from 'lucide-react';
 import clsx from 'clsx';
 import { KafeType, User } from '../types';

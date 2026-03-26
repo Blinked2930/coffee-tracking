@@ -1,4 +1,3 @@
-import React from 'react';
 import { KafeLog, User } from '../types';
 import { Trophy, Medal, Award } from 'lucide-react';
 
@@ -35,7 +34,6 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
 
       <div className="space-y-4">
         {rankedUsers.map((user, index) => {
-          const isTop3 = index < 3;
           let RankIcon = null;
           if (index === 0) RankIcon = <Trophy size={20} className="text-yellow-500" />;
           if (index === 1) RankIcon = <Medal size={20} className="text-gray-400" />;

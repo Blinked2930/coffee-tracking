@@ -1,4 +1,3 @@
-import React from 'react';
 import { KafeLog, User } from '../types';
 import { Coffee, MapPin, Clock } from 'lucide-react';
 
