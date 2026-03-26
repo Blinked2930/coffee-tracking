@@ -13,7 +13,7 @@ const translations: Record<Language, Record<string, string>> = {
     welcomeBack: 'Welcome Back',
     selectName: 'Select your name...',
     enterPin: 'Enter your 4-digit PIN',
-    loggingIn: 'Logging in...',
+    loggingIn: 'Brewing...',
     enter: 'Enter',
     tapToLog: 'Tap to log',
     selectType: 'Select Type',
@@ -37,13 +37,14 @@ const translations: Record<Language, Record<string, string>> = {
     emptyFeed: 'No Kafes yet!',
     beFirst: 'Be the first to log a coffee date.',
     leaderboard: 'Leaderboard',
-    leaderboardSub: 'Who is vibrating the most?'
+    leaderboardSub: 'Who is vibrating the most?',
+    otherType: 'Other'
   },
   sq: {
     welcomeBack: 'Mirë se vjen',
     selectName: 'Zgjidh emrin tënd...',
     enterPin: 'Vendos PIN-in (4 shifra)',
-    loggingIn: 'Duke hyrë...',
+    loggingIn: 'Duke u përgatitur...',
     enter: 'Hyr',
     tapToLog: 'Shtyp për të shtuar',
     selectType: 'Zgjidh Llojin',
@@ -67,7 +68,8 @@ const translations: Record<Language, Record<string, string>> = {
     emptyFeed: 'Nuk ka Kafe akoma!',
     beFirst: 'Bëhu i pari që shton një kafe.',
     leaderboard: 'Tabela e Liderëve',
-    leaderboardSub: 'Kush po dridhet më shumë?'
+    leaderboardSub: 'Kush po dridhet më shumë?',
+    otherType: 'Tjetër'
   }
 };
 

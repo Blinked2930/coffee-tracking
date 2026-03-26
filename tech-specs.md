@@ -1,10 +1,10 @@
 # Technical Specifications: Kafe Tracker
 
 ## 1. Architecture
-- **Frontend Framework:** Next.js (App Router) or Vite + React
+- **Frontend Framework:** Next.js (App Router)
 - **Styling:** Tailwind CSS (for mobile-first, clean UI)
 - **Backend & Database:** Supabase (PostgreSQL, Auth, Storage)
-- **Hosting:** Vercel (for Next.js) or Netlify (for Vite)
+- **Hosting:** Vercel (for Next.js)
 
 ## 2. Database Schema (Supabase)
 

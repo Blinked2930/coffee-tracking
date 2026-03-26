@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { KafeLog } from '../types';
 import { supabase } from '../lib/supabase';
-import { MapPin, Type, Trash2, X } from 'lucide-react';
+import { compressImage } from '../lib/imageUtils';
+import { MapPin, Type, Trash2, X, Camera } from 'lucide-react';
+import { useRef } from 'react';
 import clsx from 'clsx';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -15,14 +17,33 @@ export default function EditKafeModal({ log, onClose }: Props) {
   const [location, setLocation] = useState(log.location || '');
   const [notes, setNotes] = useState(log.notes || '');
   const [rating, setRating] = useState(log.rating || 0);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [deletePhoto, setDeletePhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
     setIsSaving(true);
+    let finalPhotoUrl = deletePhoto ? null : log.photo_url;
+    
+    if (photoFile) {
+      const compressedFile = await compressImage(photoFile);
+      const fileExt = compressedFile.name.split('.').pop() || 'jpg';
+      const fileName = `${log.user_id}-${Math.random()}.${fileExt}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('kafes')
+        .upload(fileName, compressedFile);
+        
+      if (!uploadError && uploadData) {
+        finalPhotoUrl = supabase.storage.from('kafes').getPublicUrl(fileName).data.publicUrl;
+      }
+    }
+
     await supabase.from('kafes').update({
       location: location || null,
       notes: notes || null,
-      rating: rating > 0 ? rating : null
+      rating: rating > 0 ? rating : null,
+      photo_url: finalPhotoUrl
     }).eq('id', log.id);
     setIsSaving(false);
     onClose();
@@ -80,6 +101,42 @@ export default function EditKafeModal({ log, onClose }: Props) {
               className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400" 
             />
           </div>
+
+          {(!deletePhoto && log.photo_url && !photoFile) ? (
+            <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+               <img src={log.photo_url} className="w-10 h-10 object-cover rounded-lg border border-gray-200" alt="Kafe" />
+               <span className="text-sm text-gray-600 font-medium flex-1">{t('photoAttached')}</span>
+               <button 
+                 onClick={() => setDeletePhoto(true)} 
+                 className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors active:scale-95"
+               >
+                 <Trash2 size={16} />
+               </button>
+            </div>
+          ) : (
+            <div className="flex gap-4">
+              <input 
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                ref={fileInputRef}
+                onChange={e => {
+                  setPhotoFile(e.target.files?.[0] || null);
+                  setDeletePhoto(false);
+                }}
+              />
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className={clsx(
+                  "flex-1 flex items-center justify-center gap-2 p-4 rounded-xl font-medium active:scale-95 transition-all text-sm",
+                  photoFile ? "bg-amber-100 text-amber-700" : "bg-gray-50 text-gray-600"
+                )}
+              >
+                <Camera size={18} className="text-amber-500 flex-shrink-0" /> 
+                {photoFile ? t('photoAttached') : t('uploadPhoto')}
+              </button>
+            </div>
+          )}
           
           <div className="pt-4 flex gap-3">
             <button 

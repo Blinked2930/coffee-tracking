@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { KafeType, User } from '../types';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
+import { compressImage } from '../lib/imageUtils';
 
 interface HomeProps {
   user: User;
@@ -26,7 +27,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const kafeOptions: { type: KafeType; icon: string; label: string }[] = [
-    { type: 'dublo', icon: '☕️', label: 'Dublo' },
+    { type: 'other', icon: '❓', label: t('otherType') },
     { type: 'kafe', icon: '☕️', label: 'Kafe' },
     { type: 'turkish kafe', icon: '🫖', label: 'Turkish' },
     { type: 'macchiato', icon: '🥛', label: 'Macchiato' },
@@ -39,11 +40,12 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     
     let uploadedPhotoUrl = null;
     if (photoFile) {
-      const fileExt = photoFile.name.split('.').pop() || 'jpg';
+      const compressedFile = await compressImage(photoFile);
+      const fileExt = compressedFile.name.split('.').pop() || 'jpg';
       const fileName = `${user.id}-${Math.random()}.${fileExt}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('kafes')
-        .upload(fileName, photoFile);
+        .upload(fileName, compressedFile);
         
       if (!uploadError && uploadData) {
         uploadedPhotoUrl = supabase.storage.from('kafes').getPublicUrl(fileName).data.publicUrl;
