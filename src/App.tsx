@@ -75,7 +75,7 @@ function App() {
   };
 
   if (!currentUser) {
-    return <Login onLogin={handleLogin} />;
+    return <Login users={users} onLogin={handleLogin} />;
   }
 
   const getUserMap = (id: string) => users.find(u => u.id === id);

@@ -40,3 +40,6 @@ CREATE POLICY "Allow anon read users" ON users FOR SELECT USING (true);
 ALTER TABLE kafes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow anon select kafes" ON kafes FOR SELECT USING (true);
 CREATE POLICY "Allow anon insert kafes" ON kafes FOR INSERT WITH CHECK (true);
+
+-- Enable Realtime for the kafes table so the UI updates instantly
+alter publication supabase_realtime add table kafes;

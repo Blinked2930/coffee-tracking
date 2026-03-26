@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import { Coffee } from 'lucide-react';
 
+import { User } from '../types';
+
 interface LoginProps {
+  users: User[];
   onLogin: (name: string, pin: string) => Promise<boolean>;
 }
 
-const PREDEFINED_USERS = [
-  'Alice', 'Bob', 'Charlie', 'David',
-  'Eve', 'Frank', 'Grace', 'Heidi'
-];
-
-export default function Login({ onLogin }: LoginProps) {
+export default function Login({ users, onLogin }: LoginProps) {
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [pin, setPin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -46,8 +44,8 @@ export default function Login({ onLogin }: LoginProps) {
               required
             >
               <option value="" disabled>Select your name...</option>
-              {PREDEFINED_USERS.map((user) => (
-                <option key={user} value={user}>{user}</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.name}>{user.name}</option>
               ))}
             </select>
           </div>
