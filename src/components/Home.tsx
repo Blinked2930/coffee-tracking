@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import clsx from 'clsx';
 import { KafeType, User } from '../types';
 import { supabase } from '../lib/supabase';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface HomeProps {
   user: User;
@@ -11,6 +12,7 @@ interface HomeProps {
 }
 
 export default function Home({ user, onKafeLogged }: HomeProps) {
+  const { t } = useLanguage();
   const [selectedType, setSelectedType] = useState<KafeType>('kafe');
   const [isAddingDetails, setIsAddingDetails] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -111,7 +113,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/30 border-t-white animate-spin" />
               <Coffee size={48} className="text-white mb-2 drop-shadow-md animate-pulse" />
-              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md">Brewing...</span>
+              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
             </>
           )}
 
@@ -119,7 +121,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_10s_linear_infinite]" />
               <span className="text-6xl mb-2 drop-shadow-md animate-bounce">🎉</span>
-              <span className="text-white text-3xl font-black tracking-wider drop-shadow-md mt-2">Logged!</span>
+              <span className="text-white text-3xl font-black tracking-wider drop-shadow-md mt-2">{t('done')}</span>
             </>
           )}
 
@@ -128,13 +130,13 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
               <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
               <Coffee size={56} className="text-white mb-2 drop-shadow-md" />
               <span className="text-white text-4xl font-black tracking-wider drop-shadow-md">+1 Kafe</span>
-              <span className="text-amber-700/80 font-medium mt-1 uppercase tracking-widest text-sm">Tap to log</span>
+              <span className="text-amber-700/80 font-medium mt-1 uppercase tracking-widest text-sm">{t('tapToLog')}</span>
             </>
           )}
         </button>
 
         <div className="mt-8 w-full max-w-sm">
-          <p className="text-center text-sm font-medium text-gray-500 mb-4 uppercase tracking-widest">Select Type</p>
+          <p className="text-center text-sm font-medium text-gray-500 mb-4 uppercase tracking-widest">{t('selectType')}</p>
           <div className="grid grid-cols-3 gap-3">
             {kafeOptions.map((option) => (
               <button
@@ -160,7 +162,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         <div className="mt-6 w-full max-w-sm flex flex-col items-center">
           <div className="flex items-center gap-2 mb-3">
              <div className="h-px w-8 bg-gray-200" />
-             <p className="text-center text-xs font-bold text-gray-300 uppercase tracking-widest">Rating</p>
+             <p className="text-center text-xs font-bold text-gray-300 uppercase tracking-widest">{t('ratingOpt')}</p>
              <div className="h-px w-8 bg-gray-200" />
           </div>
           <div className="flex justify-between w-full px-2">
@@ -183,7 +185,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           onClick={() => setIsAddingDetails(true)}
           className="mt-6 px-6 py-2.5 rounded-full bg-white text-gray-500 font-medium shadow-sm border border-gray-100 active:scale-95 transition-all text-xs uppercase tracking-wider flex items-center justify-center"
         >
-          Add Details
+          {t('addDetails')}
         </button>
       </div>
 
@@ -201,12 +203,12 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         isAddingDetails ? "translate-y-0" : "translate-y-[120%]"
       )}>
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-gray-900">Lokal Details</h3>
+          <h3 className="text-xl font-bold text-gray-900">{t('lokalDetails')}</h3>
           <button 
             onClick={() => setIsAddingDetails(false)}
             className="px-4 py-2 bg-gray-100 rounded-full text-xs font-bold text-gray-500 uppercase tracking-widest active:scale-95"
           >
-            Done
+            {t('done')}
           </button>
         </div>
         <div className="space-y-4 mb-2">
@@ -217,7 +219,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
               type="text" 
               value={location}
               onChange={e => setLocation(e.target.value)}
-              placeholder="Cafe Name or Location" 
+              placeholder={t('cafeName')} 
               className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400" 
             />
           </div>
@@ -237,7 +239,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
               )}
             >
               <Camera size={18} className="text-amber-500 flex-shrink-0" /> 
-              {photoFile ? 'Photo Attached' : 'Upload Photo'}
+              {photoFile ? t('photoAttached') : t('uploadPhoto')}
             </button>
             <div className="flex-[1.5] flex items-center gap-3 bg-gray-50 p-4 rounded-xl focus-within:ring-2 focus-within:ring-amber-500 transition-all">
                <Type className="text-amber-500 flex-shrink-0" size={18} />
@@ -245,7 +247,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
                  type="text" 
                  value={notes}
                  onChange={e => setNotes(e.target.value)}
-                 placeholder="Notes" 
+                 placeholder={t('notes')} 
                  className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 text-sm" 
                />
             </div>

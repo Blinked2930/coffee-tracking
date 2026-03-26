@@ -1,27 +1,33 @@
+import { useState } from 'react';
 import { KafeLog, User } from '../types';
-import { Coffee, MapPin, Clock } from 'lucide-react';
+import { Coffee, MapPin, Clock, Pencil } from 'lucide-react';
+import EditKafeModal from './EditKafeModal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface FeedProps {
   logs: KafeLog[];
   getUserMap: (id: string) => User | undefined;
+  currentUser: User;
 }
 
-export default function Feed({ logs, getUserMap }: FeedProps) {
+export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
+  const { t } = useLanguage();
+  const [editingLog, setEditingLog] = useState<KafeLog | null>(null);
   if (logs.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-6 text-center">
         <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
           <Coffee size={32} className="text-gray-400" />
         </div>
-        <h3 className="text-lg font-bold text-gray-900">No Kafes yet!</h3>
-        <p className="text-gray-500 mt-2">Be the first to log a coffee date.</p>
+        <h3 className="text-lg font-bold text-gray-900">{t('emptyFeed')}</h3>
+        <p className="text-gray-500 mt-2">{t('beFirst')}</p>
       </div>
     );
   }
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Kafes</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-6">{t('recentKafes')}</h2>
       {logs.map((log) => {
         const user = getUserMap(log.user_id);
         
@@ -40,11 +46,18 @@ export default function Feed({ logs, getUserMap }: FeedProps) {
             {/* Content block */}
             <div className="flex-1">
               <div className="flex justify-between items-start mb-1">
-                <p className="font-bold text-gray-900">{user?.name}</p>
-                <div className="flex items-center text-gray-400 text-xs gap-1">
-                  <Clock size={12} />
-                  <span>{dateStr}, {timeStr}</span>
+                <div>
+                  <p className="font-bold text-gray-900">{user?.name}</p>
+                  <div className="flex items-center text-gray-400 text-xs gap-1">
+                    <Clock size={12} />
+                    <span>{dateStr}, {timeStr}</span>
+                  </div>
                 </div>
+                {currentUser?.id === log.user_id && (
+                  <button onClick={() => setEditingLog(log)} className="text-gray-400 hover:text-amber-500 p-2 -mr-3 -mt-2 active:scale-95 transition-transform">
+                    <Pencil size={14} />
+                  </button>
+                )}
               </div>
               
               <p className="text-gray-600 text-sm">
@@ -86,6 +99,8 @@ export default function Feed({ logs, getUserMap }: FeedProps) {
           </div>
         );
       })}
+      
+      {editingLog && <EditKafeModal log={editingLog} onClose={() => setEditingLog(null)} />}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { KafeLog, User } from '../types';
 import { Trophy, Medal, Award } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface LeaderboardProps {
   logs: KafeLog[];
@@ -7,6 +8,8 @@ interface LeaderboardProps {
 }
 
 export default function Leaderboard({ logs, users }: LeaderboardProps) {
+  const { t } = useLanguage();
+  
   // Aggregate counts
   const counts = logs.reduce((acc, log) => {
     acc[log.user_id] = (acc[log.user_id] || 0) + 1;
@@ -27,8 +30,8 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
           <Trophy size={24} />
         </div>
         <div>
-          <h2 className="text-2xl font-black text-gray-900">Leaderboard</h2>
-          <p className="text-sm text-gray-500">Who is vibrating the most?</p>
+          <h2 className="text-2xl font-black text-gray-900">{t('leaderboard')}</h2>
+          <p className="text-sm text-gray-500">{t('leaderboardSub')}</p>
         </div>
       </div>
 

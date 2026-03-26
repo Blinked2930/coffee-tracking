@@ -27,9 +27,15 @@ function App() {
     fetchLogs();
     
     // Subscribe to new kafes
-    const channel = supabase.channel('custom-insert-channel')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'kafes' }, (payload) => {
-        setLogs(current => [payload.new as KafeLog, ...current]);
+    const channel = supabase.channel('custom-all-channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kafes' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setLogs(current => [payload.new as KafeLog, ...current]);
+        } else if (payload.eventType === 'UPDATE') {
+          setLogs(current => current.map(l => l.id === payload.new.id ? payload.new as KafeLog : l));
+        } else if (payload.eventType === 'DELETE') {
+          setLogs(current => current.filter(l => l.id !== payload.old.id));
+        }
       })
       .subscribe();
       
@@ -88,7 +94,7 @@ function App() {
       onLogout={handleLogout}
     >
       {activeTab === 'home' && <Home user={currentUser} onKafeLogged={fetchLogs} />}
-      {activeTab === 'feed' && <Feed logs={logs} getUserMap={getUserMap} />}
+      {activeTab === 'feed' && <Feed logs={logs} getUserMap={getUserMap} currentUser={currentUser} />}
       {activeTab === 'leaderboard' && <Leaderboard logs={logs} users={users} />}
     </Layout>
   );

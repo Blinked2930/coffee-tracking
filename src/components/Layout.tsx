@@ -1,7 +1,8 @@
 import React from 'react';
-import { Home, List, Trophy, LogOut } from 'lucide-react';
+import { Home as HomeIcon, List, Trophy, LogOut, Globe } from 'lucide-react';
 import clsx from 'clsx';
 import { User } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface LayoutProps {
   user: User;
@@ -12,6 +13,7 @@ interface LayoutProps {
 }
 
 export default function Layout({ user, activeTab, onTabChange, onLogout, children }: LayoutProps) {
+  const { t, lang, toggleLang } = useLanguage();
   return (
     <div className="flex flex-col h-[100dvh] bg-gray-50 overflow-hidden">
       {/* Header */}
@@ -21,17 +23,26 @@ export default function Layout({ user, activeTab, onTabChange, onLogout, childre
             {user.name.charAt(0)}
           </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium tracking-wider uppercase">Welcome back</p>
+            <p className="text-xs text-gray-500 font-medium tracking-wider uppercase">{t('welcomeBack')}</p>
             <h2 className="text-font font-bold text-gray-900 leading-tight">{user.name}</h2>
           </div>
         </div>
-        <button 
-          onClick={onLogout}
-          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-          aria-label="Log out"
-        >
-          <LogOut size={20} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button 
+            onClick={toggleLang}
+            className="flex items-center gap-1 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <span className="text-xs font-bold uppercase">{lang}</span>
+            <Globe size={18} />
+          </button>
+          <button 
+            onClick={onLogout}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Log out"
+          >
+            <LogOut size={20} />
+          </button>
+        </div>
       </header>
 
       {/* Main Content Area */}
@@ -42,20 +53,20 @@ export default function Layout({ user, activeTab, onTabChange, onLogout, childre
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 w-full bg-white border-t border-gray-100 px-6 py-4 pb-safe flex justify-around items-center z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.02)]">
         <NavButton 
-          icon={<Home size={24} />} 
-          label="Home" 
+          icon={<HomeIcon size={24} />} 
+          label={t('home')} 
           isActive={activeTab === 'home'} 
           onClick={() => onTabChange('home')} 
         />
         <NavButton 
           icon={<List size={24} />} 
-          label="Feed" 
+          label={t('feed')} 
           isActive={activeTab === 'feed'} 
           onClick={() => onTabChange('feed')} 
         />
         <NavButton 
           icon={<Trophy size={24} />} 
-          label="Rankings" 
+          label={t('rankings')} 
           isActive={activeTab === 'leaderboard'} 
           onClick={() => onTabChange('leaderboard')} 
         />

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Coffee } from 'lucide-react';
 
 import { User } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface LoginProps {
   users: User[];
@@ -9,6 +10,7 @@ interface LoginProps {
 }
 
 export default function Login({ users, onLogin }: LoginProps) {
+  const { t } = useLanguage();
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [pin, setPin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,20 +32,20 @@ export default function Login({ users, onLogin }: LoginProps) {
           <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
             <Coffee size={32} />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Kafe Tracker</h1>
-          <p className="text-gray-500 mt-2 text-center">Log your coffee dates instantly</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('welcomeBack')}</h1>
+          <p className="text-gray-500 mt-2 text-center">Kafe Tracker</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Who are you?</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('selectName').replace('...', '')}</label>
             <select
               value={selectedUser}
               onChange={(e) => setSelectedUser(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
               required
             >
-              <option value="" disabled>Select your name...</option>
+              <option value="" disabled>{t('selectName')}</option>
               {users.map((user) => (
                 <option key={user.id} value={user.name}>{user.name}</option>
               ))}
@@ -59,7 +61,7 @@ export default function Login({ users, onLogin }: LoginProps) {
               value={pin}
               onChange={(e) => setPin(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-center tracking-[0.5em] text-xl font-mono"
-              placeholder="••••"
+              placeholder={t('enterPin')}
               required
             />
           </div>
@@ -69,7 +71,7 @@ export default function Login({ users, onLogin }: LoginProps) {
             disabled={!selectedUser || !pin || isLoading}
             className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-amber-200 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center"
           >
-            {isLoading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : 'Enter Kafe Tracker'}
+            {isLoading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : t('enter')}
           </button>
         </form>
       </div>

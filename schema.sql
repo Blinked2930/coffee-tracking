@@ -41,6 +41,9 @@ ALTER TABLE kafes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow anon select kafes" ON kafes FOR SELECT USING (true);
 CREATE POLICY "Allow anon insert kafes" ON kafes FOR INSERT WITH CHECK (true);
 
+CREATE POLICY "Allow anon update kafes" ON kafes FOR UPDATE USING (true);
+CREATE POLICY "Allow anon delete kafes" ON kafes FOR DELETE USING (true);
+
 -- Enable Realtime for the kafes table so the UI updates instantly
 alter publication supabase_realtime add table kafes;
 
