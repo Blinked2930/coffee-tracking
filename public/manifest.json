@@ -1,0 +1,16 @@
+{
+  "name": "Kafe Tracker",
+  "short_name": "Kafes",
+  "description": "Log your coffee dates instantly",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f59e0b",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
