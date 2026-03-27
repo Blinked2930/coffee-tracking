@@ -27,12 +27,12 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const kafeOptions: { type: KafeType; icon: string; label: string }[] = [
-    { type: 'other', icon: '❓', label: t('otherType') },
     { type: 'kafe', icon: '☕️', label: 'Kafe' },
     { type: 'turkish kafe', icon: '🫖', label: 'Turkish' },
     { type: 'macchiato', icon: '🥛', label: 'Macchiato' },
     { type: 'cappicino', icon: '☁️', label: 'Cappicino' },
-    { type: 'freddo', icon: '🧊', label: 'Freddo' },
+    { type: 'cai', icon: '🍵', label: 'Çai' },
+    { type: 'other', icon: '❓', label: t('otherType') },
   ];
 
   const handleLogKafe = async () => {
