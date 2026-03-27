@@ -3,7 +3,7 @@ export type User = {
   name: string;
 };
 
-export type KafeType = 'dublo' | 'kafe' | 'turkish kafe' | 'macchiato' | 'cappicino' | 'freddo' | 'other';
+export type KafeType = 'dublo' | 'kafe' | 'turkish kafe' | 'macchiato' | 'cappicino' | 'freddo' | 'cai' | 'other';
 
 export type KafeLog = {
   id: string;
