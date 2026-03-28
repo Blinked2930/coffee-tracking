@@ -32,6 +32,9 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     { type: 'macchiato', icon: '🥛', label: 'Macchiato' },
     { type: 'cappicino', icon: '☁️', label: 'Cappicino' },
     { type: 'cai', icon: '🍵', label: 'Çai' },
+    { type: 'freddo', icon: '🧊', label: 'Freddo' },
+    { type: 'canned_coffee', icon: '🥫', label: 'Canned Coffee' },
+    { type: 'energy_drink', icon: '🔋', label: 'Energy Drink' },
     { type: 'other', icon: '❓', label: t('otherType') },
   ];
 
@@ -137,22 +140,26 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           )}
         </button>
 
-        <div className="mt-8 w-full max-w-sm">
+        {/* Expanded max-width for desktop so the grid can breathe */}
+        <div className="mt-8 w-full max-w-sm md:max-w-md lg:max-w-lg">
           <p className="text-center text-sm font-medium text-gray-500 mb-4 uppercase tracking-widest">{t('selectType')}</p>
-          <div className="grid grid-cols-3 gap-3">
+          {/* Increased gap size on desktop */}
+          <div className="grid grid-cols-3 gap-3 md:gap-4 lg:gap-5">
             {kafeOptions.map((option) => (
               <button
                 key={option.type}
                 onClick={() => setSelectedType(option.type)}
                 className={clsx(
-                  "aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all shadow-sm",
+                  "aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 md:gap-2 lg:gap-3 transition-all shadow-sm",
                   selectedType === option.type
                     ? "bg-white border-2 border-amber-500 scale-105 shadow-md"
                     : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
                 )}
               >
-                <span className="text-3xl">{option.icon}</span>
-                <span className={clsx("text-xs font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
+                {/* Scaled up icons for desktop */}
+                <span className="text-3xl md:text-4xl lg:text-5xl">{option.icon}</span>
+                {/* Scaled up text for desktop */}
+                <span className={clsx("text-[10px] md:text-xs lg:text-sm leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
                   {option.label}
                 </span>
               </button>
@@ -160,8 +167,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </div>
         </div>
 
-        {/* Rating row directly on the homescreen */}
-        <div className="mt-6 w-full max-w-sm flex flex-col items-center">
+        <div className="mt-6 w-full max-w-sm md:max-w-md flex flex-col items-center">
           <div className="flex items-center gap-2 mb-3">
              <div className="h-px w-8 bg-gray-200" />
              <p className="text-center text-xs font-bold text-gray-300 uppercase tracking-widest">{t('ratingOpt')}</p>
@@ -173,7 +179,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
                 key={num}
                 onClick={() => setRating(num === rating ? 0 : num)}
                 className={clsx(
-                  "text-2xl transition-all active:scale-75",
+                  "text-2xl md:text-3xl lg:text-4xl transition-all active:scale-75",
                   rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-30 hover:opacity-60"
                 )}
               >
@@ -185,7 +191,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
         <button 
           onClick={() => setIsAddingDetails(true)}
-          className="mt-6 px-6 py-2.5 rounded-full bg-white text-gray-500 font-medium shadow-sm border border-gray-100 active:scale-95 transition-all text-xs uppercase tracking-wider flex items-center justify-center"
+          className="mt-6 px-6 py-2.5 md:px-8 md:py-3 rounded-full bg-white text-gray-500 font-medium shadow-sm border border-gray-100 active:scale-95 transition-all text-xs md:text-sm uppercase tracking-wider flex items-center justify-center"
         >
           {t('addDetails')}
         </button>
@@ -201,14 +207,14 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
       {/* Details drawer (Fixed Bottom Sheet) */}
       <div className={clsx(
-        "fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 transition-transform duration-300 ease-in-out p-6 border-t border-gray-100",
+        "fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 transition-transform duration-300 ease-in-out p-6 md:p-8 lg:p-10 border-t border-gray-100 max-w-2xl mx-auto",
         isAddingDetails ? "translate-y-0" : "translate-y-[120%]"
       )}>
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-gray-900">{t('lokalDetails')}</h3>
+          <h3 className="text-xl md:text-2xl font-bold text-gray-900">{t('lokalDetails')}</h3>
           <button 
             onClick={() => setIsAddingDetails(false)}
-            className="px-4 py-2 bg-gray-100 rounded-full text-xs font-bold text-gray-500 uppercase tracking-widest active:scale-95"
+            className="px-4 py-2 bg-gray-100 rounded-full text-xs md:text-sm font-bold text-gray-500 uppercase tracking-widest active:scale-95"
           >
             {t('done')}
           </button>
@@ -222,7 +228,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
               value={location}
               onChange={e => setLocation(e.target.value)}
               placeholder={t('cafeName')} 
-              className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400" 
+              className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 md:text-lg" 
             />
           </div>
           <div className="flex gap-4">
@@ -236,7 +242,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
             <button 
               onClick={() => fileInputRef.current?.click()}
               className={clsx(
-                "flex-1 flex items-center justify-center gap-2 p-4 rounded-xl font-medium active:scale-95 transition-all text-sm",
+                "flex-1 flex items-center justify-center gap-2 p-4 rounded-xl font-medium active:scale-95 transition-all text-sm md:text-base",
                 photoFile ? "bg-amber-100 text-amber-700" : "bg-gray-50 text-gray-600"
               )}
             >
@@ -250,7 +256,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
                  value={notes}
                  onChange={e => setNotes(e.target.value)}
                  placeholder={t('notes')} 
-                 className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 text-sm" 
+                 className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 text-sm md:text-base" 
                />
             </div>
           </div>
