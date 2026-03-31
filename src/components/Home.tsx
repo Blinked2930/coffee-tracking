@@ -38,6 +38,22 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     { type: 'other', icon: '❓', label: t('otherType') },
   ];
 
+  const requestNotificationPermission = async () => {
+    if (!("Notification" in window)) {
+      alert("This browser does not support desktop notification");
+      return;
+    }
+
+    if (Notification.permission === "granted") {
+      new Notification("Notifications are already enabled! 🎉");
+    } else if (Notification.permission !== "denied") {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        new Notification("Awesome! You will now get Kafe updates.");
+      }
+    }
+  };
+
   const handleLogKafe = async () => {
     setIsSaving(true);
     
@@ -85,6 +101,14 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       colors: ['#f59e0b', '#fbbf24', '#fcd34d', '#ffffff'],
       disableForReducedMotion: true
     });
+
+    // Fire Local Notification
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("Kafe Logged! ☕️", {
+        body: `You successfully logged a ${selectedType}.`,
+        icon: '/vite.svg' 
+      });
+    }
 
     // Reset Forms and redirect to feed after celebration
     setTimeout(() => {
@@ -195,6 +219,15 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         >
           {t('addDetails')}
         </button>
+
+        {("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") && (
+          <button 
+            onClick={requestNotificationPermission}
+            className="mt-4 px-4 py-2 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wider active:scale-95 transition-all"
+          >
+            Enable Notifications 🔔
+          </button>
+        )}
       </div>
 
       {/* Modal Overlay */}
