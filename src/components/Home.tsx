@@ -102,12 +102,29 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       disableForReducedMotion: true
     });
 
-    // Fire Local Notification
+    // Fire Local Notification (Mobile-Friendly via Service Worker)
     if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("Kafe Logged! ☕️", {
-        body: `You successfully logged a ${selectedType}.`,
-        icon: '/vite.svg' 
-      });
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.showNotification("Kafe Logged! ☕️", {
+            body: `You successfully logged a ${selectedType}.`,
+            icon: '/vite.svg',
+            vibrate: [200, 100, 200] // Added a small buzz pattern!
+          });
+        }).catch((err) => {
+          console.log("Service Worker notification failed, falling back to standard:", err);
+          new Notification("Kafe Logged! ☕️", {
+            body: `You successfully logged a ${selectedType}.`,
+            icon: '/vite.svg' 
+          });
+        });
+      } else {
+        // Fallback for browsers that support notifications but not service workers
+        new Notification("Kafe Logged! ☕️", {
+          body: `You successfully logged a ${selectedType}.`,
+          icon: '/vite.svg' 
+        });
+      }
     }
 
     // Reset Forms and redirect to feed after celebration
