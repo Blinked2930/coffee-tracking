@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Coffee, MapPin, Camera, Type } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import clsx from 'clsx';
@@ -6,6 +6,22 @@ import { KafeType, User } from '../types';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
 import { compressImage } from '../lib/imageUtils';
+
+// Web Push API requires the VAPID public key to be converted to a Uint8Array
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 interface HomeProps {
   user: User;
@@ -19,12 +35,20 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
+  const [permissionStatus, setPermissionStatus] = useState<NotificationPermission | 'default'>('default');
+  
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
   const [rating, setRating] = useState<number>(0);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if ("Notification" in window) {
+      setPermissionStatus(Notification.permission);
+    }
+  }, []);
 
   const kafeOptions: { type: KafeType; icon: string; label: string }[] = [
     { type: 'kafe', icon: '☕️', label: 'Kafe' },
@@ -44,13 +68,47 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       return;
     }
 
-    if (Notification.permission === "granted") {
-      new Notification("Notifications are already enabled! 🎉");
-    } else if (Notification.permission !== "denied") {
+    try {
       const permission = await Notification.requestPermission();
+      setPermissionStatus(permission);
+
       if (permission === "granted") {
-        new Notification("Awesome! You will now get Kafe updates.");
+        if ('serviceWorker' in navigator) {
+          // Wait for the Service Worker to be ready
+          const registration = await navigator.serviceWorker.ready;
+          
+          const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+          if (!vapidPublicKey) {
+            console.error("VITE_VAPID_PUBLIC_KEY is missing from environment variables!");
+            return;
+          }
+
+          // Generate the Push Subscription token
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+          });
+
+          // Save the token to Supabase using upsert (updates if exists, inserts if new)
+          const { error } = await supabase
+            .from('push_subscriptions')
+            .upsert({ 
+              user_id: user.id, 
+              subscription: JSON.parse(JSON.stringify(subscription)) 
+            }, { onConflict: 'user_id' });
+
+          if (error) {
+            console.error("Failed to save push subscription to Supabase:", error);
+          } else {
+            console.log("Successfully subscribed to remote push notifications!");
+            new Notification("Awesome! You will now get Kafe updates.");
+          }
+        } else {
+          new Notification("Notifications enabled, but Service Workers aren't supported on this browser.");
+        }
       }
+    } catch (error) {
+      console.error("Error setting up push notifications:", error);
     }
   };
 
@@ -103,13 +161,11 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     });
 
     // Fire Local Notification with iOS Bypass
-    if ("Notification" in window && Notification.permission === "granted") {
-      // Detect if the user is on an iOS device (iPhone, iPad, iPod)
+    if ("Notification" in window && permissionStatus === "granted") {
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
 
       if (isIOS) {
         try {
-          // The Apple fallback bypass
           new Notification("Kafe Logged! ☕️", {
             body: `You successfully logged a ${selectedType}.`,
             icon: '/vite.svg' 
@@ -118,7 +174,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           console.error("iOS local notification failed:", e);
         }
       } else if ('serviceWorker' in navigator) {
-        // Standard Android/Desktop Service Worker route
         navigator.serviceWorker.ready.then((registration) => {
           registration.showNotification("Kafe Logged! ☕️", {
             body: `You successfully logged a ${selectedType}.`,
@@ -237,7 +292,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           {t('addDetails')}
         </button>
 
-        {("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") && (
+        {("Notification" in window && permissionStatus === "default") && (
           <button 
             onClick={requestNotificationPermission}
             className="mt-4 px-4 py-2 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wider active:scale-95 transition-all"
