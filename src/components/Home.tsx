@@ -102,27 +102,31 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       disableForReducedMotion: true
     });
 
-    // Fire Local Notification (Mobile-Friendly via Service Worker)
+    // Fire Local Notification with iOS Bypass
     if ("Notification" in window && Notification.permission === "granted") {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-          registration.showNotification("Kafe Logged! ☕️", {
-            body: `You successfully logged a ${selectedType}.`,
-            icon: '/vite.svg',
-            vibrate: [200, 100, 200] // Added a small buzz pattern!
-          });
-        }).catch((err) => {
-          console.log("Service Worker notification failed, falling back to standard:", err);
+      // Detect if the user is on an iOS device (iPhone, iPad, iPod)
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+
+      if (isIOS) {
+        try {
+          // The Apple fallback bypass
           new Notification("Kafe Logged! ☕️", {
             body: `You successfully logged a ${selectedType}.`,
             icon: '/vite.svg' 
           });
-        });
-      } else {
-        // Fallback for browsers that support notifications but not service workers
-        new Notification("Kafe Logged! ☕️", {
-          body: `You successfully logged a ${selectedType}.`,
-          icon: '/vite.svg' 
+        } catch (e) {
+          console.error("iOS local notification failed:", e);
+        }
+      } else if ('serviceWorker' in navigator) {
+        // Standard Android/Desktop Service Worker route
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.showNotification("Kafe Logged! ☕️", {
+            body: `You successfully logged a ${selectedType}.`,
+            icon: '/vite.svg',
+            vibrate: [200, 100, 200]
+          });
+        }).catch((err) => {
+          console.log("Service Worker notification failed:", err);
         });
       }
     }
@@ -181,10 +185,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           )}
         </button>
 
-        {/* Expanded max-width for desktop so the grid can breathe */}
         <div className="mt-8 w-full max-w-sm md:max-w-md lg:max-w-lg">
           <p className="text-center text-sm font-medium text-gray-500 mb-4 uppercase tracking-widest">{t('selectType')}</p>
-          {/* Increased gap size on desktop */}
           <div className="grid grid-cols-3 gap-3 md:gap-4 lg:gap-5">
             {kafeOptions.map((option) => (
               <button
@@ -197,9 +199,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
                     : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
                 )}
               >
-                {/* Scaled up icons for desktop */}
                 <span className="text-3xl md:text-4xl lg:text-5xl">{option.icon}</span>
-                {/* Scaled up text for desktop */}
                 <span className={clsx("text-[10px] md:text-xs lg:text-sm leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
                   {option.label}
                 </span>
