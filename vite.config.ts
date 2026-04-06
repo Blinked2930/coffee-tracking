@@ -15,10 +15,13 @@ export default defineConfig({
         description: 'Track daily kafes with the cohort',
         theme_color: '#f59e0b', // Matches the amber-500 from your UI
         background_color: '#ffffff',
-        display: 'standalone', // This hides the browser URL bar when installed
+        display: 'standalone' // This hides the browser URL bar when installed
+        
+        // ICONS TEMPORARILY COMMENTED OUT TO BYPASS VERCEL BUILD CRASH
+        /*
         icons: [
           {
-            src: 'pwa-192x192.png', // You will need to add these image files to your public folder later
+            src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
@@ -31,9 +34,10 @@ export default defineConfig({
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable' // Helps Android scale the icon perfectly
+            purpose: 'any maskable'
           }
         ]
+        */
       }
     })
   ],
