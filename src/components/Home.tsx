@@ -7,7 +7,6 @@ import { supabase } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
 import { compressImage } from '../lib/imageUtils';
 
-// Web Push API requires the VAPID public key to be converted to a Uint8Array
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding)
@@ -37,6 +36,9 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission | 'default'>('default');
   
+  // NEW: State to control the visibility of the pop-up
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+  
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
   const [rating, setRating] = useState<number>(0);
@@ -47,8 +49,31 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   useEffect(() => {
     if ("Notification" in window) {
       setPermissionStatus(Notification.permission);
+      
+      // If they haven't made a choice yet, check our storage memory
+      if (Notification.permission === 'default') {
+        const declinedForever = localStorage.getItem('kafe_notifications_declined');
+        const dismissedSession = sessionStorage.getItem('kafe_notifications_session');
+        
+        // Only show if they haven't explicitly said "No" forever, or "Later" for this session
+        if (!declinedForever && !dismissedSession) {
+          // Add a 1.5 second delay so it doesn't aggressively jump scare them on load
+          const timer = setTimeout(() => setShowNotificationPrompt(true), 1500);
+          return () => clearTimeout(timer);
+        }
+      }
     }
   }, []);
+
+  const handleDismissSession = () => {
+    sessionStorage.setItem('kafe_notifications_session', 'true');
+    setShowNotificationPrompt(false);
+  };
+
+  const handleDeclineForever = () => {
+    localStorage.setItem('kafe_notifications_declined', 'true');
+    setShowNotificationPrompt(false);
+  };
 
   const kafeOptions: { type: KafeType; icon: string; label: string }[] = [
     { type: 'kafe', icon: '☕️', label: 'Kafe' },
@@ -71,6 +96,9 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     try {
       const permission = await Notification.requestPermission();
       setPermissionStatus(permission);
+      
+      // They made a choice, hide the prompt
+      setShowNotificationPrompt(false);
 
       if (permission === "granted") {
         if ('serviceWorker' in navigator) {
@@ -78,17 +106,15 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           
           const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
           if (!vapidPublicKey) {
-            alert("DEBUG: VITE_VAPID_PUBLIC_KEY is missing!");
+            console.error("VITE_VAPID_PUBLIC_KEY is missing!");
             return;
           }
 
-          // 1. Try to generate the subscription
           const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
           });
 
-          // 2. Try to save to Supabase
           const { error } = await supabase
             .from('push_subscriptions')
             .upsert({ 
@@ -97,17 +123,17 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
             }, { onConflict: 'user_id' });
 
           if (error) {
-            alert(`SUPABASE ERROR: ${error.message}`);
+            console.error("Supabase Error:", error.message);
           } else {
-            alert("SUCCESS: Subscription saved to database!");
             new Notification("Awesome! You will now get Kafe updates.");
           }
-        } else {
-          alert("SERVICE WORKER NOT FOUND");
         }
+      } else if (permission === "denied") {
+        // If they click the native browser "Block" button, treat it as a hard decline forever
+        localStorage.setItem('kafe_notifications_declined', 'true');
       }
     } catch (error: any) {
-      alert(`CATCH ERROR: ${error.message || error}`);
+      console.error("Push Error:", error.message || error);
     }
   };
 
@@ -130,7 +156,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       }
     }
     
-    // Save to Supabase
     const { error } = await supabase.from('kafes').insert({
       user_id: user.id,
       type: selectedType,
@@ -150,7 +175,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     setIsSaving(false);
     setShowSuccess(true);
     
-    // Fire celebratory confetti!
     confetti({
       particleCount: 150,
       spread: 70,
@@ -159,7 +183,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       disableForReducedMotion: true
     });
 
-    // Fire Local Notification with iOS Bypass
     if ("Notification" in window && permissionStatus === "granted") {
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
 
@@ -185,7 +208,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       }
     }
 
-    // Reset Forms and redirect to feed after celebration
     setTimeout(() => {
       setShowSuccess(false);
       setLocation('');
@@ -200,6 +222,45 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
   return (
     <div className="flex flex-col min-h-[100%] px-6 py-4 pb-8 relative">
+      
+      {/* Full Screen Auto-Prompt for Notifications */}
+      {showNotificationPrompt && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center transform transition-all animate-in zoom-in-95 duration-200">
+            <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <span className="text-4xl drop-shadow-sm">🔔</span>
+            </div>
+            <h2 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Stay in the Loop</h2>
+            <p className="text-gray-500 mb-8 text-sm font-medium leading-relaxed">
+              Get notified instantly when the cohort logs a Kafe so you never miss a moment.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={requestNotificationPermission}
+                className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-white rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-amber-500/20"
+              >
+                Enable Notifications
+              </button>
+              
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  onClick={handleDismissSession}
+                  className="w-full py-3 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors active:scale-95"
+                >
+                  Maybe Later
+                </button>
+                <button
+                  onClick={handleDeclineForever}
+                  className="w-full py-3 bg-gray-50 text-red-400 hover:bg-red-50 hover:text-red-500 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors active:scale-95"
+                >
+                  No Thanks
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 flex flex-col items-center justify-center">
         <button
           onClick={handleLogKafe}
@@ -290,15 +351,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         >
           {t('addDetails')}
         </button>
-
-        {("Notification" in window && permissionStatus === "default") && (
-          <button 
-            onClick={requestNotificationPermission}
-            className="mt-4 px-4 py-2 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wider active:scale-95 transition-all"
-          >
-            Enable Notifications 🔔
-          </button>
-        )}
       </div>
 
       {/* Modal Overlay */}
