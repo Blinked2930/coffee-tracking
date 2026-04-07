@@ -64,7 +64,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
   const requestNotificationPermission = async () => {
     if (!("Notification" in window)) {
-      alert("This browser does not support desktop notification");
+      alert("This browser does not support notifications");
       return;
     }
 
@@ -74,22 +74,21 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
       if (permission === "granted") {
         if ('serviceWorker' in navigator) {
-          // Wait for the Service Worker to be ready
           const registration = await navigator.serviceWorker.ready;
           
           const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
           if (!vapidPublicKey) {
-            console.error("VITE_VAPID_PUBLIC_KEY is missing from environment variables!");
+            alert("DEBUG: VITE_VAPID_PUBLIC_KEY is missing!");
             return;
           }
 
-          // Generate the Push Subscription token
+          // 1. Try to generate the subscription
           const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
           });
 
-          // Save the token to Supabase using upsert (updates if exists, inserts if new)
+          // 2. Try to save to Supabase
           const { error } = await supabase
             .from('push_subscriptions')
             .upsert({ 
@@ -98,17 +97,17 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
             }, { onConflict: 'user_id' });
 
           if (error) {
-            console.error("Failed to save push subscription to Supabase:", error);
+            alert(`SUPABASE ERROR: ${error.message}`);
           } else {
-            console.log("Successfully subscribed to remote push notifications!");
+            alert("SUCCESS: Subscription saved to database!");
             new Notification("Awesome! You will now get Kafe updates.");
           }
         } else {
-          new Notification("Notifications enabled, but Service Workers aren't supported on this browser.");
+          alert("SERVICE WORKER NOT FOUND");
         }
       }
-    } catch (error) {
-      console.error("Error setting up push notifications:", error);
+    } catch (error: any) {
+      alert(`CATCH ERROR: ${error.message || error}`);
     }
   };
 
