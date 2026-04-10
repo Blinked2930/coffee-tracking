@@ -10,18 +10,32 @@ serve(async (req) => {
 
     // 2. Configure web-push with your VAPID keys
     webpush.setVapidDetails(
-      'mailto:test@example.com', // You can leave this as a dummy email
+      'mailto:test@example.com', 
       Deno.env.get('VAPID_PUBLIC_KEY')!,
       Deno.env.get('VAPID_PRIVATE_KEY')!
     )
 
-    // 3. Initialize Supabase Admin client to bypass Row Level Security
+    // 3. Initialize Supabase Admin client
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // 4. Fetch all subscriptions EXCEPT the person who just logged the coffee
+    // NEW: 4. Fetch the name of the user who logged the kafe
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('name')
+      .eq('id', newKafe.user_id)
+      .single()
+
+    if (userError) {
+      console.error("Could not fetch user name:", userError)
+    }
+
+    // Fallback to 'Someone' just in case the name isn't found
+    const userName = userData?.name || 'Someone'
+
+    // 5. Fetch all subscriptions EXCEPT the person who just logged the coffee
     const { data: subscriptions, error } = await supabaseAdmin
       .from('push_subscriptions')
       .select('subscription')
@@ -29,18 +43,23 @@ serve(async (req) => {
 
     if (error) throw error
 
-    // 5. Construct the notification
+    // UPDATED: 6. Construct the Rich Notification with the user's name!
     const notificationPayload = JSON.stringify({
       title: 'New Kafe Alert! ☕️',
-      body: `A new ${newKafe.type || 'kafe'} was just logged in the cohort!`,
+      body: `${userName} logged a ${newKafe.type || 'kafe'}!`,
       icon: '/vite.svg',
-      vibrate: [200, 100, 200]
+      image: newKafe.photo_url ? newKafe.photo_url : undefined,
+      vibrate: [200, 100, 200],
+      data: { 
+        // IMPORTANT: Replace this with your actual Vercel project URL!
+        url: 'https://kafe.emmettfrett.com/' 
+      }
     })
 
-    // 6. Blast the message out to Apple/Google push servers
+    // 7. Blast the message out
     const sendPromises = subscriptions.map((sub: any) => 
       webpush.sendNotification(sub.subscription, notificationPayload)
-        .catch(err => console.error('Push failed for a user (they may have unsubscribed):', err))
+        .catch(err => console.error('Push failed for a user:', err))
     )
 
     await Promise.all(sendPromises)
