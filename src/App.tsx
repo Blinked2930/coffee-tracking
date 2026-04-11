@@ -9,7 +9,8 @@ import { supabase } from './lib/supabase';
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<'home' | 'feed' | 'leaderboard'>('home');
+  // UPDATED: Added 'profile' to the state type
+  const [activeTab, setActiveTab] = useState<'home' | 'feed' | 'leaderboard' | 'profile'>('home');
   const [logs, setLogs] = useState<KafeLog[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
@@ -96,6 +97,17 @@ function App() {
       {activeTab === 'home' && <Home user={currentUser} onKafeLogged={fetchLogs} />}
       {activeTab === 'feed' && <Feed logs={logs} getUserMap={getUserMap} currentUser={currentUser} />}
       {activeTab === 'leaderboard' && <Leaderboard logs={logs} users={users} />}
+      
+      {/* NEW: Temporary Profile Page Placeholder */}
+      {activeTab === 'profile' && (
+        <div className="flex flex-col items-center justify-center h-full text-gray-400 p-6 text-center animate-in fade-in zoom-in duration-300">
+           <div className="w-24 h-24 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-4xl shadow-inner mb-6">
+             {currentUser.name.charAt(0)}
+           </div>
+           <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">{currentUser.name}'s Stats</h1>
+           <p className="font-medium text-gray-500">The Profile & Stats hub is under construction!</p>
+        </div>
+      )}
     </Layout>
   );
 }
