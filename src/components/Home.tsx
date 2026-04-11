@@ -242,10 +242,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* Adjusted the gaps slightly to accommodate the bigger button */}
       <div className="flex-1 flex flex-col items-center justify-center gap-5 sm:gap-6 w-full max-w-sm mx-auto min-h-0 py-2">
         
-        {/* BIGGER MAIN BUTTON: Bumped up to w-48 h-48 */}
         <button
           onClick={handleLogKafe}
           disabled={isSaving || showSuccess}
@@ -284,22 +282,23 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           )}
         </button>
 
-        {/* SMALLER GRID: Added px-6 to squeeze the grid inward */}
-        <div className="w-full px-6">
+        {/* ALIGNED GRID: Swapped px-6 for px-1 so it naturally spans the exact same width as the rating cups below it */}
+        <div className="w-full px-1">
           <div className="grid grid-cols-3 gap-3">
             {kafeOptions.map((option) => (
               <button
                 key={option.type}
                 onClick={() => setSelectedType(option.type)}
                 className={clsx(
-                  "aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all shadow-sm",
+                  "aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all shadow-sm",
                   selectedType === option.type
                     ? "bg-white border-2 border-amber-500 scale-105 shadow-md"
                     : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
                 )}
               >
-                <span className="text-xl sm:text-2xl">{option.icon}</span>
-                <span className={clsx("text-[10px] leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
+                {/* RESTORED BIG ICONS: text-3xl sm:text-4xl */}
+                <span className="text-3xl sm:text-4xl">{option.icon}</span>
+                <span className={clsx("text-[10px] sm:text-[11px] leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
                   {option.label}
                 </span>
               </button>
