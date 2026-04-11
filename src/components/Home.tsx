@@ -242,15 +242,15 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* justify-evenly dynamically spaces out the elements to fit the screen height */}
-      <div className="flex-1 flex flex-col items-center justify-evenly w-full max-w-sm mx-auto min-h-0 py-2">
+      {/* Condensing the layout by using flex-center and smaller gaps */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-5 sm:gap-6 w-full max-w-sm mx-auto min-h-0 py-2">
         
-        {/* Shrunk the button slightly so it fits perfectly on all phones */}
+        {/* Button shrunk further to w-40 h-40 to give the screen more breathing room */}
         <button
           onClick={handleLogKafe}
           disabled={isSaving || showSuccess}
           className={clsx(
-            "relative w-48 h-48 sm:w-52 sm:h-52 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0",
+            "relative w-40 h-40 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0",
             "active:scale-95 disabled:opacity-90",
             showSuccess 
               ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_20px_50px_rgba(52,211,153,0.5)] scale-105"
@@ -261,32 +261,32 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           {isSaving && (
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/30 border-t-white animate-spin" />
-              <Coffee size={40} className="text-white mb-2 drop-shadow-md animate-pulse" />
-              <span className="text-white text-xl font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
+              <Coffee size={36} className="text-white mb-1 drop-shadow-md animate-pulse" />
+              <span className="text-white text-lg font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
             </>
           )}
 
           {showSuccess && (
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_10s_linear_infinite]" />
-              <span className="text-5xl mb-2 drop-shadow-md animate-bounce">🎉</span>
-              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md mt-2">{t('done')}</span>
+              <span className="text-4xl mb-1 drop-shadow-md animate-bounce">🎉</span>
+              <span className="text-white text-xl font-black tracking-wider drop-shadow-md mt-1">{t('done')}</span>
             </>
           )}
 
           {(!isSaving && !showSuccess) && (
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
-              <Coffee size={48} className="text-white mb-2 drop-shadow-md" />
-              <span className="text-white text-3xl font-black tracking-wider drop-shadow-md">+1 Kafe</span>
-              <span className="text-amber-700/80 font-medium mt-1 uppercase tracking-widest text-xs">{t('tapToLog')}</span>
+              <Coffee size={36} className="text-white mb-1.5 drop-shadow-md" />
+              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md">+1 Kafe</span>
+              <span className="text-amber-700/80 font-medium mt-0.5 uppercase tracking-widest text-[10px]">{t('tapToLog')}</span>
             </>
           )}
         </button>
 
         <div className="w-full">
-          <p className="text-center text-xs font-bold text-gray-400 mb-3 uppercase tracking-widest">{t('selectType')}</p>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <p className="text-center text-[11px] font-bold text-gray-400 mb-2.5 uppercase tracking-widest">{t('selectType')}</p>
+          <div className="grid grid-cols-3 gap-2">
             {kafeOptions.map((option) => (
               <button
                 key={option.type}
@@ -298,8 +298,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
                     : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
                 )}
               >
-                <span className="text-3xl sm:text-4xl">{option.icon}</span>
-                <span className={clsx("text-[10px] sm:text-xs leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
+                <span className="text-2xl sm:text-3xl">{option.icon}</span>
+                <span className={clsx("text-[10px] leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
                   {option.label}
                 </span>
               </button>
@@ -310,7 +310,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         <div className="w-full flex flex-col items-center shrink-0">
           <div className="flex items-center gap-2 mb-2">
              <div className="h-px w-6 bg-gray-200" />
-             <p className="text-center text-[10px] font-bold text-gray-300 uppercase tracking-widest">{t('ratingOpt')}</p>
+             <p className="text-center text-[9px] font-bold text-gray-300 uppercase tracking-widest">{t('ratingOpt')}</p>
              <div className="h-px w-6 bg-gray-200" />
           </div>
           <div className="flex justify-between w-full px-1">
@@ -319,7 +319,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
                 key={num}
                 onClick={() => setRating(num === rating ? 0 : num)}
                 className={clsx(
-                  "text-2xl transition-all active:scale-75",
+                  "text-xl sm:text-2xl transition-all active:scale-75",
                   rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-30 hover:opacity-60"
                 )}
               >
@@ -331,7 +331,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
         <button 
           onClick={() => setIsAddingDetails(true)}
-          className="px-6 py-2.5 rounded-full bg-white text-gray-500 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-xs uppercase tracking-wider flex items-center justify-center shrink-0"
+          className="px-6 py-2.5 mt-1 rounded-full bg-white text-gray-500 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-[11px] uppercase tracking-wider flex items-center justify-center shrink-0"
         >
           {t('addDetails')}
         </button>

@@ -17,55 +17,60 @@ export default function Layout({ user, activeTab, onTabChange, children }: Layou
   return (
     <div className="flex flex-col h-[100dvh] bg-gray-50 overflow-hidden">
       
-      {/* Main Content Area - Header completely removed! */}
-      <main className="flex-1 overflow-y-auto pb-24 pt-4">
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-y-auto pb-28 pt-4">
         {children}
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 w-full bg-white border-t border-gray-100 px-6 py-3 pb-safe flex justify-between items-center z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
-        <NavButton 
-          icon={<HomeIcon size={24} />} 
-          label={t('home')} 
-          isActive={activeTab === 'home'} 
-          onClick={() => onTabChange('home')} 
-        />
-        <NavButton 
-          icon={<List size={24} />} 
-          label={t('feed')} 
-          isActive={activeTab === 'feed'} 
-          onClick={() => onTabChange('feed')} 
-        />
-        <NavButton 
-          icon={<Trophy size={24} />} 
-          label={t('rankings')} 
-          isActive={activeTab === 'leaderboard'} 
-          onClick={() => onTabChange('leaderboard')} 
-        />
-        
-        {/* Profile Button (Avatar) */}
-        <button
-          onClick={() => onTabChange('profile')}
-          className={clsx(
-            "flex flex-col items-center gap-1 transition-all",
-            activeTab === 'profile' ? "scale-105" : "opacity-80 hover:opacity-100"
-          )}
-        >
-          <div className={clsx(
-            "w-[38px] h-[38px] rounded-full flex items-center justify-center font-bold text-sm transition-all",
-            activeTab === 'profile' 
-              ? "bg-amber-500 text-white shadow-md ring-4 ring-amber-50" 
-              : "bg-gray-100 text-gray-600 border border-gray-200"
-          )}>
-            {user.name.charAt(0)}
-          </div>
-          <span className={clsx(
-            "text-[10px] font-medium tracking-wide", 
-            activeTab === 'profile' ? "font-bold text-amber-600" : "text-gray-400"
-          )}>
-            {user.name.split(' ')[0]}
-          </span>
-        </button>
+      {/* Bottom Navigation - Fixed padding for iOS home indicator and spacing */}
+      <nav 
+        className="fixed bottom-0 w-full bg-white border-t border-gray-100 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }}
+      >
+        <div className="flex justify-around items-center px-2 pt-3 pb-1 max-w-md mx-auto">
+          <NavButton 
+            icon={<HomeIcon size={24} />} 
+            label={t('home')} 
+            isActive={activeTab === 'home'} 
+            onClick={() => onTabChange('home')} 
+          />
+          <NavButton 
+            icon={<List size={24} />} 
+            label={t('feed')} 
+            isActive={activeTab === 'feed'} 
+            onClick={() => onTabChange('feed')} 
+          />
+          <NavButton 
+            icon={<Trophy size={24} />} 
+            label={t('rankings')} 
+            isActive={activeTab === 'leaderboard'} 
+            onClick={() => onTabChange('leaderboard')} 
+          />
+          
+          {/* Profile Button (Avatar) */}
+          <button
+            onClick={() => onTabChange('profile')}
+            className={clsx(
+              "flex flex-col items-center gap-1 transition-all",
+              activeTab === 'profile' ? "scale-105" : "opacity-80 hover:opacity-100"
+            )}
+          >
+            <div className={clsx(
+              "w-[34px] h-[34px] rounded-full flex items-center justify-center font-bold text-sm transition-all mb-0.5",
+              activeTab === 'profile' 
+                ? "bg-amber-500 text-white shadow-md ring-4 ring-amber-50" 
+                : "bg-gray-100 text-gray-600 border border-gray-200"
+            )}>
+              {user.name.charAt(0)}
+            </div>
+            <span className={clsx(
+              "text-[10px] font-medium tracking-wide", 
+              activeTab === 'profile' ? "font-bold text-amber-600" : "text-gray-400"
+            )}>
+              {user.name.split(' ')[0]}
+            </span>
+          </button>
+        </div>
       </nav>
     </div>
   );
@@ -76,7 +81,7 @@ function NavButton({ icon, label, isActive, onClick }: { icon: React.ReactNode, 
     <button
       onClick={onClick}
       className={clsx(
-        "flex flex-col items-center gap-1 transition-all",
+        "flex flex-col items-center gap-1 transition-all w-16",
         isActive ? "text-amber-500 scale-105" : "text-gray-400 hover:text-gray-600"
       )}
     >
