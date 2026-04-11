@@ -242,10 +242,9 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* Condensing the layout by using flex-center and smaller gaps */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-5 sm:gap-6 w-full max-w-sm mx-auto min-h-0 py-2">
+      {/* Condensing the layout by using flex-center and allowing slightly larger gaps now that text is removed */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-6 sm:gap-8 w-full max-w-sm mx-auto min-h-0 py-2">
         
-        {/* Button shrunk further to w-40 h-40 to give the screen more breathing room */}
         <button
           onClick={handleLogKafe}
           disabled={isSaving || showSuccess}
@@ -284,8 +283,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           )}
         </button>
 
+        {/* The Grid without the "Select Type" text */}
         <div className="w-full">
-          <p className="text-center text-[11px] font-bold text-gray-400 mb-2.5 uppercase tracking-widest">{t('selectType')}</p>
           <div className="grid grid-cols-3 gap-2">
             {kafeOptions.map((option) => (
               <button
@@ -307,12 +306,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </div>
         </div>
 
+        {/* The Rating Cups without the "Rating Optional" text */}
         <div className="w-full flex flex-col items-center shrink-0">
-          <div className="flex items-center gap-2 mb-2">
-             <div className="h-px w-6 bg-gray-200" />
-             <p className="text-center text-[9px] font-bold text-gray-300 uppercase tracking-widest">{t('ratingOpt')}</p>
-             <div className="h-px w-6 bg-gray-200" />
-          </div>
           <div className="flex justify-between w-full px-1">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
               <button
@@ -331,7 +326,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
         <button 
           onClick={() => setIsAddingDetails(true)}
-          className="px-6 py-2.5 mt-1 rounded-full bg-white text-gray-500 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-[11px] uppercase tracking-wider flex items-center justify-center shrink-0"
+          className="px-6 py-2.5 rounded-full bg-white text-gray-500 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-[11px] uppercase tracking-wider flex items-center justify-center shrink-0"
         >
           {t('addDetails')}
         </button>
