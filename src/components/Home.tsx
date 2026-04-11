@@ -35,8 +35,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   const [showSuccess, setShowSuccess] = useState(false);
   
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission | 'default'>('default');
-  
-  // NEW: State to control the visibility of the pop-up
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   
   const [location, setLocation] = useState('');
@@ -50,14 +48,11 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     if ("Notification" in window) {
       setPermissionStatus(Notification.permission);
       
-      // If they haven't made a choice yet, check our storage memory
       if (Notification.permission === 'default') {
         const declinedForever = localStorage.getItem('kafe_notifications_declined');
         const dismissedSession = sessionStorage.getItem('kafe_notifications_session');
         
-        // Only show if they haven't explicitly said "No" forever, or "Later" for this session
         if (!declinedForever && !dismissedSession) {
-          // Add a 1.5 second delay so it doesn't aggressively jump scare them on load
           const timer = setTimeout(() => setShowNotificationPrompt(true), 1500);
           return () => clearTimeout(timer);
         }
@@ -96,8 +91,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     try {
       const permission = await Notification.requestPermission();
       setPermissionStatus(permission);
-      
-      // They made a choice, hide the prompt
       setShowNotificationPrompt(false);
 
       if (permission === "granted") {
@@ -129,7 +122,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           }
         }
       } else if (permission === "denied") {
-        // If they click the native browser "Block" button, treat it as a hard decline forever
         localStorage.setItem('kafe_notifications_declined', 'true');
       }
     } catch (error: any) {
@@ -221,9 +213,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-[100%] px-6 py-4 pb-8 relative">
+    <div className="flex flex-col h-full px-4 relative overflow-hidden">
       
-      {/* Full Screen Auto-Prompt for Notifications */}
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center transform transition-all animate-in zoom-in-95 duration-200">
@@ -235,24 +226,14 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
               Get notified instantly when the cohort logs a Kafe so you never miss a moment.
             </p>
             <div className="space-y-3">
-              <button
-                onClick={requestNotificationPermission}
-                className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-white rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-amber-500/20"
-              >
+              <button onClick={requestNotificationPermission} className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-white rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-amber-500/20">
                 Enable Notifications
               </button>
-              
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                  onClick={handleDismissSession}
-                  className="w-full py-3 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors active:scale-95"
-                >
+                <button onClick={handleDismissSession} className="w-full py-3 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors active:scale-95">
                   Maybe Later
                 </button>
-                <button
-                  onClick={handleDeclineForever}
-                  className="w-full py-3 bg-gray-50 text-red-400 hover:bg-red-50 hover:text-red-500 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors active:scale-95"
-                >
+                <button onClick={handleDeclineForever} className="w-full py-3 bg-gray-50 text-red-400 hover:bg-red-50 hover:text-red-500 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors active:scale-95">
                   No Thanks
                 </button>
               </div>
@@ -261,12 +242,15 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col items-center justify-center">
+      {/* justify-evenly dynamically spaces out the elements to fit the screen height */}
+      <div className="flex-1 flex flex-col items-center justify-evenly w-full max-w-sm mx-auto min-h-0 py-2">
+        
+        {/* Shrunk the button slightly so it fits perfectly on all phones */}
         <button
           onClick={handleLogKafe}
           disabled={isSaving || showSuccess}
           className={clsx(
-            "relative w-56 h-56 rounded-full flex flex-col items-center justify-center transition-all duration-300",
+            "relative w-48 h-48 sm:w-52 sm:h-52 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0",
             "active:scale-95 disabled:opacity-90",
             showSuccess 
               ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_20px_50px_rgba(52,211,153,0.5)] scale-105"
@@ -277,45 +261,45 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           {isSaving && (
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/30 border-t-white animate-spin" />
-              <Coffee size={48} className="text-white mb-2 drop-shadow-md animate-pulse" />
-              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
+              <Coffee size={40} className="text-white mb-2 drop-shadow-md animate-pulse" />
+              <span className="text-white text-xl font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
             </>
           )}
 
           {showSuccess && (
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_10s_linear_infinite]" />
-              <span className="text-6xl mb-2 drop-shadow-md animate-bounce">🎉</span>
-              <span className="text-white text-3xl font-black tracking-wider drop-shadow-md mt-2">{t('done')}</span>
+              <span className="text-5xl mb-2 drop-shadow-md animate-bounce">🎉</span>
+              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md mt-2">{t('done')}</span>
             </>
           )}
 
           {(!isSaving && !showSuccess) && (
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
-              <Coffee size={56} className="text-white mb-2 drop-shadow-md" />
-              <span className="text-white text-4xl font-black tracking-wider drop-shadow-md">+1 Kafe</span>
-              <span className="text-amber-700/80 font-medium mt-1 uppercase tracking-widest text-sm">{t('tapToLog')}</span>
+              <Coffee size={48} className="text-white mb-2 drop-shadow-md" />
+              <span className="text-white text-3xl font-black tracking-wider drop-shadow-md">+1 Kafe</span>
+              <span className="text-amber-700/80 font-medium mt-1 uppercase tracking-widest text-xs">{t('tapToLog')}</span>
             </>
           )}
         </button>
 
-        <div className="mt-8 w-full max-w-sm md:max-w-md lg:max-w-lg">
-          <p className="text-center text-sm font-medium text-gray-500 mb-4 uppercase tracking-widest">{t('selectType')}</p>
-          <div className="grid grid-cols-3 gap-3 md:gap-4 lg:gap-5">
+        <div className="w-full">
+          <p className="text-center text-xs font-bold text-gray-400 mb-3 uppercase tracking-widest">{t('selectType')}</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {kafeOptions.map((option) => (
               <button
                 key={option.type}
                 onClick={() => setSelectedType(option.type)}
                 className={clsx(
-                  "aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 md:gap-2 lg:gap-3 transition-all shadow-sm",
+                  "aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all shadow-sm",
                   selectedType === option.type
                     ? "bg-white border-2 border-amber-500 scale-105 shadow-md"
                     : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
                 )}
               >
-                <span className="text-3xl md:text-4xl lg:text-5xl">{option.icon}</span>
-                <span className={clsx("text-[10px] md:text-xs lg:text-sm leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
+                <span className="text-3xl sm:text-4xl">{option.icon}</span>
+                <span className={clsx("text-[10px] sm:text-xs leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
                   {option.label}
                 </span>
               </button>
@@ -323,19 +307,19 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </div>
         </div>
 
-        <div className="mt-6 w-full max-w-sm md:max-w-md flex flex-col items-center">
-          <div className="flex items-center gap-2 mb-3">
-             <div className="h-px w-8 bg-gray-200" />
-             <p className="text-center text-xs font-bold text-gray-300 uppercase tracking-widest">{t('ratingOpt')}</p>
-             <div className="h-px w-8 bg-gray-200" />
+        <div className="w-full flex flex-col items-center shrink-0">
+          <div className="flex items-center gap-2 mb-2">
+             <div className="h-px w-6 bg-gray-200" />
+             <p className="text-center text-[10px] font-bold text-gray-300 uppercase tracking-widest">{t('ratingOpt')}</p>
+             <div className="h-px w-6 bg-gray-200" />
           </div>
-          <div className="flex justify-between w-full px-2">
+          <div className="flex justify-between w-full px-1">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
               <button
                 key={num}
                 onClick={() => setRating(num === rating ? 0 : num)}
                 className={clsx(
-                  "text-2xl md:text-3xl lg:text-4xl transition-all active:scale-75",
+                  "text-2xl transition-all active:scale-75",
                   rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-30 hover:opacity-60"
                 )}
               >
@@ -347,73 +331,37 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
         <button 
           onClick={() => setIsAddingDetails(true)}
-          className="mt-6 px-6 py-2.5 md:px-8 md:py-3 rounded-full bg-white text-gray-500 font-medium shadow-sm border border-gray-100 active:scale-95 transition-all text-xs md:text-sm uppercase tracking-wider flex items-center justify-center"
+          className="px-6 py-2.5 rounded-full bg-white text-gray-500 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-xs uppercase tracking-wider flex items-center justify-center shrink-0"
         >
           {t('addDetails')}
         </button>
       </div>
 
-      {/* Modal Overlay */}
-      {isAddingDetails && (
-        <div 
-          className="fixed inset-0 bg-gray-900/20 z-40 transition-opacity" 
-          onClick={() => setIsAddingDetails(false)}
-        />
-      )}
-
-      {/* Details drawer (Fixed Bottom Sheet) */}
+      {/* Modal Overlay & Drawer */}
+      {isAddingDetails && <div className="fixed inset-0 bg-gray-900/20 z-40 transition-opacity" onClick={() => setIsAddingDetails(false)} />}
       <div className={clsx(
-        "fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 transition-transform duration-300 ease-in-out p-6 md:p-8 lg:p-10 border-t border-gray-100 max-w-2xl mx-auto",
+        "fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 transition-transform duration-300 ease-in-out p-6 pb-8 border-t border-gray-100 max-w-2xl mx-auto",
         isAddingDetails ? "translate-y-0" : "translate-y-[120%]"
       )}>
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl md:text-2xl font-bold text-gray-900">{t('lokalDetails')}</h3>
-          <button 
-            onClick={() => setIsAddingDetails(false)}
-            className="px-4 py-2 bg-gray-100 rounded-full text-xs md:text-sm font-bold text-gray-500 uppercase tracking-widest active:scale-95"
-          >
+          <h3 className="text-xl font-bold text-gray-900">{t('lokalDetails')}</h3>
+          <button onClick={() => setIsAddingDetails(false)} className="px-4 py-2 bg-gray-100 rounded-full text-xs font-bold text-gray-500 uppercase tracking-widest active:scale-95">
             {t('done')}
           </button>
         </div>
-        <div className="space-y-4 mb-2">
-          {/* Location */}
+        <div className="space-y-4">
           <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl focus-within:ring-2 focus-within:ring-amber-500 transition-all">
             <MapPin className="text-amber-500" size={20} />
-            <input 
-              type="text" 
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              placeholder={t('cafeName')} 
-              className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 md:text-lg" 
-            />
+            <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder={t('cafeName')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400" />
           </div>
           <div className="flex gap-4">
-            <input 
-              type="file" 
-              accept="image/*" 
-              className="hidden" 
-              ref={fileInputRef}
-              onChange={e => setPhotoFile(e.target.files?.[0] || null)}
-            />
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              className={clsx(
-                "flex-1 flex items-center justify-center gap-2 p-4 rounded-xl font-medium active:scale-95 transition-all text-sm md:text-base",
-                photoFile ? "bg-amber-100 text-amber-700" : "bg-gray-50 text-gray-600"
-              )}
-            >
-              <Camera size={18} className="text-amber-500 flex-shrink-0" /> 
-              {photoFile ? t('photoAttached') : t('uploadPhoto')}
+            <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files?.[0] || null)} />
+            <button onClick={() => fileInputRef.current?.click()} className={clsx("flex-1 flex items-center justify-center gap-2 p-4 rounded-xl font-medium active:scale-95 transition-all text-sm", photoFile ? "bg-amber-100 text-amber-700" : "bg-gray-50 text-gray-600")}>
+              <Camera size={18} className="text-amber-500 shrink-0" /> {photoFile ? t('photoAttached') : t('uploadPhoto')}
             </button>
             <div className="flex-[1.5] flex items-center gap-3 bg-gray-50 p-4 rounded-xl focus-within:ring-2 focus-within:ring-amber-500 transition-all">
-               <Type className="text-amber-500 flex-shrink-0" size={18} />
-               <input 
-                 type="text" 
-                 value={notes}
-                 onChange={e => setNotes(e.target.value)}
-                 placeholder={t('notes')} 
-                 className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 text-sm md:text-base" 
-               />
+               <Type className="text-amber-500 shrink-0" size={18} />
+               <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('notes')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 text-sm" />
             </div>
           </div>
         </div>

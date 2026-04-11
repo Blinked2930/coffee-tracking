@@ -6,13 +6,17 @@ import Feed from './components/Feed';
 import Leaderboard from './components/Leaderboard';
 import { User, KafeLog } from './types';
 import { supabase } from './lib/supabase';
+import { useLanguage } from './contexts/LanguageContext';
+import { LogOut, Globe } from 'lucide-react';
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  // UPDATED: Added 'profile' to the state type
   const [activeTab, setActiveTab] = useState<'home' | 'feed' | 'leaderboard' | 'profile'>('home');
   const [logs, setLogs] = useState<KafeLog[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  
+  // Bring language context here for the new settings hub
+  const { lang, toggleLang } = useLanguage();
 
   useEffect(() => {
     const savedUser = localStorage.getItem('kafe_user');
@@ -92,20 +96,38 @@ function App() {
       user={currentUser} 
       activeTab={activeTab} 
       onTabChange={setActiveTab}
-      onLogout={handleLogout}
     >
       {activeTab === 'home' && <Home user={currentUser} onKafeLogged={fetchLogs} />}
       {activeTab === 'feed' && <Feed logs={logs} getUserMap={getUserMap} currentUser={currentUser} />}
       {activeTab === 'leaderboard' && <Leaderboard logs={logs} users={users} />}
       
-      {/* NEW: Temporary Profile Page Placeholder */}
+      {/* Profile & Settings Hub */}
       {activeTab === 'profile' && (
-        <div className="flex flex-col items-center justify-center h-full text-gray-400 p-6 text-center animate-in fade-in zoom-in duration-300">
-           <div className="w-24 h-24 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-4xl shadow-inner mb-6">
+        <div className="flex flex-col items-center h-full text-gray-800 px-6 pt-12 animate-in fade-in zoom-in duration-300">
+           <div className="w-24 h-24 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-4xl shadow-inner mb-4">
              {currentUser.name.charAt(0)}
            </div>
-           <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">{currentUser.name}'s Stats</h1>
-           <p className="font-medium text-gray-500">The Profile & Stats hub is under construction!</p>
+           <h1 className="text-3xl font-black text-gray-900 mb-1 tracking-tight">{currentUser.name}</h1>
+           <p className="font-medium text-gray-500 mb-12">The Profile & Stats hub is under construction!</p>
+
+           <div className="w-full max-w-sm space-y-4">
+             <button 
+               onClick={toggleLang}
+               className="w-full flex items-center justify-between px-6 py-4 bg-white border border-gray-100 shadow-sm rounded-2xl active:scale-95 transition-all"
+             >
+               <span className="font-bold text-gray-700">Language</span>
+               <div className="flex items-center gap-2 text-amber-600 font-bold uppercase tracking-wider text-sm bg-amber-50 px-3 py-1 rounded-full">
+                 {lang} <Globe size={16} />
+               </div>
+             </button>
+
+             <button 
+               onClick={handleLogout}
+               className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-red-50 text-red-600 rounded-2xl font-bold uppercase tracking-wider active:scale-95 transition-all"
+             >
+               <LogOut size={18} /> Log Out
+             </button>
+           </div>
         </div>
       )}
     </Layout>

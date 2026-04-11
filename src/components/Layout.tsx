@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home as HomeIcon, List, Trophy, LogOut, Globe } from 'lucide-react';
+import { Home as HomeIcon, List, Trophy } from 'lucide-react';
 import clsx from 'clsx';
 import { User } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -8,49 +8,17 @@ interface LayoutProps {
   user: User;
   activeTab: 'home' | 'feed' | 'leaderboard' | 'profile' | string;
   onTabChange: (tab: any) => void;
-  onLogout: () => void;
   children: React.ReactNode;
 }
 
-export default function Layout({ user, activeTab, onTabChange, onLogout, children }: LayoutProps) {
-  const { t, lang, toggleLang } = useLanguage();
+export default function Layout({ user, activeTab, onTabChange, children }: LayoutProps) {
+  const { t } = useLanguage();
   
   return (
     <div className="flex flex-col h-[100dvh] bg-gray-50 overflow-hidden">
       
-      {/* Header - NOW HIDDEN ON HOME TAB */}
-      {activeTab !== 'home' && (
-        <header className="bg-white px-6 py-4 flex items-center justify-between shadow-sm z-10 animate-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-lg shadow-inner">
-              {user.name.charAt(0)}
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 font-medium tracking-wider uppercase">{t('welcomeBack')}</p>
-              <h2 className="text-font font-bold text-gray-900 leading-tight">{user.name}</h2>
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <button 
-              onClick={toggleLang}
-              className="flex items-center gap-1 p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-colors"
-            >
-              <span className="text-xs font-bold uppercase">{lang}</span>
-              <Globe size={18} />
-            </button>
-            <button 
-              onClick={onLogout}
-              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-              aria-label="Log out"
-            >
-              <LogOut size={20} />
-            </button>
-          </div>
-        </header>
-      )}
-
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto pb-24">
+      {/* Main Content Area - Header completely removed! */}
+      <main className="flex-1 overflow-y-auto pb-24 pt-4">
         {children}
       </main>
 
@@ -75,7 +43,7 @@ export default function Layout({ user, activeTab, onTabChange, onLogout, childre
           onClick={() => onTabChange('leaderboard')} 
         />
         
-        {/* NEW: Profile Button (Avatar) */}
+        {/* Profile Button (Avatar) */}
         <button
           onClick={() => onTabChange('profile')}
           className={clsx(
