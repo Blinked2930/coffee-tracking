@@ -5,14 +5,9 @@ import './index.css'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { registerSW } from 'virtual:pwa-register'
 
-// Register the PWA service worker
-const updateSW = registerSW({
-  onNeedRefresh() {
-    // When you push new code to Vercel, this prompts the user's phone to grab the new version
-    if (confirm('A new update is available! Reload to apply?')) {
-      updateSW(true)
-    }
-  },
+// Register the PWA service worker with auto-update
+registerSW({
+  immediate: true, // Forces the check immediately on load
   onOfflineReady() {
     console.log('App is ready to work offline!')
   },
