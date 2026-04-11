@@ -15,7 +15,7 @@ const translations: Record<Language, Record<string, string>> = {
     enterPin: 'Enter your 4-digit PIN',
     loggingIn: 'Brewing...',
     enter: 'Enter',
-    tapToLog: 'Tap to log',
+    tapToLog: 'Tap to log TEST',
     selectType: 'Select Type',
     ratingOpt: 'Rating (Optional)',
     addDetails: 'Add Details',
