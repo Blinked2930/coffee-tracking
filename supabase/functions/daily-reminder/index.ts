@@ -15,12 +15,13 @@ serve(async () => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // 1. Calculate exactly 3 days (72 hours) ago
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-    const timeLimit = threeDaysAgo.toISOString();
+    // 1. TESTING MODE: Calculate exactly 1 minute ago
+    // (Change this back to 3 days after tomorrow's test!)
+    const timeLimitDate = new Date();
+    timeLimitDate.setMinutes(timeLimitDate.getMinutes() - 1);
+    const timeLimit = timeLimitDate.toISOString();
 
-    // 2. Get everyone who HAS logged a kafe in the last 3 days
+    // 2. Get everyone who HAS logged a kafe in the last 1 minute
     const { data: recentKafes, error: kafeError } = await supabaseAdmin
       .from('kafes')
       .select('user_id')
@@ -49,7 +50,7 @@ serve(async () => {
     }
 
     // --- SNIPER MODE: Safely test it on just you first ---
-    // (We will remove this block after your 3-day test succeeds)
+    // (We will remove this block after your test succeeds)
     const { data: emmettData } = await supabaseAdmin.from('users').select('id').eq('name', 'Emmett').single()
     const targetAudience = slackers.filter(sub => sub.user_id === emmettData?.id)
     // -----------------------------------------------------
@@ -65,7 +66,7 @@ serve(async () => {
       }
     })
 
-    // 6. Blast it out ONLY to the target audience
+    // 6. Blast it out ONLY to the target audience (Emmett)
     const sendPromises = targetAudience.map((sub: any) => 
       webpush.sendNotification(sub.subscription, notificationPayload)
         .catch(err => console.error('Push failed for user:', err))
