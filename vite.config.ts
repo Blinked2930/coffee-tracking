@@ -8,38 +8,19 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['vite.svg'], // Add any other static assets like favicons here
+      includeAssets: ['vite.svg'],
       manifest: {
         name: 'Kafe Tracker',
         short_name: 'KafeLog',
         description: 'Track daily kafes with the cohort',
-        theme_color: '#f59e0b', // Matches the amber-500 from your UI
+        theme_color: '#f59e0b', 
         background_color: '#ffffff',
-        display: 'standalone' // This hides the browser URL bar when installed
-        
-        // ICONS TEMPORARILY COMMENTED OUT TO BYPASS VERCEL BUILD CRASH
-        /*
-        icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-        */
+        display: 'standalone'
       },
       workbox: {
+        // NEW: These force the master Service Worker to take over immediately
+        clientsClaim: true,
+        skipWaiting: true,
         importScripts: ['/push-sw.js']
       }
     })
