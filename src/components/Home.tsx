@@ -242,14 +242,15 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* Condensing the layout by using flex-center and allowing slightly larger gaps now that text is removed */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 sm:gap-8 w-full max-w-sm mx-auto min-h-0 py-2">
+      {/* Adjusted the gaps slightly to accommodate the bigger button */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-5 sm:gap-6 w-full max-w-sm mx-auto min-h-0 py-2">
         
+        {/* BIGGER MAIN BUTTON: Bumped up to w-48 h-48 */}
         <button
           onClick={handleLogKafe}
           disabled={isSaving || showSuccess}
           className={clsx(
-            "relative w-40 h-40 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0",
+            "relative w-48 h-48 sm:w-52 sm:h-52 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0",
             "active:scale-95 disabled:opacity-90",
             showSuccess 
               ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_20px_50px_rgba(52,211,153,0.5)] scale-105"
@@ -260,32 +261,32 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           {isSaving && (
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/30 border-t-white animate-spin" />
-              <Coffee size={36} className="text-white mb-1 drop-shadow-md animate-pulse" />
-              <span className="text-white text-lg font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
+              <Coffee size={40} className="text-white mb-1 drop-shadow-md animate-pulse" />
+              <span className="text-white text-xl font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
             </>
           )}
 
           {showSuccess && (
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_10s_linear_infinite]" />
-              <span className="text-4xl mb-1 drop-shadow-md animate-bounce">🎉</span>
-              <span className="text-white text-xl font-black tracking-wider drop-shadow-md mt-1">{t('done')}</span>
+              <span className="text-5xl mb-1 drop-shadow-md animate-bounce">🎉</span>
+              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md mt-1">{t('done')}</span>
             </>
           )}
 
           {(!isSaving && !showSuccess) && (
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
-              <Coffee size={36} className="text-white mb-1.5 drop-shadow-md" />
-              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md">+1 Kafe</span>
+              <Coffee size={40} className="text-white mb-1.5 drop-shadow-md" />
+              <span className="text-white text-3xl font-black tracking-wider drop-shadow-md">+1 Kafe</span>
               <span className="text-amber-700/80 font-medium mt-0.5 uppercase tracking-widest text-[10px]">{t('tapToLog')}</span>
             </>
           )}
         </button>
 
-        {/* The Grid without the "Select Type" text */}
-        <div className="w-full">
-          <div className="grid grid-cols-3 gap-2">
+        {/* SMALLER GRID: Added px-6 to squeeze the grid inward */}
+        <div className="w-full px-6">
+          <div className="grid grid-cols-3 gap-3">
             {kafeOptions.map((option) => (
               <button
                 key={option.type}
@@ -297,7 +298,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
                     : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
                 )}
               >
-                <span className="text-2xl sm:text-3xl">{option.icon}</span>
+                <span className="text-xl sm:text-2xl">{option.icon}</span>
                 <span className={clsx("text-[10px] leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
                   {option.label}
                 </span>
@@ -306,7 +307,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </div>
         </div>
 
-        {/* The Rating Cups without the "Rating Optional" text */}
+        {/* The Rating Cups */}
         <div className="w-full flex flex-col items-center shrink-0">
           <div className="flex justify-between w-full px-1">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (

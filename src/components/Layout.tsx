@@ -22,12 +22,12 @@ export default function Layout({ user, activeTab, onTabChange, children }: Layou
         {children}
       </main>
 
-      {/* Bottom Navigation - Added more bottom padding to inner div to lift text off the home bar */}
+      {/* Bottom Navigation - Increased bottom padding to 20px to lift it higher off the bottom edge */}
       <nav 
         className="fixed bottom-0 w-full bg-white border-t border-gray-100 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }}
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)' }}
       >
-        <div className="flex justify-around items-center px-2 pt-3 pb-2 max-w-md mx-auto">
+        <div className="flex justify-around items-center px-2 pt-3 pb-1 max-w-md mx-auto">
           <NavButton 
             icon={<HomeIcon size={24} />} 
             label={t('home')} 
