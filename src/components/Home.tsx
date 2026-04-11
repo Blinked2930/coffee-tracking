@@ -276,7 +276,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
               <Coffee size={40} className="text-white mb-1.5 drop-shadow-md" />
-              <span className="text-white text-3xl font-black tracking-wider drop-shadow-md">+1 Kafe</span>
+              <span className="text-white text-3xl font-black tracking-wider drop-shadow-md">+1 Kafe AUTO TEST</span>
               <span className="text-amber-700/80 font-medium mt-0.5 uppercase tracking-widest text-[10px]">{t('tapToLog')}</span>
             </>
           )}
