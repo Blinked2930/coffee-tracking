@@ -46,7 +46,6 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
   }, [userLogs]);
 
   return (
-    // FIXED: Removed flex-col h-full, relying on normal block flow with bottom padding
     <div className="px-6 pt-8 pb-24 max-w-lg mx-auto">
       
       <div className="flex flex-col items-center mb-8">
@@ -66,7 +65,8 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Top Choice</p>
-            <p className="font-black text-gray-800 capitalize leading-tight">{insights.favoriteType}</p>
+            {/* FIXED: Removed underscores from Top Choice */}
+            <p className="font-black text-gray-800 capitalize leading-tight">{insights.favoriteType.replace(/_/g, ' ')}</p>
           </div>
         </div>
 
@@ -106,7 +106,6 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
           My Recent History
         </h3>
         
-        {/* FIXED: Removed overflow-y-auto and strict heights here */}
         <div className="space-y-4">
           {userLogs.length === 0 ? (
             <div className="text-center p-8 bg-white rounded-3xl border border-dashed border-gray-200 text-gray-400 text-sm font-medium">
@@ -118,7 +117,8 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
               return (
                 <div key={log.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="font-bold text-gray-800 capitalize">{log.type}</span>
+                    {/* FIXED: Removed underscores from Drink Name */}
+                    <span className="font-bold text-gray-800 capitalize">{log.type.replace(/_/g, ' ')}</span>
                     <span className="text-xs font-bold text-gray-400">
                       {date.toLocaleDateString([], { month: 'short', day: 'numeric' })}
                     </span>
@@ -132,7 +132,6 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
                     </div>
                   )}
 
-                  {/* NEW: Display Photo */}
                   {log.photo_url && (
                     <div className="mt-3 mb-2 overflow-hidden rounded-xl border border-gray-100 shadow-sm">
                       <img 

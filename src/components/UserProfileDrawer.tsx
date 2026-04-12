@@ -72,7 +72,8 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Top Choice</p>
-                <p className="font-black text-gray-800 capitalize leading-tight">{insights.favoriteType}</p>
+                {/* FIXED: Removed underscores from Top Choice */}
+                <p className="font-black text-gray-800 capitalize leading-tight">{insights.favoriteType.replace(/_/g, ' ')}</p>
               </div>
             </div>
 
@@ -106,7 +107,8 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
                   return (
                     <div key={log.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                       <div className="flex justify-between items-start mb-2">
-                        <span className="font-bold text-gray-800 capitalize">{log.type}</span>
+                        {/* FIXED: Removed underscores from Drink Name */}
+                        <span className="font-bold text-gray-800 capitalize">{log.type.replace(/_/g, ' ')}</span>
                         <span className="text-xs font-bold text-gray-400">
                           {date.toLocaleDateString([], { month: 'short', day: 'numeric' })}
                         </span>
@@ -120,7 +122,6 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
                         </div>
                       )}
 
-                      {/* NEW: Display Photo in Public Profiles too */}
                       {log.photo_url && (
                         <div className="mt-3 mb-2 overflow-hidden rounded-xl border border-gray-100 shadow-sm">
                           <img 
