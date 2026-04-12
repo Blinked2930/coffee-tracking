@@ -15,13 +15,12 @@ serve(async () => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // 1. TESTING MODE: Calculate exactly 1 minute ago
-    // (Change this back to 3 days after tomorrow's test!)
+    // 1. PRODUCTION MODE: Calculate exactly 3 days ago
     const timeLimitDate = new Date();
-    timeLimitDate.setMinutes(timeLimitDate.getMinutes() - 1);
+    timeLimitDate.setDate(timeLimitDate.getDate() - 3);
     const timeLimit = timeLimitDate.toISOString();
 
-    // 2. Get everyone who HAS logged a kafe in the last 1 minute
+    // 2. Get everyone who HAS logged a kafe in the last 3 days
     const { data: recentKafes, error: kafeError } = await supabaseAdmin
       .from('kafes')
       .select('user_id')
@@ -49,12 +48,6 @@ serve(async () => {
       return new Response("Everyone is up to date! No reminders needed.", { status: 200 })
     }
 
-    // --- SNIPER MODE: Safely test it on just you first ---
-    // (We will remove this block after your test succeeds)
-    const { data: emmettData } = await supabaseAdmin.from('users').select('id').eq('name', 'Emmett').single()
-    const targetAudience = slackers.filter(sub => sub.user_id === emmettData?.id)
-    // -----------------------------------------------------
-
     // 5. The Payload
     const notificationPayload = JSON.stringify({
       title: 'Wake up! ☀️',
@@ -66,8 +59,8 @@ serve(async () => {
       }
     })
 
-    // 6. Blast it out ONLY to the target audience (Emmett)
-    const sendPromises = targetAudience.map((sub: any) => 
+    // 6. Blast it out to ALL slackers
+    const sendPromises = slackers.map((sub: any) => 
       webpush.sendNotification(sub.subscription, notificationPayload)
         .catch(err => console.error('Push failed for user:', err))
     )
@@ -77,7 +70,7 @@ serve(async () => {
     return new Response(JSON.stringify({ 
       success: true, 
       slackersFound: slackers.length,
-      notified: targetAudience.length 
+      notified: slackers.length 
     }), { headers: { 'Content-Type': 'application/json' } })
 
   } catch (err: any) {
