@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { User, KafeLog } from '../types';
-import { LogOut, Globe, Coffee, Wallet, Clock } from 'lucide-react';
+import { LogOut, Globe, Coffee, Clock, Zap } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface ProfileProps {
@@ -23,18 +23,33 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
   const insights = useMemo(() => {
     const total = userLogs.length;
 
-    // Calculate favorite Kafe type
+    // A. Calculate favorite Kafe type
     const typeCounts = userLogs.reduce((acc, log) => {
       acc[log.type] = (acc[log.type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
     const favoriteType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Unknown';
 
-    // Lek Ledger: Assuming ~100 Lek per Kafe on average
-    const lekSpent = total * 100;
+    // B. Calculate The Power Hour (Most frequent time of day)
+    const hourCounts = userLogs.reduce((acc, log) => {
+      const date = new Date(log.created_at);
+      const hour = date.getHours(); // 0-23
+      acc[hour] = (acc[hour] || 0) + 1;
+      return acc;
+    }, {} as Record<number, number>);
 
-    return { total, favoriteType, lekSpent };
+    let peakHourStr = '--:--';
+    if (Object.keys(hourCounts).length > 0) {
+      // Find the hour with the highest count
+      const peakHour = parseInt(Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0][0]);
+      
+      // Convert to 12-hour format
+      const ampm = peakHour >= 12 ? 'PM' : 'AM';
+      const formattedHour = peakHour % 12 || 12;
+      peakHourStr = `${formattedHour}:00 ${ampm}`;
+    }
+
+    return { total, favoriteType, peakHourStr };
   }, [userLogs]);
 
   return (
@@ -64,19 +79,19 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
           </div>
         </div>
 
-        {/* Lek Ledger */}
+        {/* Power Hour */}
         <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center gap-2">
-          <div className="w-10 h-10 bg-green-50 text-green-500 rounded-full flex items-center justify-center">
-            <Wallet size={20} />
+          <div className="w-10 h-10 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center">
+            <Zap size={20} className="fill-purple-500 text-purple-500" />
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Lek Ledger</p>
-            <p className="font-black text-gray-800 capitalize leading-tight">~{insights.lekSpent.toLocaleString()} L</p>
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Power Hour</p>
+            <p className="font-black text-gray-800 capitalize leading-tight">{insights.peakHourStr}</p>
           </div>
         </div>
       </div>
 
-      {/* Settings (Moved above history so it's always accessible) */}
+      {/* Settings */}
       <div className="space-y-3 mb-8 shrink-0">
         <button 
           onClick={toggleLang}
@@ -119,11 +134,16 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
                     </span>
                   </div>
                   {log.rating && (
-                    <div className="flex items-center gap-0.5">
+                    <div className="flex items-center gap-0.5 mt-1">
                       {[...Array(log.rating)].map((_, i) => (
                         <span key={i} className="text-sm drop-shadow-sm leading-none">☕️</span>
                       ))}
                     </div>
+                  )}
+                  {log.notes && (
+                    <p className="text-sm text-gray-500 italic mt-2">
+                      "{log.notes}"
+                    </p>
                   )}
                 </div>
               );
