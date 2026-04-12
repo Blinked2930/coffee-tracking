@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { KafeLog, User } from '../types';
-import { Coffee, MapPin, Clock, Pencil } from 'lucide-react';
+import { Coffee, MapPin, Clock, Pencil, MessageCircle } from 'lucide-react';
 import EditKafeModal from './EditKafeModal';
+import CommentsDrawer from './CommentsDrawer';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface FeedProps {
@@ -13,6 +14,8 @@ interface FeedProps {
 export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
   const { t } = useLanguage();
   const [editingLog, setEditingLog] = useState<KafeLog | null>(null);
+  const [commentingOnLog, setCommentingOnLog] = useState<KafeLog | null>(null);
+
   if (logs.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-6 text-center">
@@ -26,12 +29,11 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
   }
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-6 space-y-4 pb-24">
       <h2 className="text-xl font-bold text-gray-900 mb-6">{t('recentKafes')}</h2>
       {logs.map((log) => {
         const user = getUserMap(log.user_id);
         
-        // Simple mock formatting since we don't have date-fns installed
         const date = new Date(log.created_at);
         const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
@@ -88,19 +90,38 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
                 </div>
               )}
               
-              {log.rating && (
-                <div className="flex items-center gap-0.5 mt-3">
-                  {[...Array(log.rating)].map((_, i) => (
-                    <span key={i} className="text-xl drop-shadow-sm">☕️</span>
-                  ))}
+              {/* Actions Footer (Rating & Comments) */}
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50">
+                <div className="flex items-center gap-0.5">
+                  {log.rating ? [...Array(log.rating)].map((_, i) => (
+                    <span key={i} className="text-lg drop-shadow-sm leading-none">☕️</span>
+                  )) : <span className="text-xs text-gray-300 font-medium italic">Unrated</span>}
                 </div>
-              )}
+                
+                <button 
+                  onClick={() => setCommentingOnLog(log)}
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-amber-500 transition-colors active:scale-95 px-2 py-1 bg-gray-50 rounded-lg"
+                >
+                  <MessageCircle size={14} />
+                  <span className="text-xs font-bold uppercase tracking-widest">Comment</span>
+                </button>
+              </div>
+
             </div>
           </div>
         );
       })}
       
       {editingLog && <EditKafeModal log={editingLog} onClose={() => setEditingLog(null)} />}
+      
+      {commentingOnLog && (
+        <CommentsDrawer 
+          log={commentingOnLog} 
+          currentUser={currentUser} 
+          getUserMap={getUserMap} 
+          onClose={() => setCommentingOnLog(null)} 
+        />
+      )}
     </div>
   );
 }

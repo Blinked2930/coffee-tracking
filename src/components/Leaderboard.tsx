@@ -21,14 +21,15 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
 
   // Sort and filter users (HIDE THE GHOST)
   const rankedUsers = [...users]
-    .filter(user => user.name !== 'Ghost') // <-- THIS HIDES THE TEST USER
+    .filter(user => user.name !== 'Ghost') 
     .map(user => ({ ...user, count: counts[user.id] || 0 }))
     .sort((a, b) => b.count - a.count);
 
   const maxCount = Math.max(...rankedUsers.map(u => u.count), 1);
 
   return (
-    <div className="p-6 h-full overflow-y-auto">
+    // FIXED: Removed h-full and overflow-y-auto, added pb-24
+    <div className="p-6 pb-24">
       <div className="mb-8 flex items-center gap-3">
         <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center">
           <Trophy size={24} />
@@ -49,23 +50,19 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
           return (
             <div key={user.id} className="relative group cursor-pointer" onClick={() => setSelectedUser(user)}>
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 relative z-10 transition-transform active:scale-[0.98] hover:border-amber-200">
-                {/* Rank number or icon */}
                 <div className="w-8 flex justify-center font-bold text-gray-400">
                   {RankIcon || (index + 1)}
                 </div>
 
-                {/* Avatar */}
                 <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 font-bold flex items-center justify-center text-sm flex-shrink-0">
                   {user.name.charAt(0)}
                 </div>
                 
-                {/* Name & Bar */}
                 <div className="flex-1">
                   <div className="flex justify-between items-end mb-1">
                     <span className="font-bold text-gray-900">{user.name}</span>
                     <span className="font-black text-amber-600 tabular-nums">{user.count}</span>
                   </div>
-                  {/* Visual Bar */}
                   <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-amber-400 rounded-full transition-all duration-1000 ease-out"
@@ -75,7 +72,6 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
                 </div>
               </div>
               
-              {/* Highlight drop shadow for winner */}
               {index === 0 && (
                 <div className="absolute inset-0 bg-yellow-400/20 rounded-2xl blur-xl -z-10" />
               )}
@@ -84,7 +80,6 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
         })}
       </div>
 
-      {/* Render the Drawer if a user is selected */}
       {selectedUser && (
         <UserProfileDrawer 
           user={selectedUser} 
