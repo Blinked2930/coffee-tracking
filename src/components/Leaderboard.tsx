@@ -16,9 +16,9 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
     return acc;
   }, {} as Record<string, number>);
 
-  // Sort and filter users (HIDE THE GHOST)
+  // Sort and filter users (HIDE THE GHOST AND TESTUSER)
   const rankedUsers = [...users]
-    .filter(user => user.name !== 'Ghost') // <-- THIS HIDES THE TEST USER
+    .filter(user => user.name !== 'Ghost' && user.name !== 'TestUser') // <-- HIDES BOTH TEST ACCOUNTS
     .map(user => ({ ...user, count: counts[user.id] || 0 }))
     .sort((a, b) => b.count - a.count);
 
