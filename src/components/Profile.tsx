@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { User, KafeLog } from '../types';
-import { LogOut, Globe, Coffee, Clock, Zap } from 'lucide-react';
+import { LogOut, Globe, Coffee, Clock, Zap, MessageCircle, Pencil } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import EditKafeModal from './EditKafeModal';
 
 interface ProfileProps {
   user: User;
@@ -11,6 +12,7 @@ interface ProfileProps {
 
 export default function Profile({ user, logs, onLogout }: ProfileProps) {
   const { lang, toggleLang } = useLanguage();
+  const [editingLog, setEditingLog] = useState<KafeLog | null>(null);
 
   const userLogs = useMemo(() => {
     return logs
@@ -65,7 +67,6 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Top Choice</p>
-            {/* FIXED: Removed underscores from Top Choice */}
             <p className="font-black text-gray-800 capitalize leading-tight">{insights.favoriteType.replace(/_/g, ' ')}</p>
           </div>
         </div>
@@ -115,9 +116,13 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
             userLogs.slice(0, 10).map((log) => {
               const date = new Date(log.created_at);
               return (
-                <div key={log.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                // NEW: Made card clickable to edit!
+                <div 
+                  key={log.id} 
+                  onClick={() => setEditingLog(log)}
+                  className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:border-amber-200 transition-colors group"
+                >
                   <div className="flex justify-between items-start mb-2">
-                    {/* FIXED: Removed underscores from Drink Name */}
                     <span className="font-bold text-gray-800 capitalize">{log.type.replace(/_/g, ' ')}</span>
                     <span className="text-xs font-bold text-gray-400">
                       {date.toLocaleDateString([], { month: 'short', day: 'numeric' })}
@@ -125,7 +130,7 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
                   </div>
                   
                   {log.rating && (
-                    <div className="flex items-center gap-0.5 mb-2">
+                    <div className="flex flex-wrap items-center gap-0.5 mb-2">
                       {[...Array(log.rating)].map((_, i) => (
                         <span key={i} className="text-sm drop-shadow-sm leading-none">☕️</span>
                       ))}
@@ -144,16 +149,30 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
                   )}
 
                   {log.notes && (
-                    <p className="text-sm text-gray-500 italic mt-2 bg-gray-50 p-3 rounded-xl">
+                    <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-xl mt-2">
                       "{log.notes}"
                     </p>
                   )}
+
+                  {/* NEW: Stats & Edit Footer */}
+                  <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-50">
+                    <div className="flex items-center gap-1.5 text-gray-400">
+                      <MessageCircle size={14} />
+                      <span className="text-xs font-bold">{(log as any).comment_count || 0}</span>
+                    </div>
+                    <div className="text-gray-300 group-hover:text-amber-500 transition-colors">
+                      <Pencil size={14} />
+                    </div>
+                  </div>
+
                 </div>
               );
             })
           )}
         </div>
       </div>
+      {/* Include the edit modal outside the map loop */}
+      {editingLog && <EditKafeModal log={editingLog} onClose={() => setEditingLog(null)} />}
     </div>
   );
 }

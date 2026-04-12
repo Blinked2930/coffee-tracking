@@ -20,20 +20,20 @@ function App() {
       setCurrentUser(JSON.parse(savedUser));
     }
     
-    // Fetch users for reference
     supabase.from('users').select('id, name').then(({ data }) => {
       if (data) setUsers(data);
     });
     
     fetchLogs();
     
-    // Subscribe to new kafes
     const channel = supabase.channel('custom-all-channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'kafes' }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          setLogs(current => [payload.new as KafeLog, ...current]);
+          // Default new logs to 0 comments
+          setLogs(current => [{ ...payload.new as KafeLog, comment_count: 0 } as any, ...current]);
         } else if (payload.eventType === 'UPDATE') {
-          setLogs(current => current.map(l => l.id === payload.new.id ? payload.new as KafeLog : l));
+          // Merge payload with existing log to preserve the comment count
+          setLogs(current => current.map(l => l.id === payload.new.id ? { ...l, ...payload.new } as any : l));
         } else if (payload.eventType === 'DELETE') {
           setLogs(current => current.filter(l => l.id !== payload.old.id));
         }
@@ -46,14 +46,20 @@ function App() {
   }, []);
 
   const fetchLogs = async () => {
+    // NEW: Ask Supabase for the comment count!
     const { data } = await supabase
       .from('kafes')
-      .select('*')
+      .select('*, comments(count)')
       .order('created_at', { ascending: false })
       .limit(100);
       
     if (data) {
-      setLogs(data as KafeLog[]);
+      // Format the data so the count sits directly on the log object
+      const formattedData = data.map((item: any) => ({
+        ...item,
+        comment_count: item.comments?.[0]?.count || 0
+      }));
+      setLogs(formattedData as KafeLog[]);
     }
   };
 

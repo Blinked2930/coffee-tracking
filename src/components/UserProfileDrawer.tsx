@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { User, KafeLog } from '../types';
-import { X, Star, Coffee, Clock } from 'lucide-react';
+import { X, Star, Coffee, Clock, MessageCircle } from 'lucide-react';
 
 interface UserProfileDrawerProps {
   user: User;
@@ -72,7 +72,6 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Top Choice</p>
-                {/* FIXED: Removed underscores from Top Choice */}
                 <p className="font-black text-gray-800 capitalize leading-tight">{insights.favoriteType.replace(/_/g, ' ')}</p>
               </div>
             </div>
@@ -107,7 +106,6 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
                   return (
                     <div key={log.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                       <div className="flex justify-between items-start mb-2">
-                        {/* FIXED: Removed underscores from Drink Name */}
                         <span className="font-bold text-gray-800 capitalize">{log.type.replace(/_/g, ' ')}</span>
                         <span className="text-xs font-bold text-gray-400">
                           {date.toLocaleDateString([], { month: 'short', day: 'numeric' })}
@@ -115,7 +113,7 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
                       </div>
                       
                       {log.rating && (
-                        <div className="flex items-center gap-0.5 mb-2">
+                        <div className="flex flex-wrap items-center gap-0.5 mb-2">
                           {[...Array(log.rating)].map((_, i) => (
                             <span key={i} className="text-sm drop-shadow-sm leading-none">☕️</span>
                           ))}
@@ -138,6 +136,12 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
                           "{log.notes}"
                         </p>
                       )}
+
+                      {/* NEW: Sleek comment count footer */}
+                      <div className="flex items-center gap-1.5 text-gray-400 mt-3 pt-3 border-t border-gray-50">
+                        <MessageCircle size={14} />
+                        <span className="text-xs font-bold">{(log as any).comment_count || 0}</span>
+                      </div>
                     </div>
                   );
                 })

@@ -28,7 +28,6 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
     );
   }
 
-  // Added overflow-x-hidden to absolutely guarantee no side-to-side wiggle
   return (
     <div className="p-6 space-y-4 pb-24 overflow-x-hidden">
       <h2 className="text-xl font-bold text-gray-900 mb-6">{t('recentKafes')}</h2>
@@ -41,12 +40,10 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
 
         return (
           <div key={log.id} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex gap-4 w-full">
-            {/* Avatar block */}
             <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-lg flex-shrink-0">
               {user?.name.charAt(0) || '?'}
             </div>
             
-            {/* Content block - Added min-w-0 to prevent text from blowing out the container */}
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-start mb-1 gap-2">
                 <div className="min-w-0">
@@ -64,7 +61,7 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
               </div>
               
               <p className="text-gray-600 text-sm">
-                Had a <span className="font-semibold text-amber-600">{log.type}</span>
+                Had a <span className="font-semibold text-amber-600 capitalize">{log.type.replace(/_/g, ' ')}</span>
               </p>
 
               {log.location && (
@@ -91,22 +88,20 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
                 </div>
               )}
               
-              {/* Actions Footer - FIXED WIGGLE & SPACING */}
               <div className="flex items-end justify-between mt-4 pt-4 border-t border-gray-50 gap-3">
-                {/* flex-wrap ensures emojis drop to a new line instead of stretching the screen */}
                 <div className="flex flex-wrap items-center gap-0.5 flex-1">
                   {log.rating ? [...Array(log.rating)].map((_, i) => (
                     <span key={i} className="text-lg drop-shadow-sm leading-none">☕️</span>
                   )) : <span className="text-xs text-gray-300 font-medium italic">Unrated</span>}
                 </div>
                 
-                {/* shrink-0 guarantees the button never gets squished */}
+                {/* NEW: Sleek minimal bubble icon with count */}
                 <button 
                   onClick={() => setCommentingOnLog(log)}
-                  className="shrink-0 flex items-center gap-1.5 text-gray-400 hover:text-amber-500 transition-colors active:scale-95 px-2 py-1.5 bg-gray-50 rounded-lg"
+                  className="shrink-0 flex items-center gap-1.5 text-gray-500 hover:text-amber-500 transition-colors active:scale-95 px-3 py-1.5 bg-gray-100 rounded-full"
                 >
-                  <MessageCircle size={14} />
-                  <span className="text-xs font-bold uppercase tracking-widest">Comment</span>
+                  <MessageCircle size={16} />
+                  <span className="text-sm font-bold">{(log as any).comment_count || 0}</span>
                 </button>
               </div>
 
