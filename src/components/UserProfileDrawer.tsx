@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { User, KafeLog } from '../types';
-import { X, Trophy, Star, Coffee, Clock } from 'lucide-react';
-import clsx from 'clsx';
+import { X, Star, Coffee, Clock } from 'lucide-react';
 
 interface UserProfileDrawerProps {
   user: User;
@@ -10,18 +9,15 @@ interface UserProfileDrawerProps {
 }
 
 export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfileDrawerProps) {
-  // 1. Filter logs to ONLY this user
   const userLogs = useMemo(() => {
     return allLogs
       .filter(log => log.user_id === user.id)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [allLogs, user.id]);
 
-  // 2. The Insights Engine (Calculate stats on the fly)
   const insights = useMemo(() => {
     const total = userLogs.length;
 
-    // Calculate favorite Kafe type
     const typeCounts = userLogs.reduce((acc, log) => {
       acc[log.type] = (acc[log.type] || 0) + 1;
       return acc;
@@ -29,7 +25,6 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
     
     const favoriteType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Unknown';
 
-    // Calculate average rating
     const ratedLogs = userLogs.filter(l => l.rating && l.rating > 0);
     const avgRating = ratedLogs.length 
       ? (ratedLogs.reduce((sum, l) => sum + l.rating!, 0) / ratedLogs.length).toFixed(1) 
@@ -40,16 +35,13 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
 
   return (
     <>
-      {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40 transition-opacity"
         onClick={onClose}
       />
       
-      {/* Drawer */}
       <div className="fixed bottom-0 left-0 right-0 bg-gray-50 rounded-t-[2.5rem] shadow-2xl z-50 transition-transform duration-300 ease-out flex flex-col h-[85vh] max-h-[800px] w-full max-w-2xl mx-auto border-t border-gray-100 overflow-hidden">
         
-        {/* Header - Fixed */}
         <div className="bg-white px-6 pt-6 pb-4 border-b border-gray-100 flex-shrink-0 relative z-10 rounded-t-[2.5rem]">
           <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" />
           <div className="flex justify-between items-center">
@@ -71,10 +63,8 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
           </div>
         </div>
 
-        {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
           
-          {/* INSIGHTS BADGES */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center gap-2">
               <div className="w-10 h-10 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center">
@@ -99,14 +89,13 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
             </div>
           </div>
 
-          {/* HISTORY FEED */}
           <div>
             <h3 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
               <Clock size={18} className="text-gray-400" />
               Recent History
             </h3>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               {userLogs.length === 0 ? (
                 <div className="text-center p-8 bg-white rounded-3xl border border-dashed border-gray-200 text-gray-400 text-sm font-medium">
                   No kafes logged yet.
@@ -115,7 +104,7 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
                 userLogs.map((log) => {
                   const date = new Date(log.created_at);
                   return (
-                    <div key={log.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                    <div key={log.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-bold text-gray-800 capitalize">{log.type}</span>
                         <span className="text-xs font-bold text-gray-400">
@@ -126,13 +115,25 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
                       {log.rating && (
                         <div className="flex items-center gap-0.5 mb-2">
                           {[...Array(log.rating)].map((_, i) => (
-                            <span key={i} className="text-sm drop-shadow-sm">☕️</span>
+                            <span key={i} className="text-sm drop-shadow-sm leading-none">☕️</span>
                           ))}
                         </div>
                       )}
 
+                      {/* NEW: Display Photo in Public Profiles too */}
+                      {log.photo_url && (
+                        <div className="mt-3 mb-2 overflow-hidden rounded-xl border border-gray-100 shadow-sm">
+                          <img 
+                            src={log.photo_url} 
+                            alt="Kafe moment" 
+                            className="w-full h-48 object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                      )}
+
                       {log.notes && (
-                        <p className="text-sm text-gray-500 italic bg-gray-50 p-2 rounded-lg border-l-2 border-amber-200 mt-2">
+                        <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-xl mt-2">
                           "{log.notes}"
                         </p>
                       )}
