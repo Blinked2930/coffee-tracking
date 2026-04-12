@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { KafeLog, User } from '../types';
 import { Trophy, Medal, Award } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import UserProfileDrawer from './UserProfileDrawer';
 
 interface LeaderboardProps {
   logs: KafeLog[];
@@ -9,6 +11,7 @@ interface LeaderboardProps {
 
 export default function Leaderboard({ logs, users }: LeaderboardProps) {
   const { t } = useLanguage();
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   
   // Aggregate counts
   const counts = logs.reduce((acc, log) => {
@@ -25,7 +28,7 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
   const maxCount = Math.max(...rankedUsers.map(u => u.count), 1);
 
   return (
-    <div className="p-6">
+    <div className="p-6 h-full overflow-y-auto">
       <div className="mb-8 flex items-center gap-3">
         <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center">
           <Trophy size={24} />
@@ -36,7 +39,7 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 pb-20">
         {rankedUsers.map((user, index) => {
           let RankIcon = null;
           if (index === 0) RankIcon = <Trophy size={20} className="text-yellow-500" />;
@@ -44,8 +47,8 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
           if (index === 2) RankIcon = <Award size={20} className="text-amber-700" />;
 
           return (
-            <div key={user.id} className="relative group">
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 relative z-10 transition-transform active:scale-[0.98]">
+            <div key={user.id} className="relative group cursor-pointer" onClick={() => setSelectedUser(user)}>
+              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 relative z-10 transition-transform active:scale-[0.98] hover:border-amber-200">
                 {/* Rank number or icon */}
                 <div className="w-8 flex justify-center font-bold text-gray-400">
                   {RankIcon || (index + 1)}
@@ -80,6 +83,15 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
           );
         })}
       </div>
+
+      {/* Render the Drawer if a user is selected */}
+      {selectedUser && (
+        <UserProfileDrawer 
+          user={selectedUser} 
+          allLogs={logs} 
+          onClose={() => setSelectedUser(null)} 
+        />
+      )}
     </div>
   );
 }

@@ -15,3 +15,12 @@ export type KafeLog = {
   photo_url?: string;
   rating?: number;
 };
+
+// NEW: Preparing the brain for Phase 2 (Social)
+export type Comment = {
+  id: string;
+  kafe_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+};
