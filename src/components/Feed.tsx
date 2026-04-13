@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { KafeLog, User } from '../types';
-import { Coffee, MapPin, Clock, Pencil, MessageCircle } from 'lucide-react';
+import { Coffee, MapPin, Pencil, MessageCircle } from 'lucide-react';
 import EditKafeModal from './EditKafeModal';
 import CommentsDrawer from './CommentsDrawer';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -40,91 +40,88 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
         const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 
         return (
-          <div key={log.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100/80 flex gap-3.5 w-full">
+          // CHANGED: Removed horizontal flex, changed to vertical stack so content goes edge-to-edge
+          <div key={log.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100/80 flex flex-col w-full">
             
-            {/* Avatar block */}
-            <div className="w-11 h-11 rounded-full bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-lg flex-shrink-0 border border-amber-100/50">
-              {user?.name.charAt(0) || '?'}
-            </div>
-            
-            {/* Content block */}
-            <div className="flex-1 min-w-0 pt-0.5">
-              
-              {/* Header */}
-              <div className="flex justify-between items-start mb-1 gap-2">
+            {/* HEADER ROW: Avatar, Name, Time, and Edit Button all on one line */}
+            <div className="flex justify-between items-center mb-4 gap-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-11 h-11 rounded-full bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-lg flex-shrink-0 border border-amber-100/50">
+                  {user?.name.charAt(0) || '?'}
+                </div>
                 <div className="min-w-0">
                   <p className="font-bold text-gray-900 truncate leading-tight">{user?.name}</p>
                   <p className="text-[11px] text-gray-400 font-medium truncate mt-0.5">
                     {dateStr} at {timeStr}
                   </p>
                 </div>
-                {currentUser?.id === log.user_id && (
-                  <button onClick={() => setEditingLog(log)} className="shrink-0 text-gray-300 hover:text-amber-500 p-1.5 -mr-2 -mt-1.5 active:scale-95 transition-transform">
-                    <Pencil size={14} />
-                  </button>
-                )}
               </div>
               
-              {/* Drink Type Badge */}
-              <div className="inline-block mt-2 mb-2 px-2.5 py-1 bg-amber-50 rounded-lg border border-amber-100/50">
+              {currentUser?.id === log.user_id && (
+                <button onClick={() => setEditingLog(log)} className="shrink-0 text-gray-300 hover:text-amber-500 p-2 -mt-2 -mr-2 active:scale-95 transition-transform">
+                  <Pencil size={14} />
+                </button>
+              )}
+            </div>
+            
+            {/* DRINK & LOCATION: Stacked cleanly below the header */}
+            <div className="flex flex-wrap items-center gap-3 mb-3">
+              <div className="px-2.5 py-1 bg-amber-50 rounded-lg border border-amber-100/50 inline-flex">
                 <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">
                   {log.type.replace(/_/g, ' ')}
                 </p>
               </div>
-
-              {/* Location */}
+              
               {log.location && (
-                <div className="flex items-center gap-1 mb-2 text-[11px] text-gray-500 font-medium">
+                <div className="flex items-center gap-1 text-[11px] text-gray-500 font-medium">
                   <MapPin size={12} className="shrink-0 text-gray-400" />
                   <span className="truncate">{log.location}</span>
                 </div>
               )}
-              
-              {/* Notes - Redesigned as a soft bubble */}
-              {log.notes && (
-                <div className="mt-2 text-sm text-gray-600 bg-gray-50 px-4 py-3 rounded-2xl border border-gray-100/50 leading-relaxed">
-                  {log.notes}
-                </div>
-              )}
-              
-              {/* Photo */}
-              {log.photo_url && (
-                <div className="mt-3 overflow-hidden rounded-2xl border border-gray-100/80 shadow-sm">
-                  <img 
-                    src={log.photo_url} 
-                    alt="Kafe moment" 
-                    className="w-full h-auto max-h-72 object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              )}
-              
-              {/* REDESIGNED ACTION BAR: Left aligned, grouped, no heavy backgrounds */}
-              <div className="flex items-center gap-5 mt-3 pt-3 border-t border-gray-50">
-                
-                {/* Comment Button */}
-                <button 
-                  onClick={() => setCommentingOnLog(log)}
-                  className="flex items-center gap-1.5 text-gray-400 hover:text-amber-500 transition-colors active:scale-95 group"
-                >
-                  <MessageCircle size={18} className="group-hover:fill-amber-50 transition-all" />
-                  <span className="text-sm font-bold">{(log as any).comment_count || 0}</span>
-                </button>
-
-                {/* Rating Cups */}
-                {log.rating ? (
-                  <div className="flex flex-wrap items-center gap-0.5">
-                    {[...Array(log.rating)].map((_, i) => (
-                      <span key={i} className="text-[1.1rem] drop-shadow-sm leading-none">☕️</span>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="text-xs text-gray-300 font-medium italic">Unrated</span>
-                )}
-
+            </div>
+            
+            {/* NOTES: Full Width */}
+            {log.notes && (
+              <div className="mb-4 text-sm text-gray-600 bg-gray-50 px-4 py-3 rounded-2xl border border-gray-100/50 leading-relaxed">
+                {log.notes}
               </div>
+            )}
+            
+            {/* PHOTO: Full Width */}
+            {log.photo_url && (
+              <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100/80 shadow-sm">
+                <img 
+                  src={log.photo_url} 
+                  alt="Kafe moment" 
+                  className="w-full h-auto max-h-72 object-cover"
+                  loading="lazy"
+                />
+              </div>
+            )}
+            
+            {/* ACTION BAR: Full Width */}
+            <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
+              
+              <button 
+                onClick={() => setCommentingOnLog(log)}
+                className="flex items-center gap-1.5 text-gray-400 hover:text-amber-500 transition-colors active:scale-95 group"
+              >
+                <MessageCircle size={18} className="group-hover:fill-amber-50 transition-all" />
+                <span className="text-sm font-bold">{(log as any).comment_count || 0}</span>
+              </button>
+
+              {log.rating ? (
+                <div className="flex flex-wrap items-center gap-0.5">
+                  {[...Array(log.rating)].map((_, i) => (
+                    <span key={i} className="text-[1.1rem] drop-shadow-sm leading-none">☕️</span>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-xs text-gray-300 font-medium italic">Unrated</span>
+              )}
 
             </div>
+
           </div>
         );
       })}
