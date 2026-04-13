@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { KafeLog, User } from '../types';
-import { Coffee, MapPin, Clock, Pencil } from 'lucide-react';
+import { Coffee, MapPin, Pencil, MessageCircle } from 'lucide-react';
 import EditKafeModal from './EditKafeModal';
+import CommentsDrawer from './CommentsDrawer';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface FeedProps {
@@ -13,6 +14,8 @@ interface FeedProps {
 export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
   const { t } = useLanguage();
   const [editingLog, setEditingLog] = useState<KafeLog | null>(null);
+  const [commentingOnLog, setCommentingOnLog] = useState<KafeLog | null>(null);
+
   if (logs.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-6 text-center">
@@ -26,81 +29,112 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
   }
 
   return (
-    <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">{t('recentKafes')}</h2>
+    <div className="p-4 space-y-5 pb-24 overflow-x-hidden bg-gray-50">
+      <h2 className="text-2xl font-black text-gray-900 mb-2 px-2">{t('recentKafes')}</h2>
+      
       {logs.map((log) => {
         const user = getUserMap(log.user_id);
         
-        // Simple mock formatting since we don't have date-fns installed
         const date = new Date(log.created_at);
         const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 
         return (
-          <div key={log.id} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex gap-4">
-            {/* Avatar block */}
-            <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-lg flex-shrink-0">
-              {user?.name.charAt(0) || '?'}
-            </div>
+          <div key={log.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100/80 flex flex-col w-full">
             
-            {/* Content block */}
-            <div className="flex-1">
-              <div className="flex justify-between items-start mb-1">
-                <div>
-                  <p className="font-bold text-gray-900">{user?.name}</p>
-                  <div className="flex items-center text-gray-400 text-xs gap-1">
-                    <Clock size={12} />
-                    <span>{dateStr}, {timeStr}</span>
-                  </div>
+            {/* HEADER ROW */}
+            <div className="flex justify-between items-center mb-4 gap-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-11 h-11 rounded-full bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-lg flex-shrink-0 border border-amber-100/50">
+                  {user?.name.charAt(0) || '?'}
                 </div>
-                {currentUser?.id === log.user_id && (
-                  <button onClick={() => setEditingLog(log)} className="text-gray-400 hover:text-amber-500 p-2 -mr-3 -mt-2 active:scale-95 transition-transform">
-                    <Pencil size={14} />
-                  </button>
-                )}
+                <div className="min-w-0">
+                  <p className="font-bold text-gray-900 truncate leading-tight">{user?.name}</p>
+                  <p className="text-[11px] text-gray-400 font-medium truncate mt-0.5">
+                    {dateStr} at {timeStr}
+                  </p>
+                </div>
               </div>
               
-              <p className="text-gray-600 text-sm">
-                Had a <span className="font-semibold text-amber-600">{log.type}</span>
-              </p>
-
-              {log.location && (
-                <div className="flex items-center gap-1 mt-2 text-xs text-gray-500 font-medium">
-                  <MapPin size={12} />
-                  <span>{log.location}</span>
-                </div>
+              {currentUser?.id === log.user_id && (
+                <button onClick={() => setEditingLog(log)} className="shrink-0 text-gray-300 hover:text-amber-500 p-2 -mt-2 -mr-2 active:scale-95 transition-transform">
+                  <Pencil size={14} />
+                </button>
               )}
-              
-              {log.notes && (
-                <p className="mt-2 text-sm text-gray-500 italic bg-gray-50 p-2 rounded-lg border-l-2 border-amber-200">
-                  "{log.notes}"
+            </div>
+            
+            {/* DRINK & LOCATION */}
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <div className="px-2.5 py-1 bg-amber-50 rounded-lg border border-amber-100/50 inline-flex">
+                <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">
+                  {log.type.replace(/_/g, ' ')}
                 </p>
-              )}
+              </div>
               
-              {log.photo_url && (
-                <div className="mt-3 overflow-hidden rounded-xl border border-gray-100 shadow-sm">
-                  <img 
-                    src={log.photo_url} 
-                    alt="Kafe moment" 
-                    className="w-full h-auto max-h-60 object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              )}
-              
-              {log.rating && (
-                <div className="flex items-center gap-0.5 mt-3">
-                  {[...Array(log.rating)].map((_, i) => (
-                    <span key={i} className="text-xl drop-shadow-sm">☕️</span>
-                  ))}
+              {log.location && (
+                <div className="flex items-center gap-1 text-[11px] text-gray-500 font-medium">
+                  <MapPin size={12} className="shrink-0 text-gray-400" />
+                  <span className="truncate">{log.location}</span>
                 </div>
               )}
             </div>
+            
+            {/* PHOTO (Moved above notes) */}
+            {log.photo_url && (
+              <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100/80 shadow-sm">
+                <img 
+                  src={log.photo_url} 
+                  alt="Kafe moment" 
+                  className="w-full h-auto max-h-72 object-cover"
+                  loading="lazy"
+                />
+              </div>
+            )}
+
+            {/* NOTES (Moved below photo, reverted to italicized quotes) */}
+            {log.notes && (
+              <p className="mb-4 text-sm text-gray-500 italic bg-gray-50 p-3 rounded-xl border-l-2 border-amber-200 leading-relaxed">
+                "{log.notes}"
+              </p>
+            )}
+            
+            {/* ACTION BAR */}
+            <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
+              
+              <button 
+                onClick={() => setCommentingOnLog(log)}
+                className="flex items-center gap-1.5 text-gray-400 hover:text-amber-500 transition-colors active:scale-95 group"
+              >
+                <MessageCircle size={18} className="group-hover:fill-amber-50 transition-all" />
+                <span className="text-sm font-bold">{(log as any).comment_count || 0}</span>
+              </button>
+
+              {log.rating ? (
+                <div className="flex flex-wrap items-center gap-0.5">
+                  {[...Array(log.rating)].map((_, i) => (
+                    <span key={i} className="text-[1.1rem] drop-shadow-sm leading-none">☕️</span>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-xs text-gray-300 font-medium italic">Unrated</span>
+              )}
+
+            </div>
+
           </div>
         );
       })}
       
       {editingLog && <EditKafeModal log={editingLog} onClose={() => setEditingLog(null)} />}
+      
+      {commentingOnLog && (
+        <CommentsDrawer 
+          log={commentingOnLog} 
+          currentUser={currentUser} 
+          getUserMap={getUserMap} 
+          onClose={() => setCommentingOnLog(null)} 
+        />
+      )}
     </div>
   );
 }
