@@ -29,8 +29,9 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
   }
 
   return (
-    <div className="p-6 space-y-4 pb-24 overflow-x-hidden">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">{t('recentKafes')}</h2>
+    <div className="p-4 space-y-5 pb-24 overflow-x-hidden bg-gray-50">
+      <h2 className="text-2xl font-black text-gray-900 mb-2 px-2">{t('recentKafes')}</h2>
+      
       {logs.map((log) => {
         const user = getUserMap(log.user_id);
         
@@ -39,70 +40,88 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
         const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 
         return (
-          <div key={log.id} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex gap-4 w-full">
-            <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-lg flex-shrink-0">
+          <div key={log.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100/80 flex gap-3.5 w-full">
+            
+            {/* Avatar block */}
+            <div className="w-11 h-11 rounded-full bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-lg flex-shrink-0 border border-amber-100/50">
               {user?.name.charAt(0) || '?'}
             </div>
             
-            <div className="flex-1 min-w-0">
+            {/* Content block */}
+            <div className="flex-1 min-w-0 pt-0.5">
+              
+              {/* Header */}
               <div className="flex justify-between items-start mb-1 gap-2">
                 <div className="min-w-0">
-                  <p className="font-bold text-gray-900 truncate">{user?.name}</p>
-                  <div className="flex items-center text-gray-400 text-xs gap-1">
-                    <Clock size={12} className="shrink-0" />
-                    <span className="truncate">{dateStr}, {timeStr}</span>
-                  </div>
+                  <p className="font-bold text-gray-900 truncate leading-tight">{user?.name}</p>
+                  <p className="text-[11px] text-gray-400 font-medium truncate mt-0.5">
+                    {dateStr} at {timeStr}
+                  </p>
                 </div>
                 {currentUser?.id === log.user_id && (
-                  <button onClick={() => setEditingLog(log)} className="shrink-0 text-gray-400 hover:text-amber-500 p-2 -mr-3 -mt-2 active:scale-95 transition-transform">
+                  <button onClick={() => setEditingLog(log)} className="shrink-0 text-gray-300 hover:text-amber-500 p-1.5 -mr-2 -mt-1.5 active:scale-95 transition-transform">
                     <Pencil size={14} />
                   </button>
                 )}
               </div>
               
-              <p className="text-gray-600 text-sm">
-                Had a <span className="font-semibold text-amber-600 capitalize">{log.type.replace(/_/g, ' ')}</span>
-              </p>
+              {/* Drink Type Badge */}
+              <div className="inline-block mt-2 mb-2 px-2.5 py-1 bg-amber-50 rounded-lg border border-amber-100/50">
+                <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">
+                  {log.type.replace(/_/g, ' ')}
+                </p>
+              </div>
 
+              {/* Location */}
               {log.location && (
-                <div className="flex items-center gap-1 mt-2 text-xs text-gray-500 font-medium">
-                  <MapPin size={12} className="shrink-0" />
+                <div className="flex items-center gap-1 mb-2 text-[11px] text-gray-500 font-medium">
+                  <MapPin size={12} className="shrink-0 text-gray-400" />
                   <span className="truncate">{log.location}</span>
                 </div>
               )}
               
+              {/* Notes - Redesigned as a soft bubble */}
               {log.notes && (
-                <p className="mt-2 text-sm text-gray-500 italic bg-gray-50 p-2 rounded-lg border-l-2 border-amber-200 break-words">
-                  "{log.notes}"
-                </p>
+                <div className="mt-2 text-sm text-gray-600 bg-gray-50 px-4 py-3 rounded-2xl border border-gray-100/50 leading-relaxed">
+                  {log.notes}
+                </div>
               )}
               
+              {/* Photo */}
               {log.photo_url && (
-                <div className="mt-3 overflow-hidden rounded-xl border border-gray-100 shadow-sm">
+                <div className="mt-3 overflow-hidden rounded-2xl border border-gray-100/80 shadow-sm">
                   <img 
                     src={log.photo_url} 
                     alt="Kafe moment" 
-                    className="w-full h-auto max-h-60 object-cover"
+                    className="w-full h-auto max-h-72 object-cover"
                     loading="lazy"
                   />
                 </div>
               )}
               
-              <div className="flex items-end justify-between mt-4 pt-4 border-t border-gray-50 gap-3">
-                <div className="flex flex-wrap items-center gap-0.5 flex-1">
-                  {log.rating ? [...Array(log.rating)].map((_, i) => (
-                    <span key={i} className="text-lg drop-shadow-sm leading-none">☕️</span>
-                  )) : <span className="text-xs text-gray-300 font-medium italic">Unrated</span>}
-                </div>
+              {/* REDESIGNED ACTION BAR: Left aligned, grouped, no heavy backgrounds */}
+              <div className="flex items-center gap-5 mt-3 pt-3 border-t border-gray-50">
                 
-                {/* NEW: Sleek minimal bubble icon with count */}
+                {/* Comment Button */}
                 <button 
                   onClick={() => setCommentingOnLog(log)}
-                  className="shrink-0 flex items-center gap-1.5 text-gray-500 hover:text-amber-500 transition-colors active:scale-95 px-3 py-1.5 bg-gray-100 rounded-full"
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-amber-500 transition-colors active:scale-95 group"
                 >
-                  <MessageCircle size={16} />
+                  <MessageCircle size={18} className="group-hover:fill-amber-50 transition-all" />
                   <span className="text-sm font-bold">{(log as any).comment_count || 0}</span>
                 </button>
+
+                {/* Rating Cups */}
+                {log.rating ? (
+                  <div className="flex flex-wrap items-center gap-0.5">
+                    {[...Array(log.rating)].map((_, i) => (
+                      <span key={i} className="text-[1.1rem] drop-shadow-sm leading-none">☕️</span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-xs text-gray-300 font-medium italic">Unrated</span>
+                )}
+
               </div>
 
             </div>
