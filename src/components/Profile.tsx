@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { User, KafeLog } from '../types';
-import { LogOut, Globe, Coffee, Clock, Zap, MessageCircle, Pencil } from 'lucide-react';
+import { LogOut, Globe, Coffee, Clock, Zap, MessageCircle, Pencil, MapPin } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import EditKafeModal from './EditKafeModal';
 
@@ -48,7 +48,7 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
   }, [userLogs]);
 
   return (
-    <div className="px-6 pt-8 pb-24 max-w-lg mx-auto">
+    <div className="px-4 pt-8 pb-24 max-w-lg mx-auto bg-gray-50 min-h-screen">
       
       <div className="flex flex-col items-center mb-8">
         <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-amber-400 to-amber-500 text-white font-black flex items-center justify-center text-4xl shadow-md border-4 border-white mb-4">
@@ -102,12 +102,12 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
       </div>
 
       <div>
-        <h3 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
+        <h3 className="text-lg font-black text-gray-900 mb-4 px-2 flex items-center gap-2">
           <Clock size={18} className="text-gray-400" />
           My Recent History
         </h3>
         
-        <div className="space-y-4">
+        <div className="space-y-5">
           {userLogs.length === 0 ? (
             <div className="text-center p-8 bg-white rounded-3xl border border-dashed border-gray-200 text-gray-400 text-sm font-medium">
               Go log your first Kafe!
@@ -115,54 +115,72 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
           ) : (
             userLogs.slice(0, 10).map((log) => {
               const date = new Date(log.created_at);
+              const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+              
               return (
-                // NEW: Made card clickable to edit!
                 <div 
                   key={log.id} 
                   onClick={() => setEditingLog(log)}
-                  className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:border-amber-200 transition-colors group"
+                  className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100/80 cursor-pointer hover:border-amber-200 transition-colors group flex flex-col w-full"
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="font-bold text-gray-800 capitalize">{log.type.replace(/_/g, ' ')}</span>
-                    <span className="text-xs font-bold text-gray-400">
-                      {date.toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                    </span>
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="px-2.5 py-1 bg-amber-50 rounded-lg border border-amber-100/50 inline-flex">
+                        <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">
+                          {log.type.replace(/_/g, ' ')}
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-medium text-gray-400">
+                        {dateStr} at {timeStr}
+                      </span>
+                    </div>
+                    
+                    <div className="text-gray-300 group-hover:text-amber-500 transition-colors p-1 -mr-1 -mt-1">
+                      <Pencil size={14} />
+                    </div>
                   </div>
-                  
-                  {log.rating && (
-                    <div className="flex flex-wrap items-center gap-0.5 mb-2">
-                      {[...Array(log.rating)].map((_, i) => (
-                        <span key={i} className="text-sm drop-shadow-sm leading-none">☕️</span>
-                      ))}
+
+                  {log.location && (
+                    <div className="flex items-center gap-1 mb-4 text-[11px] text-gray-500 font-medium">
+                      <MapPin size={12} className="shrink-0 text-gray-400" />
+                      <span className="truncate">{log.location}</span>
                     </div>
                   )}
 
                   {log.photo_url && (
-                    <div className="mt-3 mb-2 overflow-hidden rounded-xl border border-gray-100 shadow-sm">
+                    <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100/80 shadow-sm">
                       <img 
                         src={log.photo_url} 
                         alt="Kafe moment" 
-                        className="w-full h-48 object-cover"
+                        className="w-full h-auto max-h-72 object-cover"
                         loading="lazy"
                       />
                     </div>
                   )}
 
                   {log.notes && (
-                    <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-xl mt-2">
+                    <p className="mb-4 text-sm text-gray-500 italic bg-gray-50 p-3 rounded-xl border-l-2 border-amber-200 leading-relaxed">
                       "{log.notes}"
                     </p>
                   )}
 
-                  {/* NEW: Stats & Edit Footer */}
-                  <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-50">
+                  {/* ACTION BAR */}
+                  <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
                     <div className="flex items-center gap-1.5 text-gray-400">
-                      <MessageCircle size={14} />
-                      <span className="text-xs font-bold">{(log as any).comment_count || 0}</span>
+                      <MessageCircle size={18} />
+                      <span className="text-sm font-bold">{(log as any).comment_count || 0}</span>
                     </div>
-                    <div className="text-gray-300 group-hover:text-amber-500 transition-colors">
-                      <Pencil size={14} />
-                    </div>
+
+                    {log.rating ? (
+                      <div className="flex flex-wrap items-center gap-0.5">
+                        {[...Array(log.rating)].map((_, i) => (
+                          <span key={i} className="text-[1.1rem] drop-shadow-sm leading-none">☕️</span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-300 font-medium italic">Unrated</span>
+                    )}
                   </div>
 
                 </div>
@@ -171,7 +189,6 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
           )}
         </div>
       </div>
-      {/* Include the edit modal outside the map loop */}
       {editingLog && <EditKafeModal log={editingLog} onClose={() => setEditingLog(null)} />}
     </div>
   );

@@ -40,10 +40,9 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
         const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 
         return (
-          // CHANGED: Removed horizontal flex, changed to vertical stack so content goes edge-to-edge
           <div key={log.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100/80 flex flex-col w-full">
             
-            {/* HEADER ROW: Avatar, Name, Time, and Edit Button all on one line */}
+            {/* HEADER ROW */}
             <div className="flex justify-between items-center mb-4 gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="w-11 h-11 rounded-full bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-lg flex-shrink-0 border border-amber-100/50">
@@ -64,8 +63,8 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
               )}
             </div>
             
-            {/* DRINK & LOCATION: Stacked cleanly below the header */}
-            <div className="flex flex-wrap items-center gap-3 mb-3">
+            {/* DRINK & LOCATION */}
+            <div className="flex flex-wrap items-center gap-3 mb-4">
               <div className="px-2.5 py-1 bg-amber-50 rounded-lg border border-amber-100/50 inline-flex">
                 <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">
                   {log.type.replace(/_/g, ' ')}
@@ -80,14 +79,7 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
               )}
             </div>
             
-            {/* NOTES: Full Width */}
-            {log.notes && (
-              <div className="mb-4 text-sm text-gray-600 bg-gray-50 px-4 py-3 rounded-2xl border border-gray-100/50 leading-relaxed">
-                {log.notes}
-              </div>
-            )}
-            
-            {/* PHOTO: Full Width */}
+            {/* PHOTO (Moved above notes) */}
             {log.photo_url && (
               <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100/80 shadow-sm">
                 <img 
@@ -98,8 +90,15 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
                 />
               </div>
             )}
+
+            {/* NOTES (Moved below photo, reverted to italicized quotes) */}
+            {log.notes && (
+              <p className="mb-4 text-sm text-gray-500 italic bg-gray-50 p-3 rounded-xl border-l-2 border-amber-200 leading-relaxed">
+                "{log.notes}"
+              </p>
+            )}
             
-            {/* ACTION BAR: Full Width */}
+            {/* ACTION BAR */}
             <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
               
               <button 
