@@ -55,12 +55,10 @@ export default function EditKafeModal({ log, onClose }: Props) {
   };
 
   return (
-    {/* The dark backdrop: Clicking here triggers onClose */}
     <div 
       className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity"
       onClick={onClose}
     >
-      {/* The white modal box: stopPropagation prevents the click from reaching the dark backdrop */}
       <div 
         className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
