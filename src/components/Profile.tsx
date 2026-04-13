@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { User, KafeLog } from '../types';
-import { LogOut, Globe, Coffee, Clock, Zap, MessageCircle, Pencil, MapPin } from 'lucide-react';
+import { LogOut, Globe, Coffee, Clock, Zap, MessageCircle, MapPin } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import EditKafeModal from './EditKafeModal';
 
@@ -122,7 +122,8 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
                 <div 
                   key={log.id} 
                   onClick={() => setEditingLog(log)}
-                  className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100/80 cursor-pointer hover:border-amber-200 transition-colors group flex flex-col w-full"
+                  // CHANGED: Removed hover:border-amber-200 and group. Added active:scale-[0.99] for a native app feel.
+                  className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100/80 cursor-pointer active:scale-[0.99] transition-transform flex flex-col w-full"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-wrap items-center gap-3">
@@ -135,10 +136,7 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
                         {dateStr} at {timeStr}
                       </span>
                     </div>
-                    
-                    <div className="text-gray-300 group-hover:text-amber-500 transition-colors p-1 -mr-1 -mt-1">
-                      <Pencil size={14} />
-                    </div>
+                    {/* CHANGED: Removed the Pencil Icon entirely */}
                   </div>
 
                   {log.location && (
@@ -165,7 +163,6 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
                     </p>
                   )}
 
-                  {/* ACTION BAR */}
                   <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
                     <div className="flex items-center gap-1.5 text-gray-400">
                       <MessageCircle size={18} />

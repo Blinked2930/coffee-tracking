@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { KafeLog } from '../types';
 import { supabase } from '../lib/supabase';
 import { compressImage } from '../lib/imageUtils';
 import { MapPin, Type, Trash2, X, Camera, AlertTriangle } from 'lucide-react';
-import { useRef } from 'react';
 import clsx from 'clsx';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -56,8 +55,16 @@ export default function EditKafeModal({ log, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/40 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+    {/* The dark backdrop: Clicking here triggers onClose */}
+    <div 
+      className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity"
+      onClick={onClose}
+    >
+      {/* The white modal box: stopPropagation prevents the click from reaching the dark backdrop */}
+      <div 
+        className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 p-2">
           <X size={20} />
         </button>
