@@ -9,9 +9,11 @@ interface FeedProps {
   logs: KafeLog[];
   getUserMap: (id: string) => User | undefined;
   currentUser: User;
+  onLoadMore: () => void;
+  hasMore: boolean;
 }
 
-export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
+export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMore }: FeedProps) {
   const { t } = useLanguage();
   const [editingLog, setEditingLog] = useState<KafeLog | null>(null);
   const [commentingOnLog, setCommentingOnLog] = useState<KafeLog | null>(null);
@@ -42,7 +44,6 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
         return (
           <div key={log.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100/80 flex flex-col w-full">
             
-            {/* HEADER ROW */}
             <div className="flex justify-between items-center mb-4 gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="w-11 h-11 rounded-full bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-lg flex-shrink-0 border border-amber-100/50">
@@ -63,7 +64,6 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
               )}
             </div>
             
-            {/* DRINK & LOCATION */}
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <div className="px-2.5 py-1 bg-amber-50 rounded-lg border border-amber-100/50 inline-flex">
                 <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">
@@ -79,7 +79,6 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
               )}
             </div>
             
-            {/* PHOTO (Moved above notes) */}
             {log.photo_url && (
               <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100/80 shadow-sm">
                 <img 
@@ -91,14 +90,12 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
               </div>
             )}
 
-            {/* NOTES (Moved below photo, reverted to italicized quotes) */}
             {log.notes && (
               <p className="mb-4 text-sm text-gray-500 italic bg-gray-50 p-3 rounded-xl border-l-2 border-amber-200 leading-relaxed">
                 "{log.notes}"
               </p>
             )}
             
-            {/* ACTION BAR */}
             <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
               
               <button 
@@ -124,6 +121,16 @@ export default function Feed({ logs, getUserMap, currentUser }: FeedProps) {
           </div>
         );
       })}
+
+      {/* LOAD MORE BUTTON */}
+      {hasMore && (
+        <button 
+          onClick={onLoadMore}
+          className="w-full py-4 mt-6 bg-white rounded-3xl font-black text-amber-600 shadow-sm border border-amber-100/50 active:scale-[0.98] transition-transform uppercase tracking-widest text-xs"
+        >
+          Load Older Kafes
+        </button>
+      )}
       
       {editingLog && <EditKafeModal log={editingLog} onClose={() => setEditingLog(null)} />}
       

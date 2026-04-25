@@ -1,19 +1,31 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { User, KafeLog } from '../types';
 import { X, Star, Coffee, Clock, MessageCircle, MapPin } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface UserProfileDrawerProps {
   user: User;
-  allLogs: KafeLog[];
   onClose: () => void;
 }
 
-export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfileDrawerProps) {
-  const userLogs = useMemo(() => {
-    return allLogs
-      .filter(log => log.user_id === user.id)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [allLogs, user.id]);
+export default function UserProfileDrawer({ user, onClose }: UserProfileDrawerProps) {
+  const [userLogs, setUserLogs] = useState<KafeLog[]>([]);
+
+  useEffect(() => {
+    supabase.from('kafes')
+      .select('*, comments(count)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) {
+          const formatted = data.map((item: any) => ({
+            ...item,
+            comment_count: item.comments?.[0]?.count || 0
+          }));
+          setUserLogs(formatted as KafeLog[]);
+        }
+      });
+  }, [user.id]);
 
   const insights = useMemo(() => {
     const total = userLogs.length;
@@ -144,7 +156,6 @@ export default function UserProfileDrawer({ user, allLogs, onClose }: UserProfil
                         </p>
                       )}
 
-                      {/* ACTION BAR */}
                       <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
                         <div className="flex items-center gap-1.5 text-gray-400">
                           <MessageCircle size={18} />

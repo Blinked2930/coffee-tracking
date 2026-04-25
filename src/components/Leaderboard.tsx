@@ -1,31 +1,28 @@
-import { useState } from 'react';
-import { KafeLog, User } from '../types';
+import { useState, useEffect } from 'react';
+import { User } from '../types';
 import { Trophy, Medal, Award } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import UserProfileDrawer from './UserProfileDrawer';
+import { supabase } from '../lib/supabase';
 
-interface LeaderboardProps {
-  logs: KafeLog[];
-  users: User[];
-}
-
-export default function Leaderboard({ logs, users }: LeaderboardProps) {
+export default function Leaderboard() {
   const { t } = useLanguage();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  
-  // Aggregate counts
-  const counts = logs.reduce((acc, log) => {
-    acc[log.user_id] = (acc[log.user_id] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const [rankedUsers, setRankedUsers] = useState<any[]>([]);
 
-  // Sort and filter users (HIDE BOTH TEST ACCOUNTS)
-  const rankedUsers = [...users]
-    .filter(user => user.name !== 'Ghost' && user.name !== 'TestUser') 
-    .map(user => ({ ...user, count: counts[user.id] || 0 }))
-    .sort((a, b) => b.count - a.count);
+  useEffect(() => {
+    supabase.from('leaderboard_scores')
+      .select('*')
+      .order('total_kafes', { ascending: false })
+      .then(({ data }) => {
+        if (data) {
+          setRankedUsers(data.filter(user => user.name !== 'Ghost' && user.name !== 'TestUser'));
+        }
+      });
+  }, []);
 
-  const maxCount = Math.max(...rankedUsers.map(u => u.count), 1);
+  // FIXED: Ensured total_kafes is parsed as a number for safety
+  const maxCount = Math.max(...rankedUsers.map(u => Number(u.total_kafes) || 0), 1);
 
   return (
     <div className="p-6 pb-24">
@@ -47,25 +44,31 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
           if (index === 2) RankIcon = <Award size={20} className="text-amber-700" />;
 
           return (
-            <div key={user.id} className="relative group cursor-pointer" onClick={() => setSelectedUser(user)}>
+            <div 
+              key={user.user_id} 
+              className="relative group cursor-pointer" 
+              // FIXED: Added 'as User' to satisfy TypeScript's strict object requirements
+              onClick={() => setSelectedUser({ id: user.user_id, name: user.name, pin: '' } as User)}
+            >
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 relative z-10 transition-transform active:scale-[0.98] hover:border-amber-200">
                 <div className="w-8 flex justify-center font-bold text-gray-400">
                   {RankIcon || (index + 1)}
                 </div>
 
                 <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 font-bold flex items-center justify-center text-sm flex-shrink-0">
-                  {user.name.charAt(0)}
+                  {/* FIXED: Added optional chaining fallback for the avatar letter */}
+                  {user.name?.charAt(0) || '?'}
                 </div>
                 
                 <div className="flex-1">
                   <div className="flex justify-between items-end mb-1">
                     <span className="font-bold text-gray-900">{user.name}</span>
-                    <span className="font-black text-amber-600 tabular-nums">{user.count}</span>
+                    <span className="font-black text-amber-600 tabular-nums">{Number(user.total_kafes)}</span>
                   </div>
                   <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-amber-400 rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: `${(user.count / maxCount) * 100}%` }}
+                      style={{ width: `${(Number(user.total_kafes) / maxCount) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -82,7 +85,6 @@ export default function Leaderboard({ logs, users }: LeaderboardProps) {
       {selectedUser && (
         <UserProfileDrawer 
           user={selectedUser} 
-          allLogs={logs} 
           onClose={() => setSelectedUser(null)} 
         />
       )}

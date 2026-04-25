@@ -1,24 +1,35 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { User, KafeLog } from '../types';
 import { LogOut, Globe, Coffee, Clock, Zap, MessageCircle, MapPin } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import EditKafeModal from './EditKafeModal';
+import { supabase } from '../lib/supabase';
 
 interface ProfileProps {
   user: User;
-  logs: KafeLog[];
   onLogout: () => void;
 }
 
-export default function Profile({ user, logs, onLogout }: ProfileProps) {
+export default function Profile({ user, onLogout }: ProfileProps) {
   const { lang, toggleLang } = useLanguage();
   const [editingLog, setEditingLog] = useState<KafeLog | null>(null);
+  const [userLogs, setUserLogs] = useState<KafeLog[]>([]);
 
-  const userLogs = useMemo(() => {
-    return logs
-      .filter(log => log.user_id === user.id)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [logs, user.id]);
+  useEffect(() => {
+    supabase.from('kafes')
+      .select('*, comments(count)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) {
+          const formatted = data.map((item: any) => ({
+            ...item,
+            comment_count: item.comments?.[0]?.count || 0
+          }));
+          setUserLogs(formatted as KafeLog[]);
+        }
+      });
+  }, [user.id]);
 
   const insights = useMemo(() => {
     const total = userLogs.length;
@@ -113,7 +124,7 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
               Go log your first Kafe!
             </div>
           ) : (
-            userLogs.slice(0, 10).map((log) => {
+            userLogs.map((log) => {
               const date = new Date(log.created_at);
               const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
               const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
@@ -122,7 +133,6 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
                 <div 
                   key={log.id} 
                   onClick={() => setEditingLog(log)}
-                  // CHANGED: Removed hover:border-amber-200 and group. Added active:scale-[0.99] for a native app feel.
                   className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100/80 cursor-pointer active:scale-[0.99] transition-transform flex flex-col w-full"
                 >
                   <div className="flex justify-between items-start mb-4">
@@ -136,7 +146,6 @@ export default function Profile({ user, logs, onLogout }: ProfileProps) {
                         {dateStr} at {timeStr}
                       </span>
                     </div>
-                    {/* CHANGED: Removed the Pencil Icon entirely */}
                   </div>
 
                   {log.location && (
