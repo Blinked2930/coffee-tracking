@@ -21,10 +21,10 @@ export default function AnnouncementModal({ onClose }: Props) {
         <div className="bg-gray-50 rounded-2xl p-5 border border-amber-100/50 mb-6 shadow-inner">
           <div className="space-y-4 text-xs text-gray-600 leading-relaxed font-medium">
             <p>
-              We deeply regret any minor disturbance to your prestigious data-logging experience. Our elite architectural consultants and global infrastructure specialists have identified a localized anomaly in the proprietary coffee-tracking algorithms.
+              We deeply regret any disturbance to your prestigious data-logging experience. Our elite architectural consultants and global infrastructure specialists have identified a localized anomaly in the proprietary coffee-tracking algorithms.
             </p>
             <p>
-              We have since mobilized our full executive resources to rectify this suboptimal event. Rest assured, your data remains as secure as my own reputation. Please accept this formal acknowledgment as a gesture of our continued commitment to your excellence.
+              We have since mobilized our full executive resources to rectify this suboptimal event. Rest assured, your data remains as secure as ever. Please accept this formal acknowledgment as a gesture of our continued commitment to your excellent experience.
             </p>
             <p className="text-center pt-2 text-gray-400 font-bold uppercase tracking-widest text-[9px]">
               With Distinguished Regards,
