@@ -1,0 +1,190 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { User } from '../types';
+import { X, Search, UserPlus, Check, Clock } from 'lucide-react';
+
+interface Props {
+  currentUser: User;
+  onClose: () => void;
+}
+
+export default function ManageFriendsModal({ currentUser, onClose }: Props) {
+  const [activeTab, setActiveTab] = useState<'search' | 'requests'>('search');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [friendships, setFriendships] = useState<any[]>([]);
+
+  useEffect(() => {
+    // 1. Fetch all users
+    supabase.from('users').select('*').then(({ data }) => {
+      if (data) setAllUsers(data.filter(u => u.id !== currentUser.id && u.name !== 'Ghost' && u.name !== 'TestUser'));
+    });
+
+    // 2. Fetch my friendships
+    fetchFriendships();
+  }, [currentUser.id]);
+
+  const fetchFriendships = async () => {
+    const { data } = await supabase
+      .from('friendships')
+      .select('*')
+      .or(`requester_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`);
+    if (data) setFriendships(data);
+  };
+
+  const handleSendRequest = async (receiverId: string) => {
+    await supabase.from('friendships').insert({
+      requester_id: currentUser.id,
+      receiver_id: receiverId,
+      status: 'pending'
+    });
+    fetchFriendships();
+  };
+
+  const handleAcceptRequest = async (friendshipId: string) => {
+    await supabase.from('friendships').update({ status: 'accepted' }).eq('id', friendshipId);
+    fetchFriendships();
+  };
+
+  // Derived state
+  const pendingReceived = friendships.filter(f => f.receiver_id === currentUser.id && f.status === 'pending');
+  
+  const getFriendshipStatus = (otherUserId: string) => {
+    const rel = friendships.find(f => f.requester_id === otherUserId || f.receiver_id === otherUserId);
+    if (!rel) return 'none';
+    if (rel.status === 'accepted') return 'friends';
+    if (rel.requester_id === currentUser.id) return 'sent';
+    return 'received';
+  };
+
+  const filteredUsers = allUsers.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  return (
+    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center sm:p-4">
+      <div className="bg-gray-50 rounded-t-3xl sm:rounded-3xl w-full max-w-md h-[80vh] sm:h-[600px] flex flex-col shadow-2xl animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300">
+        
+        {/* Header */}
+        <div className="bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center rounded-t-3xl sm:rounded-3xl shrink-0">
+          <div>
+            <h3 className="text-xl font-black text-gray-900">Friends</h3>
+            <p className="text-xs font-bold text-amber-600 uppercase tracking-widest">Cohort Network</p>
+          </div>
+          <button onClick={onClose} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 active:scale-95">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex p-4 gap-2 shrink-0">
+          <button 
+            onClick={() => setActiveTab('search')}
+            className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'search' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'bg-white text-gray-500 border border-gray-100'}`}
+          >
+            Find Friends
+          </button>
+          <button 
+            onClick={() => setActiveTab('requests')}
+            className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all relative ${activeTab === 'requests' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'bg-white text-gray-500 border border-gray-100'}`}
+          >
+            Requests
+            {pendingReceived.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center shadow-sm">
+                {pendingReceived.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto px-4 pb-6">
+          
+          {activeTab === 'search' && (
+            <div className="space-y-4">
+              <div className="relative">
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search cohort..." 
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full bg-white border border-gray-100 rounded-2xl py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium shadow-sm"
+                />
+              </div>
+
+              <div className="space-y-2 pt-2">
+                {filteredUsers.map(u => {
+                  const status = getFriendshipStatus(u.id);
+                  return (
+                    <div key={u.id} className="bg-white p-3 rounded-2xl flex items-center justify-between shadow-sm border border-gray-100/50">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-sm">
+                          {u.name.charAt(0)}
+                        </div>
+                        <span className="font-bold text-gray-900">{u.name}</span>
+                      </div>
+                      
+                      {status === 'none' && (
+                        <button onClick={() => handleSendRequest(u.id)} className="w-9 h-9 rounded-full bg-gray-50 text-gray-600 flex items-center justify-center hover:bg-amber-100 hover:text-amber-600 active:scale-95 transition-all">
+                          <UserPlus size={16} />
+                        </button>
+                      )}
+                      {status === 'sent' && (
+                        <div className="px-3 py-1 bg-gray-50 rounded-lg text-xs font-bold text-gray-400 flex items-center gap-1 uppercase tracking-wider border border-gray-100">
+                          <Clock size={12} /> Sent
+                        </div>
+                      )}
+                      {status === 'received' && (
+                        <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-md">Check Requests</span>
+                      )}
+                      {status === 'friends' && (
+                        <div className="w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center">
+                          <Check size={16} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'requests' && (
+            <div className="space-y-4">
+              {pendingReceived.length === 0 ? (
+                <div className="text-center p-8 border border-dashed border-gray-200 rounded-3xl mt-4">
+                  <p className="text-gray-400 font-medium text-sm">No pending requests</p>
+                </div>
+              ) : (
+                pendingReceived.map(req => {
+                  const sender = allUsers.find(u => u.id === req.requester_id);
+                  if (!sender) return null;
+                  
+                  return (
+                    <div key={req.id} className="bg-white p-4 rounded-3xl flex items-center justify-between shadow-sm border border-amber-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-400 to-amber-500 text-white font-black flex items-center justify-center text-lg shadow-sm border-2 border-white">
+                          {sender.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900">{sender.name}</p>
+                          <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Wants to connect</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => handleAcceptRequest(req.id)}
+                        className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md shadow-amber-200 active:scale-95 transition-all"
+                      >
+                        Accept
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
