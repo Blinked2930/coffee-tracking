@@ -3,6 +3,7 @@ import { KafeLog, User } from '../types';
 import { Coffee, MapPin, Pencil, MessageCircle } from 'lucide-react';
 import EditKafeModal from './EditKafeModal';
 import CommentsDrawer from './CommentsDrawer';
+import ReactionBar from './ReactionBar';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface FeedProps {
@@ -95,6 +96,9 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
                 "{log.notes}"
               </p>
             )}
+
+            {/* EMOJI REACTION BAR */}
+            <ReactionBar kafeId={log.id} currentUser={currentUser} />
             
             <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
               
