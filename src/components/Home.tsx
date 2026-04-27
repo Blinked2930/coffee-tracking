@@ -213,8 +213,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    // Replaced overflow-hidden with overflow-y-auto and added pt-8 so the circle shadow doesn't clip
-    <div className="flex flex-col h-full px-4 pt-8 pb-10 relative overflow-y-auto">
+    // FIX: Swapped h-full for min-h-full, added pt-12, removed overflow-y-auto
+    <div className="flex flex-col min-h-full px-4 pt-12 pb-8 relative">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
@@ -243,7 +243,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col items-center justify-center gap-5 sm:gap-6 w-full max-w-sm mx-auto min-h-0 py-2">
+      {/* FIX: Removed justify-center so it top-aligns on short screens instead of clipping */}
+      <div className="flex-1 flex flex-col items-center gap-6 w-full max-w-sm mx-auto pt-4 pb-8">
         
         <button
           onClick={handleLogKafe}
