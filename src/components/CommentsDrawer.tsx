@@ -9,7 +9,7 @@ interface CommentsDrawerProps {
   currentUser: User;
   getUserMap: (id: string) => User | undefined;
   onClose: () => void;
-  onUpdateCount?: (delta: number) => void; // Tells the parent to adjust the counter
+  onUpdateCount?: (delta: number) => void;
 }
 
 export default function CommentsDrawer({ log, currentUser, getUserMap, onClose, onUpdateCount }: CommentsDrawerProps) {
@@ -41,7 +41,6 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose, 
         { event: 'INSERT', schema: 'public', table: 'comments', filter: `kafe_id=eq.${log.id}` }, 
         (payload) => {
           setComments((current) => {
-            // Prevent adding it twice if we already optimistic-loaded it
             if (current.find(c => c.id === payload.new.id)) return current;
             return [...current, payload.new as Comment];
           });
@@ -106,10 +105,8 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose, 
     }).select().single();
 
     if (!error && data) {
-      // Swap the temporary ID with the real database ID
       setComments(prev => prev.map(c => c.id === tempId ? data : c));
     } else {
-      // If it fails, remove the optimistic comment and revert the counter
       setComments(prev => prev.filter(c => c.id !== tempId));
       if (onUpdateCount) onUpdateCount(-1);
     }
@@ -118,26 +115,22 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose, 
   };
 
   const handleEdit = async (comment: Comment) => {
-    const editedContent = window.prompt("Edit your comment:", comment.content);
-    if (editedContent && editedContent.trim() !== "" && editedContent.trim() !== comment.content) {
-      const cleanContent = editedContent.trim();
+    // Remove the flag so they edit the raw text
+    const rawText = comment.content.replace(' (edited)', '');
+    const editedContent = window.prompt("Edit your comment:", rawText);
+    
+    if (editedContent && editedContent.trim() !== "" && editedContent.trim() !== rawText) {
+      // Append the flag secretly to the string so the database saves it
+      const newContent = editedContent.trim() + " (edited)";
       
-      // Optimistic update
-      setComments(prev => prev.map(c => c.id === comment.id ? { ...c, content: cleanContent } : c));
-      
-      // Database sync
-      await supabase.from('comments').update({ content: cleanContent }).eq('id', comment.id);
+      setComments(prev => prev.map(c => c.id === comment.id ? { ...c, content: newContent } : c));
+      await supabase.from('comments').update({ content: newContent }).eq('id', comment.id);
     }
   };
 
   const handleDelete = async (id: string) => {
-    // Optimistic delete
     setComments(prev => prev.filter(c => c.id !== id));
-    
-    // Instantly update the counter on the Feed behind the drawer
     if (onUpdateCount) onUpdateCount(-1); 
-    
-    // Database sync
     await supabase.from('comments').delete().eq('id', id);
   };
 
@@ -171,6 +164,10 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose, 
               const user = getUserMap(comment.user_id);
               const isMe = comment.user_id === currentUser.id;
               
+              // Logic to extract the edited flag
+              const isEdited = comment.content.endsWith(' (edited)');
+              const displayContent = isEdited ? comment.content.replace(' (edited)', '') : comment.content;
+              
               return (
                 <div key={comment.id} className={clsx("flex gap-3 max-w-[85%]", isMe ? "ml-auto flex-row-reverse" : "")}>
                   <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xs shrink-0 mt-1">
@@ -178,19 +175,33 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose, 
                   </div>
                   
                   <div className="flex flex-col">
-                    <div className={clsx("p-3 rounded-2xl text-sm", isMe ? "bg-amber-500 text-white rounded-tr-sm shadow-sm" : "bg-white border border-gray-100 text-gray-800 rounded-tl-sm shadow-sm")}>
-                      {!isMe && <p className="font-bold text-xs mb-0.5 opacity-60">{user?.name}</p>}
-                      <p>{comment.content}</p>
+                    <div className={clsx("px-3 py-2.5 rounded-2xl text-sm", isMe ? "bg-amber-500 text-white rounded-tr-sm shadow-sm" : "bg-white border border-gray-100 text-gray-800 rounded-tl-sm shadow-sm")}>
+                      {!isMe && <p className="font-bold text-[11px] mb-0.5 opacity-60">{user?.name}</p>}
+                      <p className="leading-snug">
+                        {displayContent}
+                        {isEdited && (
+                          <span className={clsx("text-[10px] ml-1.5 italic", isMe ? "text-amber-200" : "text-gray-400")}>
+                            edited
+                          </span>
+                        )}
+                      </p>
                     </div>
                     
-                    {/* Action buttons for your own comments */}
+                    {/* Sleek Action Buttons */}
                     {isMe && (
-                      <div className="flex gap-3 justify-end mt-1.5 px-1">
-                        <button onClick={() => handleEdit(comment)} className="text-[10px] text-gray-400 hover:text-amber-500 font-bold uppercase tracking-wider active:scale-95 transition-colors">
-                          Edit
+                      <div className="flex gap-2 justify-end mt-1 px-1">
+                        <button 
+                          onClick={() => handleEdit(comment)} 
+                          className="text-[10px] text-gray-400/70 hover:text-amber-500 font-medium lowercase tracking-wide transition-colors active:scale-95"
+                        >
+                          edit
                         </button>
-                        <button onClick={() => handleDelete(comment.id as string)} className="text-[10px] text-gray-400 hover:text-red-500 font-bold uppercase tracking-wider active:scale-95 transition-colors">
-                          Delete
+                        <span className="text-[10px] text-gray-300/50">•</span>
+                        <button 
+                          onClick={() => handleDelete(comment.id as string)} 
+                          className="text-[10px] text-gray-400/70 hover:text-red-500 font-medium lowercase tracking-wide transition-colors active:scale-95"
+                        >
+                          delete
                         </button>
                       </div>
                     )}
