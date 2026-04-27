@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { KafeLog, User, Comment } from '../types';
 import { supabase } from '../lib/supabase';
 import { X, Send } from 'lucide-react';
@@ -16,9 +16,10 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose }
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const logOwner = getUserMap(log.user_id);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Fetch comments when the drawer opens
   useEffect(() => {
+    // 1. Fetch initial comments
     const fetchComments = async () => {
       const { data, error } = await supabase
         .from('comments')
@@ -31,23 +32,69 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose }
       }
     };
     fetchComments();
+
+    // 2. Listen for real-time comments from other users
+    const channel = supabase.channel(`comments_for_${log.id}`)
+      .on(
+        'postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'comments', filter: `kafe_id=eq.${log.id}` }, 
+        (payload) => {
+          setComments((current) => {
+            // Prevent adding it twice if we already optimistic-loaded it
+            if (current.find(c => c.id === payload.new.id)) return current;
+            return [...current, payload.new as Comment];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [log.id]);
+
+  // Auto-scroll to bottom when new comments arrive
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [comments]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || isSubmitting) return;
+    const content = newComment.trim();
+    if (!content || isSubmitting) return;
     
     setIsSubmitting(true);
+    setNewComment('');
+
+    // OPTIMISTIC UI: Instantly add the comment to the screen
+    const tempId = `temp-${Date.now()}`;
+    const optimisticComment: Comment = {
+      id: tempId as any,
+      kafe_id: log.id,
+      user_id: currentUser.id,
+      content: content,
+      created_at: new Date().toISOString()
+    };
+    
+    setComments(prev => [...prev, optimisticComment]);
+
+    // Background sync with database
     const { data, error } = await supabase.from('comments').insert({
       kafe_id: log.id,
       user_id: currentUser.id,
-      content: newComment.trim()
+      content: content
     }).select().single();
 
     if (!error && data) {
-      setComments([...comments, data]);
-      setNewComment('');
+      // Swap the temporary ID with the real database ID
+      setComments(prev => prev.map(c => c.id === tempId ? data : c));
+    } else {
+      // If it fails, remove the optimistic comment
+      setComments(prev => prev.filter(c => c.id !== tempId));
     }
+    
     setIsSubmitting(false);
   };
 
@@ -66,12 +113,12 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose }
             </button>
           </div>
           <p className="text-sm text-gray-500 font-medium">
-            On {logOwner?.name}'s {log.type}
+            On {logOwner?.name}'s {log.type.replace(/_/g, ' ')}
           </p>
         </div>
 
         {/* Comment List */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4" ref={scrollRef}>
           {comments.length === 0 ? (
             <div className="text-center text-gray-400 text-sm font-medium pt-10">
               Be the first to comment!
@@ -86,7 +133,7 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose }
                   <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xs shrink-0">
                     {user?.name.charAt(0) || '?'}
                   </div>
-                  <div className={clsx("p-3 rounded-2xl text-sm", isMe ? "bg-amber-500 text-white rounded-tr-sm" : "bg-white border border-gray-100 text-gray-800 rounded-tl-sm")}>
+                  <div className={clsx("p-3 rounded-2xl text-sm", isMe ? "bg-amber-500 text-white rounded-tr-sm shadow-sm" : "bg-white border border-gray-100 text-gray-800 rounded-tl-sm shadow-sm")}>
                     {!isMe && <p className="font-bold text-xs mb-0.5 opacity-60">{user?.name}</p>}
                     <p>{comment.content}</p>
                   </div>

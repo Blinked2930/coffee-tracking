@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Coffee } from 'lucide-react';
-
 import { User } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { supabase } from '../lib/supabase';
 
 interface LoginProps {
   users: User[];
@@ -11,45 +11,74 @@ interface LoginProps {
 
 export default function Login({ users, onLogin }: LoginProps) {
   const { t } = useLanguage();
-  const [selectedUser, setSelectedUser] = useState<string>('');
+  const [username, setUsername] = useState('');
   const [pin, setPin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedUser && pin.length > 0) {
+    const formattedName = username.trim();
+    if (formattedName && pin.length > 0) {
       setIsLoading(true);
-      const success = await onLogin(selectedUser, pin);
+
+      if (isSignUp) {
+        // Check if name already exists
+        const exists = users.find(u => u.name.toLowerCase() === formattedName.toLowerCase());
+        if (exists) {
+          alert("This name is already taken. Try logging in instead!");
+          setIsLoading(false);
+          return;
+        }
+
+        // Create new account
+        const { error } = await supabase.from('users').insert({
+          name: formattedName,
+          pin: pin
+        });
+
+        if (error) {
+          alert("Error creating account. Please try again.");
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Proceed to login
+      const success = await onLogin(formattedName, pin);
       setIsLoading(false);
-      if (!success) setPin('');
+      if (!success) {
+        setPin('');
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
-      <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl p-8 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 relative">
+      <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl p-8 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 z-10">
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
             <Coffee size={32} />
           </div>
-          <h2 className="text-3xl font-black text-gray-900 mb-2">{t('welcomeBack')}</h2>
+          <h2 className="text-3xl font-black text-gray-900 mb-2">
+            {isSignUp ? 'Join the Cohort' : t('welcomeBack')}
+          </h2>
           <p className="text-gray-500 font-medium text-center">Kafe Tracker</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('selectName').replace('...', '')}</label>
-            <select
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('selectName').replace('...', '')}
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+              placeholder="e.g. Emmett"
               required
-            >
-              <option value="" disabled>{t('selectName')}</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.name}>{user.name}</option>
-              ))}
-            </select>
+            />
           </div>
 
           <div>
@@ -68,12 +97,32 @@ export default function Login({ users, onLogin }: LoginProps) {
 
           <button
             type="submit"
-            disabled={!selectedUser || !pin || isLoading}
+            disabled={!username || !pin || isLoading}
             className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-amber-200 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center"
           >
-            {isLoading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : t('enter')}
+            {isLoading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            ) : (
+              isSignUp ? 'Create Account' : t('enter')
+            )}
           </button>
         </form>
+
+        <div className="text-center pt-2">
+          <button 
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-sm font-bold text-amber-600 hover:text-amber-700 transition-colors"
+          >
+            {isSignUp ? 'Already have an account? Log In' : 'New here? Create Account'}
+          </button>
+        </div>
+      </div>
+
+      {/* Official Legal Disclaimer */}
+      <div className="absolute bottom-6 left-0 right-0 px-8 text-center opacity-60">
+        <p className="text-[10px] text-gray-400 font-medium leading-tight">
+          By accessing Kafe Tracker, you acknowledge this application is intended strictly for entertainment and personal tracking purposes. The developers and Executive Visionary assume no liability for caffeine-induced incidents, data discrepancies, or social ramifications.
+        </p>
       </div>
     </div>
   );
