@@ -70,15 +70,16 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     setShowNotificationPrompt(false);
   };
 
+  // Translations wired up!
   const kafeOptions: { type: KafeType; icon: string; label: string }[] = [
     { type: 'kafe', icon: '☕️', label: 'Kafe' },
-    { type: 'turkish kafe', icon: '🫖', label: 'Turkish' },
+    { type: 'turkish kafe', icon: '🫖', label: t('turkish') || 'Turkish' },
     { type: 'macchiato', icon: '🥛', label: 'Macchiato' },
-    { type: 'cappicino', icon: '☁️', label: 'Cappicino' },
-    { type: 'cai', icon: '🍵', label: 'Çai' },
+    { type: 'cappicino', icon: '☁️', label: 'Cappuccino' },
+    { type: 'cai', icon: '🍵', label: t('cai') || 'Çaj' },
     { type: 'freddo', icon: '🧊', label: 'Freddo' },
-    { type: 'canned_coffee', icon: '🥫', label: 'Canned Coffee' },
-    { type: 'energy_drink', icon: '🔋', label: 'Energy Drink' },
+    { type: 'canned_coffee', icon: '🥫', label: t('cannedCoffee') || 'Canned Coffee' },
+    { type: 'energy_drink', icon: '🔋', label: t('energyDrink') || 'Energy Drink' },
     { type: 'other', icon: '❓', label: t('otherType') },
   ];
 
@@ -213,8 +214,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    // FIX: Swapped h-full for min-h-full, added pt-12, removed overflow-y-auto
-    <div className="flex flex-col min-h-full px-4 pt-12 pb-8 relative">
+    // FIX: stripped out all the height constraints so it scrolls normally
+    <div className="w-full px-4 pt-12 pb-16 relative">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
@@ -243,8 +244,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* FIX: Removed justify-center so it top-aligns on short screens instead of clipping */}
-      <div className="flex-1 flex flex-col items-center gap-6 w-full max-w-sm mx-auto pt-4 pb-8">
+      {/* FIX: removed flex-1 so it just sits at the top naturally */}
+      <div className="flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
         
         <button
           onClick={handleLogKafe}
