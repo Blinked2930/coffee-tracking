@@ -11,7 +11,7 @@ interface LanguageContextType {
 const translations: Record<Language, Record<string, string>> = {
   en: {
     welcomeBack: 'Welcome Back',
-    selectName: 'Select your name...',
+    selectName: 'Type your name...',
     enterPin: 'Enter your 4-digit PIN',
     loggingIn: 'Brewing...',
     enter: 'Enter',
@@ -38,11 +38,17 @@ const translations: Record<Language, Record<string, string>> = {
     beFirst: 'Be the first to log a coffee date.',
     leaderboard: 'Leaderboard',
     leaderboardSub: 'Who is vibrating the most?',
-    otherType: 'Other'
+    otherType: 'Other',
+    
+    // The new coffee types
+    turkish: 'Turkish',
+    cai: 'Çai',
+    cannedCoffee: 'Canned Coffee',
+    energyDrink: 'Energy Drink'
   },
   sq: {
     welcomeBack: 'Mirë se vjen',
-    selectName: 'Zgjidh emrin tënd...',
+    selectName: 'Shkruaj emrin tënd...',
     enterPin: 'Vendos PIN-in (4 shifra)',
     loggingIn: 'Duke u përgatitur...',
     enter: 'Hyr',
@@ -51,9 +57,9 @@ const translations: Record<Language, Record<string, string>> = {
     ratingOpt: 'Vlerësimi (Opsional)',
     addDetails: 'Shto Detaje',
     closeDetails: 'Mbyll Detajet',
-    lokalDetails: 'Detajet e Lokaliti',
+    lokalDetails: 'Detajet e Lokalit', // Fixed spelling here
     done: 'Gati',
-    cafeName: 'Emri i Kafenesë ose Vendi',
+    cafeName: 'Emri i Lokaliti ose Vendi',
     uploadPhoto: 'Ngarko Foto',
     photoAttached: 'Foto u ngarkua',
     notes: 'Shënime',
@@ -69,7 +75,13 @@ const translations: Record<Language, Record<string, string>> = {
     beFirst: 'Bëhu i pari që shton një kafe.',
     leaderboard: 'Tabela e Liderëve',
     leaderboardSub: 'Kush po dridhet më shumë?',
-    otherType: 'Tjetër'
+    otherType: 'Tjetër',
+    
+    // The new coffee types
+    turkish: 'Kafe Turke',
+    cai: 'Çaj',
+    cannedCoffee: 'Kafe në Kanaçe',
+    energyDrink: 'Pije Energjike'
   }
 };
 
