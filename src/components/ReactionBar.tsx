@@ -7,14 +7,12 @@ interface Props {
   currentUser: User;
 }
 
-// You can change these to whatever emojis fit the cohort vibe!
 const EMOJIS = ['🔥', '🙌', '☕️', '💯'];
 
 export default function ReactionBar({ kafeId, currentUser }: Props) {
   const [reactions, setReactions] = useState<{ emoji: string; user_id: string }[]>([]);
 
   useEffect(() => {
-    // 1. Fetch initial reactions for this specific kafe
     supabase.from('reactions')
       .select('emoji, user_id')
       .eq('kafe_id', kafeId)
@@ -22,20 +20,17 @@ export default function ReactionBar({ kafeId, currentUser }: Props) {
         if (data) setReactions(data);
       });
 
-    // 2. Listen for real-time reactions from other users
     const channel = supabase.channel(`rxn_${kafeId}`)
-      .on(
-        'postgres_changes', 
-        { event: 'INSERT', schema: 'public', table: 'reactions', filter: `kafe_id=eq.${kafeId}` }, 
-        (payload) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reactions', filter: `kafe_id=eq.${kafeId}` }, (payload) => {
           setReactions(prev => {
-            // Prevent duplicates if we already optimistic-loaded it
             const exists = prev.some(r => r.emoji === payload.new.emoji && r.user_id === payload.new.user_id);
             if (exists) return prev;
             return [...prev, payload.new as any];
           });
-        }
-      )
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'reactions', filter: `kafe_id=eq.${kafeId}` }, (payload) => {
+          setReactions(prev => prev.filter(r => !(r.emoji === payload.old.emoji && r.user_id === payload.old.user_id)));
+      })
       .subscribe();
 
     return () => {
@@ -44,22 +39,27 @@ export default function ReactionBar({ kafeId, currentUser }: Props) {
   }, [kafeId]);
 
   const handleReact = async (emoji: string) => {
-    // Check if user already reacted with this specific emoji
-    const hasReacted = reactions.some(r => r.emoji === emoji && r.user_id === currentUser.id);
-    if (hasReacted) return; 
+    const existingReaction = reactions.find(r => r.emoji === emoji && r.user_id === currentUser.id);
 
-    // OPTIMISTIC UI: Show it instantly
-    setReactions(prev => [...prev, { emoji, user_id: currentUser.id }]);
-
-    // Background sync
-    await supabase.from('reactions').insert({ 
-      kafe_id: kafeId, 
-      user_id: currentUser.id, 
-      emoji 
-    });
+    if (existingReaction) {
+      // UN-REACT (Optimistic Delete)
+      setReactions(prev => prev.filter(r => !(r.emoji === emoji && r.user_id === currentUser.id)));
+      await supabase.from('reactions')
+        .delete()
+        .eq('kafe_id', kafeId)
+        .eq('user_id', currentUser.id)
+        .eq('emoji', emoji);
+    } else {
+      // REACT (Optimistic Insert)
+      setReactions(prev => [...prev, { emoji, user_id: currentUser.id }]);
+      await supabase.from('reactions').insert({ 
+        kafe_id: kafeId, 
+        user_id: currentUser.id, 
+        emoji 
+      });
+    }
   };
 
-  // Group and count reactions
   const counts = reactions.reduce((acc, r) => {
     acc[r.emoji] = (acc[r.emoji] || 0) + 1;
     return acc;

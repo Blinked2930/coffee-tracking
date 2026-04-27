@@ -102,6 +102,11 @@ function App() {
     setActiveTab('home');
   };
 
+  // Instantly updates the count in the Feed when a user comments/deletes
+  const handleUpdateCommentCount = (kafeId: string, delta: number) => {
+    setLogs(prev => prev.map(l => l.id === kafeId ? { ...l, comment_count: Math.max(0, (l.comment_count || 0) + delta) } : l));
+  };
+
   if (!currentUser) {
     return <Login users={users} onLogin={handleLogin} />;
   }
@@ -123,11 +128,13 @@ function App() {
           currentUser={currentUser} 
           onLoadMore={handleLoadMore} 
           hasMore={hasMore} 
+          onUpdateCommentCount={handleUpdateCommentCount}
         />
       )}
       
-      {activeTab === 'leaderboard' && <Leaderboard currentUser={currentUser} />}
-      {activeTab === 'profile' && <Profile user={currentUser} onLogout={handleLogout} />}
+      {/* Passed getUserMap down to profiles so comments can display names */}
+      {activeTab === 'leaderboard' && <Leaderboard currentUser={currentUser} getUserMap={getUserMap} />}
+      {activeTab === 'profile' && <Profile user={currentUser} getUserMap={getUserMap} onLogout={handleLogout} />}
     </Layout>
   );
 }

@@ -38,7 +38,8 @@ export default function Login({ users, onLogin }: LoginProps) {
         });
 
         if (error) {
-          alert("Error creating account. Please try again.");
+          console.error("Signup Error:", error);
+          alert(`Database Error: ${error.message}`); // This will tell us exactly why it failed!
           setIsLoading(false);
           return;
         }
@@ -69,7 +70,7 @@ export default function Login({ users, onLogin }: LoginProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('selectName').replace('...', '')}
+              Type your name
             </label>
             <input
               type="text"
@@ -87,6 +88,7 @@ export default function Login({ users, onLogin }: LoginProps) {
               type="password"
               inputMode="numeric"
               pattern="[0-9]*"
+              maxLength={4} // Locked to 4 digits
               value={pin}
               onChange={(e) => setPin(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-center tracking-[0.5em] text-xl font-mono"
@@ -110,6 +112,7 @@ export default function Login({ users, onLogin }: LoginProps) {
 
         <div className="text-center pt-2">
           <button 
+            type="button"
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-sm font-bold text-amber-600 hover:text-amber-700 transition-colors"
           >
@@ -118,7 +121,6 @@ export default function Login({ users, onLogin }: LoginProps) {
         </div>
       </div>
 
-      {/* Official Legal Disclaimer */}
       <div className="absolute bottom-6 left-0 right-0 px-8 text-center opacity-60">
         <p className="text-[10px] text-gray-400 font-medium leading-tight">
           By accessing Kafe Tracker, you acknowledge this application is intended strictly for entertainment and personal tracking purposes. The developers and Executive Visionary assume no liability for caffeine-induced incidents, data discrepancies, or social ramifications.

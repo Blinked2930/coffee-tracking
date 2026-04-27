@@ -9,9 +9,10 @@ interface CommentsDrawerProps {
   currentUser: User;
   getUserMap: (id: string) => User | undefined;
   onClose: () => void;
+  onUpdateCount?: (delta: number) => void; // Tells the parent to adjust the counter
 }
 
-export default function CommentsDrawer({ log, currentUser, getUserMap, onClose }: CommentsDrawerProps) {
+export default function CommentsDrawer({ log, currentUser, getUserMap, onClose, onUpdateCount }: CommentsDrawerProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,6 +45,20 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose }
             if (current.find(c => c.id === payload.new.id)) return current;
             return [...current, payload.new as Comment];
           });
+        }
+      )
+      .on(
+        'postgres_changes', 
+        { event: 'DELETE', schema: 'public', table: 'comments', filter: `kafe_id=eq.${log.id}` }, 
+        (payload) => {
+          setComments((current) => current.filter(c => c.id !== payload.old.id));
+        }
+      )
+      .on(
+        'postgres_changes', 
+        { event: 'UPDATE', schema: 'public', table: 'comments', filter: `kafe_id=eq.${log.id}` }, 
+        (payload) => {
+          setComments((current) => current.map(c => c.id === payload.new.id ? payload.new as Comment : c));
         }
       )
       .subscribe();
@@ -79,6 +94,9 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose }
     };
     
     setComments(prev => [...prev, optimisticComment]);
+    
+    // Instantly update the counter on the Feed behind the drawer
+    if (onUpdateCount) onUpdateCount(1); 
 
     // Background sync with database
     const { data, error } = await supabase.from('comments').insert({
@@ -91,11 +109,36 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose }
       // Swap the temporary ID with the real database ID
       setComments(prev => prev.map(c => c.id === tempId ? data : c));
     } else {
-      // If it fails, remove the optimistic comment
+      // If it fails, remove the optimistic comment and revert the counter
       setComments(prev => prev.filter(c => c.id !== tempId));
+      if (onUpdateCount) onUpdateCount(-1);
     }
     
     setIsSubmitting(false);
+  };
+
+  const handleEdit = async (comment: Comment) => {
+    const editedContent = window.prompt("Edit your comment:", comment.content);
+    if (editedContent && editedContent.trim() !== "" && editedContent.trim() !== comment.content) {
+      const cleanContent = editedContent.trim();
+      
+      // Optimistic update
+      setComments(prev => prev.map(c => c.id === comment.id ? { ...c, content: cleanContent } : c));
+      
+      // Database sync
+      await supabase.from('comments').update({ content: cleanContent }).eq('id', comment.id);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    // Optimistic delete
+    setComments(prev => prev.filter(c => c.id !== id));
+    
+    // Instantly update the counter on the Feed behind the drawer
+    if (onUpdateCount) onUpdateCount(-1); 
+    
+    // Database sync
+    await supabase.from('comments').delete().eq('id', id);
   };
 
   return (
@@ -130,12 +173,27 @@ export default function CommentsDrawer({ log, currentUser, getUserMap, onClose }
               
               return (
                 <div key={comment.id} className={clsx("flex gap-3 max-w-[85%]", isMe ? "ml-auto flex-row-reverse" : "")}>
-                  <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xs shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xs shrink-0 mt-1">
                     {user?.name.charAt(0) || '?'}
                   </div>
-                  <div className={clsx("p-3 rounded-2xl text-sm", isMe ? "bg-amber-500 text-white rounded-tr-sm shadow-sm" : "bg-white border border-gray-100 text-gray-800 rounded-tl-sm shadow-sm")}>
-                    {!isMe && <p className="font-bold text-xs mb-0.5 opacity-60">{user?.name}</p>}
-                    <p>{comment.content}</p>
+                  
+                  <div className="flex flex-col">
+                    <div className={clsx("p-3 rounded-2xl text-sm", isMe ? "bg-amber-500 text-white rounded-tr-sm shadow-sm" : "bg-white border border-gray-100 text-gray-800 rounded-tl-sm shadow-sm")}>
+                      {!isMe && <p className="font-bold text-xs mb-0.5 opacity-60">{user?.name}</p>}
+                      <p>{comment.content}</p>
+                    </div>
+                    
+                    {/* Action buttons for your own comments */}
+                    {isMe && (
+                      <div className="flex gap-3 justify-end mt-1.5 px-1">
+                        <button onClick={() => handleEdit(comment)} className="text-[10px] text-gray-400 hover:text-amber-500 font-bold uppercase tracking-wider active:scale-95 transition-colors">
+                          Edit
+                        </button>
+                        <button onClick={() => handleDelete(comment.id as string)} className="text-[10px] text-gray-400 hover:text-red-500 font-bold uppercase tracking-wider active:scale-95 transition-colors">
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
