@@ -2,16 +2,19 @@ import { useMemo, useState, useEffect } from 'react';
 import { User, KafeLog } from '../types';
 import { X, Star, Coffee, Clock, MessageCircle, MapPin } from 'lucide-react';
 import ReactionBar from './ReactionBar';
+import CommentsDrawer from './CommentsDrawer';
 import { supabase } from '../lib/supabase';
 
 interface UserProfileDrawerProps {
   user: User;
-  currentUser: User; // <-- Added this to pass through the current active user
+  currentUser: User;
+  getUserMap: (id: string) => User | undefined; // <-- ADDED
   onClose: () => void;
 }
 
-export default function UserProfileDrawer({ user, currentUser, onClose }: UserProfileDrawerProps) {
+export default function UserProfileDrawer({ user, currentUser, getUserMap, onClose }: UserProfileDrawerProps) {
   const [userLogs, setUserLogs] = useState<KafeLog[]>([]);
+  const [commentingOnLog, setCommentingOnLog] = useState<KafeLog | null>(null); // <-- ADDED
 
   useEffect(() => {
     supabase.from('kafes')
@@ -28,6 +31,11 @@ export default function UserProfileDrawer({ user, currentUser, onClose }: UserPr
         }
       });
   }, [user.id]);
+
+  // Instantly updates the local feed
+  const handleUpdateCommentCount = (kafeId: string, delta: number) => {
+    setUserLogs(prev => prev.map(l => l.id === kafeId ? { ...l, comment_count: Math.max(0, (l.comment_count || 0) + delta) } : l));
+  };
 
   const insights = useMemo(() => {
     const total = userLogs.length;
@@ -162,10 +170,15 @@ export default function UserProfileDrawer({ user, currentUser, onClose }: UserPr
                       <ReactionBar kafeId={log.id} currentUser={currentUser} />
 
                       <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
-                        <div className="flex items-center gap-1.5 text-gray-400">
-                          <MessageCircle size={18} />
+                        
+                        {/* CHANGED THIS FROM A DIV TO A BUTTON */}
+                        <button 
+                          onClick={() => setCommentingOnLog(log)}
+                          className="flex items-center gap-1.5 text-gray-400 hover:text-amber-500 transition-colors active:scale-95 group"
+                        >
+                          <MessageCircle size={18} className="group-hover:fill-amber-50 transition-all" />
                           <span className="text-sm font-bold">{(log as any).comment_count || 0}</span>
-                        </div>
+                        </button>
 
                         {log.rating ? (
                           <div className="flex flex-wrap items-center gap-0.5">
@@ -187,6 +200,17 @@ export default function UserProfileDrawer({ user, currentUser, onClose }: UserPr
           
         </div>
       </div>
+
+      {/* ADDED THE COMMENTS DRAWER HERE */}
+      {commentingOnLog && (
+        <CommentsDrawer 
+          log={commentingOnLog} 
+          currentUser={currentUser} 
+          getUserMap={getUserMap} 
+          onClose={() => setCommentingOnLog(null)} 
+          onUpdateCount={(delta) => handleUpdateCommentCount(commentingOnLog.id, delta)}
+        />
+      )}
     </>
   );
 }

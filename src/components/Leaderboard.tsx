@@ -8,9 +8,10 @@ import { supabase } from '../lib/supabase';
 
 interface LeaderboardProps {
   currentUser: User;
+  getUserMap: (id: string) => User | undefined; // <-- ADDED
 }
 
-export default function Leaderboard({ currentUser }: LeaderboardProps) {
+export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProps) {
   const { t } = useLanguage();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [rankedUsers, setRankedUsers] = useState<any[]>([]);
@@ -168,6 +169,7 @@ export default function Leaderboard({ currentUser }: LeaderboardProps) {
         <UserProfileDrawer 
           user={selectedUser} 
           currentUser={currentUser}
+          getUserMap={getUserMap} // <-- PASSED
           onClose={() => setSelectedUser(null)} 
         />
       )}

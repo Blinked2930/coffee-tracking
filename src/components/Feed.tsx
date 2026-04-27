@@ -12,9 +12,10 @@ interface FeedProps {
   currentUser: User;
   onLoadMore: () => void;
   hasMore: boolean;
+  onUpdateCommentCount?: (kafeId: string, delta: number) => void; // <-- NEW WIRING
 }
 
-export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMore }: FeedProps) {
+export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMore, onUpdateCommentCount }: FeedProps) {
   const { t } = useLanguage();
   const [editingLog, setEditingLog] = useState<KafeLog | null>(null);
   const [commentingOnLog, setCommentingOnLog] = useState<KafeLog | null>(null);
@@ -144,6 +145,7 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
           currentUser={currentUser} 
           getUserMap={getUserMap} 
           onClose={() => setCommentingOnLog(null)} 
+          onUpdateCount={(delta) => onUpdateCommentCount?.(commentingOnLog.id, delta)} // <-- THE BRIDGE
         />
       )}
     </div>

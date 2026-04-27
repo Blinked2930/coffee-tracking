@@ -4,16 +4,19 @@ import { LogOut, Globe, Coffee, Clock, Zap, MessageCircle, MapPin } from 'lucide
 import { useLanguage } from '../contexts/LanguageContext';
 import EditKafeModal from './EditKafeModal';
 import ReactionBar from './ReactionBar';
+import CommentsDrawer from './CommentsDrawer';
 import { supabase } from '../lib/supabase';
 
 interface ProfileProps {
   user: User;
+  getUserMap: (id: string) => User | undefined; // <-- ADDED
   onLogout: () => void;
 }
 
-export default function Profile({ user, onLogout }: ProfileProps) {
+export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
   const { lang, toggleLang } = useLanguage();
   const [editingLog, setEditingLog] = useState<KafeLog | null>(null);
+  const [commentingOnLog, setCommentingOnLog] = useState<KafeLog | null>(null); // <-- ADDED
   const [userLogs, setUserLogs] = useState<KafeLog[]>([]);
 
   useEffect(() => {
@@ -31,6 +34,11 @@ export default function Profile({ user, onLogout }: ProfileProps) {
         }
       });
   }, [user.id]);
+
+  // Instantly updates the local feed
+  const handleUpdateCommentCount = (kafeId: string, delta: number) => {
+    setUserLogs(prev => prev.map(l => l.id === kafeId ? { ...l, comment_count: Math.max(0, (l.comment_count || 0) + delta) } : l));
+  };
 
   const insights = useMemo(() => {
     const total = userLogs.length;
@@ -133,8 +141,7 @@ export default function Profile({ user, onLogout }: ProfileProps) {
               return (
                 <div 
                   key={log.id} 
-                  onClick={() => setEditingLog(log)}
-                  className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100/80 cursor-pointer active:scale-[0.99] transition-transform flex flex-col w-full"
+                  className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100/80 flex flex-col w-full"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-wrap items-center gap-3">
@@ -147,6 +154,11 @@ export default function Profile({ user, onLogout }: ProfileProps) {
                         {dateStr} at {timeStr}
                       </span>
                     </div>
+
+                    {/* Moved Edit Pencil Here */}
+                    <button onClick={() => setEditingLog(log)} className="shrink-0 text-gray-300 hover:text-amber-500 p-2 -mt-2 -mr-2 active:scale-95 transition-transform">
+                      <Pencil size={14} />
+                    </button>
                   </div>
 
                   {log.location && (
@@ -177,10 +189,13 @@ export default function Profile({ user, onLogout }: ProfileProps) {
                   <ReactionBar kafeId={log.id} currentUser={user} />
 
                   <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
-                    <div className="flex items-center gap-1.5 text-gray-400">
-                      <MessageCircle size={18} />
+                    <button 
+                      onClick={() => setCommentingOnLog(log)}
+                      className="flex items-center gap-1.5 text-gray-400 hover:text-amber-500 transition-colors active:scale-95 group"
+                    >
+                      <MessageCircle size={18} className="group-hover:fill-amber-50 transition-all" />
                       <span className="text-sm font-bold">{(log as any).comment_count || 0}</span>
-                    </div>
+                    </button>
 
                     {log.rating ? (
                       <div className="flex flex-wrap items-center gap-0.5">
@@ -199,7 +214,18 @@ export default function Profile({ user, onLogout }: ProfileProps) {
           )}
         </div>
       </div>
+      
       {editingLog && <EditKafeModal log={editingLog} onClose={() => setEditingLog(null)} />}
+      
+      {commentingOnLog && (
+        <CommentsDrawer 
+          log={commentingOnLog} 
+          currentUser={user} 
+          getUserMap={getUserMap} 
+          onClose={() => setCommentingOnLog(null)} 
+          onUpdateCount={(delta) => handleUpdateCommentCount(commentingOnLog.id, delta)}
+        />
+      )}
     </div>
   );
 }
