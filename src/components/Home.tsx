@@ -213,7 +213,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col h-full px-4 relative overflow-hidden">
+    // Replaced overflow-hidden with overflow-y-auto and added pt-8 so the circle shadow doesn't clip
+    <div className="flex flex-col h-full px-4 pt-8 pb-10 relative overflow-y-auto">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
@@ -282,8 +283,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           )}
         </button>
 
-        {/* ALIGNED GRID: Swapped px-6 for px-1 so it naturally spans the exact same width as the rating cups below it */}
-        <div className="w-full px-1">
+        <div className="w-full px-1 mt-4">
           <div className="grid grid-cols-3 gap-3">
             {kafeOptions.map((option) => (
               <button
@@ -296,7 +296,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
                     : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
                 )}
               >
-                {/* RESTORED BIG ICONS: text-3xl sm:text-4xl */}
                 <span className="text-3xl sm:text-4xl">{option.icon}</span>
                 <span className={clsx("text-[10px] sm:text-[11px] leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
                   {option.label}
@@ -307,7 +306,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
 
         {/* The Rating Cups */}
-        <div className="w-full flex flex-col items-center shrink-0">
+        <div className="w-full flex flex-col items-center shrink-0 mt-2">
           <div className="flex justify-between w-full px-1">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
               <button
@@ -326,7 +325,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
         <button 
           onClick={() => setIsAddingDetails(true)}
-          className="px-6 py-2.5 rounded-full bg-white text-gray-500 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-[11px] uppercase tracking-wider flex items-center justify-center shrink-0"
+          className="px-6 py-2.5 mt-2 rounded-full bg-white text-gray-500 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-[11px] uppercase tracking-wider flex items-center justify-center shrink-0"
         >
           {t('addDetails')}
         </button>

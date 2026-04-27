@@ -15,63 +15,69 @@ export default function Layout({ user, activeTab, onTabChange, children }: Layou
   const { t } = useLanguage();
   
   return (
-    <div className="flex flex-col h-[100dvh] bg-gray-50 overflow-hidden">
+    // Desktop Wrapper: Dark background, centers the "phone" perfectly
+    <div className="min-h-screen bg-gray-900 flex justify-center w-full">
       
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto pb-28 pt-4">
-        {children}
-      </main>
+      {/* The Phone Container */}
+      <div className="w-full max-w-md bg-gray-50 h-[100dvh] relative overflow-hidden flex flex-col shadow-2xl sm:ring-1 sm:ring-gray-800">
+        
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto pb-28 pt-4">
+          {children}
+        </main>
 
-      {/* Bottom Navigation - Increased bottom padding to 20px to lift it higher off the bottom edge */}
-      <nav 
-        className="fixed bottom-0 w-full bg-white border-t border-gray-100 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)' }}
-      >
-        <div className="flex justify-around items-center px-2 pt-3 pb-1 max-w-md mx-auto">
-          <NavButton 
-            icon={<HomeIcon size={24} />} 
-            label={t('home')} 
-            isActive={activeTab === 'home'} 
-            onClick={() => onTabChange('home')} 
-          />
-          <NavButton 
-            icon={<List size={24} />} 
-            label={t('feed')} 
-            isActive={activeTab === 'feed'} 
-            onClick={() => onTabChange('feed')} 
-          />
-          <NavButton 
-            icon={<Trophy size={24} />} 
-            label={t('rankings')} 
-            isActive={activeTab === 'leaderboard'} 
-            onClick={() => onTabChange('leaderboard')} 
-          />
-          
-          {/* Profile Button (Avatar) */}
-          <button
-            onClick={() => onTabChange('profile')}
-            className={clsx(
-              "flex flex-col items-center gap-1 transition-all",
-              activeTab === 'profile' ? "scale-105" : "opacity-80 hover:opacity-100"
-            )}
-          >
-            <div className={clsx(
-              "w-[34px] h-[34px] rounded-full flex items-center justify-center font-bold text-sm transition-all mb-0.5",
-              activeTab === 'profile' 
-                ? "bg-amber-500 text-white shadow-md ring-4 ring-amber-50" 
-                : "bg-gray-100 text-gray-600 border border-gray-200"
-            )}>
-              {user.name.charAt(0)}
-            </div>
-            <span className={clsx(
-              "text-[10px] font-medium tracking-wide", 
-              activeTab === 'profile' ? "font-bold text-amber-600" : "text-gray-400"
-            )}>
-              {user.name.split(' ')[0]}
-            </span>
-          </button>
-        </div>
-      </nav>
+        {/* Bottom Navigation - Now absolute to anchor to the phone container, not the whole screen */}
+        <nav 
+          className="absolute bottom-0 w-full bg-white border-t border-gray-100 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)' }}
+        >
+          <div className="flex justify-around items-center px-2 pt-3 pb-1 w-full">
+            <NavButton 
+              icon={<HomeIcon size={24} />} 
+              label={t('home')} 
+              isActive={activeTab === 'home'} 
+              onClick={() => onTabChange('home')} 
+            />
+            <NavButton 
+              icon={<List size={24} />} 
+              label={t('feed')} 
+              isActive={activeTab === 'feed'} 
+              onClick={() => onTabChange('feed')} 
+            />
+            <NavButton 
+              icon={<Trophy size={24} />} 
+              label={t('rankings')} 
+              isActive={activeTab === 'leaderboard'} 
+              onClick={() => onTabChange('leaderboard')} 
+            />
+            
+            {/* Profile Button (Avatar) */}
+            <button
+              onClick={() => onTabChange('profile')}
+              className={clsx(
+                "flex flex-col items-center gap-1 transition-all",
+                activeTab === 'profile' ? "scale-105" : "opacity-80 hover:opacity-100"
+              )}
+            >
+              <div className={clsx(
+                "w-[34px] h-[34px] rounded-full flex items-center justify-center font-bold text-sm transition-all mb-0.5",
+                activeTab === 'profile' 
+                  ? "bg-amber-500 text-white shadow-md ring-4 ring-amber-50" 
+                  : "bg-gray-100 text-gray-600 border border-gray-200"
+              )}>
+                {user.name.charAt(0)}
+              </div>
+              <span className={clsx(
+                "text-[10px] font-medium tracking-wide", 
+                activeTab === 'profile' ? "font-bold text-amber-600" : "text-gray-400"
+              )}>
+                {user.name.split(' ')[0]}
+              </span>
+            </button>
+          </div>
+        </nav>
+
+      </div>
     </div>
   );
 }
