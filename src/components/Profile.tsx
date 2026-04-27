@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { User, KafeLog } from '../types';
-import { LogOut, Globe, Coffee, Clock, Zap, MessageCircle, MapPin } from 'lucide-react';
+// FIX: Added Pencil to the import list below!
+import { LogOut, Globe, Coffee, Clock, Zap, MessageCircle, MapPin, Pencil } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import EditKafeModal from './EditKafeModal';
 import ReactionBar from './ReactionBar';
@@ -9,14 +10,14 @@ import { supabase } from '../lib/supabase';
 
 interface ProfileProps {
   user: User;
-  getUserMap: (id: string) => User | undefined; // <-- ADDED
+  getUserMap: (id: string) => User | undefined; 
   onLogout: () => void;
 }
 
 export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
   const { lang, toggleLang } = useLanguage();
   const [editingLog, setEditingLog] = useState<KafeLog | null>(null);
-  const [commentingOnLog, setCommentingOnLog] = useState<KafeLog | null>(null); // <-- ADDED
+  const [commentingOnLog, setCommentingOnLog] = useState<KafeLog | null>(null);
   const [userLogs, setUserLogs] = useState<KafeLog[]>([]);
 
   useEffect(() => {
@@ -147,7 +148,8 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="px-2.5 py-1 bg-amber-50 rounded-lg border border-amber-100/50 inline-flex">
                         <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">
-                          {log.type.replace(/_/g, ' ')}
+                          {/* FIX: Added fallback to prevent null crashes */}
+                          {(log.type || 'unknown').replace(/_/g, ' ')}
                         </p>
                       </div>
                       <span className="text-[11px] font-medium text-gray-400">
@@ -155,7 +157,6 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
                       </span>
                     </div>
 
-                    {/* Moved Edit Pencil Here */}
                     <button onClick={() => setEditingLog(log)} className="shrink-0 text-gray-300 hover:text-amber-500 p-2 -mt-2 -mr-2 active:scale-95 transition-transform">
                       <Pencil size={14} />
                     </button>
@@ -185,7 +186,6 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
                     </p>
                   )}
 
-                  {/* EMOJI REACTION BAR */}
                   <ReactionBar kafeId={log.id} currentUser={user} />
 
                   <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
