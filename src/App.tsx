@@ -5,7 +5,6 @@ import Home from './components/Home';
 import Feed from './components/Feed';
 import Leaderboard from './components/Leaderboard';
 import Profile from './components/Profile';
-import AnnouncementModal from './components/AnnouncementModal';
 import { User, KafeLog } from './types';
 import { supabase } from './lib/supabase';
 
@@ -14,9 +13,6 @@ function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'feed' | 'leaderboard' | 'profile'>('home');
   const [logs, setLogs] = useState<KafeLog[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  
-  // Modal State
-  const [showAnnouncement, setShowAnnouncement] = useState(false);
   
   // Pagination State
   const [page, setPage] = useState(0);
@@ -28,12 +24,6 @@ function App() {
     const savedUser = localStorage.getItem('kafe_user');
     if (savedUser) {
       setCurrentUser(JSON.parse(savedUser));
-    }
-
-    // 2. Check if they have seen the apology pop-up yet
-    const hasSeenAnnouncement = localStorage.getItem('seen_data_apology_v1');
-    if (!hasSeenAnnouncement) {
-      setShowAnnouncement(true);
     }
     
     supabase.from('users').select('id, name').then(({ data }) => {
@@ -112,11 +102,6 @@ function App() {
     setActiveTab('home');
   };
 
-  const closeAnnouncement = () => {
-    localStorage.setItem('seen_data_apology_v1', 'true');
-    setShowAnnouncement(false);
-  };
-
   if (!currentUser) {
     return <Login users={users} onLogin={handleLogin} />;
   }
@@ -124,31 +109,26 @@ function App() {
   const getUserMap = (id: string) => users.find(u => u.id === id);
 
   return (
-    <>
-      <Layout 
-        user={currentUser} 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab}
-      >
-        {activeTab === 'home' && <Home user={currentUser} onKafeLogged={() => fetchLogs(0, true)} />}
-        
-        {activeTab === 'feed' && (
-          <Feed 
-            logs={logs} 
-            getUserMap={getUserMap} 
-            currentUser={currentUser} 
-            onLoadMore={handleLoadMore} 
-            hasMore={hasMore} 
-          />
-        )}
-        
-        {/* CHANGED: Passed currentUser into Leaderboard */}
-        {activeTab === 'leaderboard' && <Leaderboard currentUser={currentUser} />}
-        {activeTab === 'profile' && <Profile user={currentUser} onLogout={handleLogout} />}
-      </Layout>
-
-      {showAnnouncement && <AnnouncementModal onClose={closeAnnouncement} />}
-    </>
+    <Layout 
+      user={currentUser} 
+      activeTab={activeTab} 
+      onTabChange={setActiveTab}
+    >
+      {activeTab === 'home' && <Home user={currentUser} onKafeLogged={() => fetchLogs(0, true)} />}
+      
+      {activeTab === 'feed' && (
+        <Feed 
+          logs={logs} 
+          getUserMap={getUserMap} 
+          currentUser={currentUser} 
+          onLoadMore={handleLoadMore} 
+          hasMore={hasMore} 
+        />
+      )}
+      
+      {activeTab === 'leaderboard' && <Leaderboard currentUser={currentUser} />}
+      {activeTab === 'profile' && <Profile user={currentUser} onLogout={handleLogout} />}
+    </Layout>
   );
 }
 
