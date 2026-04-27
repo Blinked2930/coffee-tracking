@@ -5,7 +5,12 @@ import { useLanguage } from '../contexts/LanguageContext';
 import UserProfileDrawer from './UserProfileDrawer';
 import { supabase } from '../lib/supabase';
 
-export default function Leaderboard() {
+// <-- Added the interface here to accept currentUser
+interface LeaderboardProps {
+  currentUser: User;
+}
+
+export default function Leaderboard({ currentUser }: LeaderboardProps) {
   const { t } = useLanguage();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [rankedUsers, setRankedUsers] = useState<any[]>([]);
@@ -21,7 +26,6 @@ export default function Leaderboard() {
       });
   }, []);
 
-  // FIXED: Ensured total_kafes is parsed as a number for safety
   const maxCount = Math.max(...rankedUsers.map(u => Number(u.total_kafes) || 0), 1);
 
   return (
@@ -47,7 +51,6 @@ export default function Leaderboard() {
             <div 
               key={user.user_id} 
               className="relative group cursor-pointer" 
-              // FIXED: Added 'as User' to satisfy TypeScript's strict object requirements
               onClick={() => setSelectedUser({ id: user.user_id, name: user.name, pin: '' } as User)}
             >
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 relative z-10 transition-transform active:scale-[0.98] hover:border-amber-200">
@@ -56,7 +59,6 @@ export default function Leaderboard() {
                 </div>
 
                 <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 font-bold flex items-center justify-center text-sm flex-shrink-0">
-                  {/* FIXED: Added optional chaining fallback for the avatar letter */}
                   {user.name?.charAt(0) || '?'}
                 </div>
                 
@@ -85,6 +87,7 @@ export default function Leaderboard() {
       {selectedUser && (
         <UserProfileDrawer 
           user={selectedUser} 
+          currentUser={currentUser} // <-- Passed it into the drawer!
           onClose={() => setSelectedUser(null)} 
         />
       )}

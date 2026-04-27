@@ -5,7 +5,7 @@ import Home from './components/Home';
 import Feed from './components/Feed';
 import Leaderboard from './components/Leaderboard';
 import Profile from './components/Profile';
-import AnnouncementModal from './components/AnnouncementModal'; // <-- IMPORTED THE MODAL
+import AnnouncementModal from './components/AnnouncementModal';
 import { User, KafeLog } from './types';
 import { supabase } from './lib/supabase';
 
@@ -142,11 +142,11 @@ function App() {
           />
         )}
         
-        {activeTab === 'leaderboard' && <Leaderboard />}
+        {/* CHANGED: Passed currentUser into Leaderboard */}
+        {activeTab === 'leaderboard' && <Leaderboard currentUser={currentUser} />}
         {activeTab === 'profile' && <Profile user={currentUser} onLogout={handleLogout} />}
       </Layout>
 
-      {/* THE MODAL IS NOW RENDERED HERE */}
       {showAnnouncement && <AnnouncementModal onClose={closeAnnouncement} />}
     </>
   );

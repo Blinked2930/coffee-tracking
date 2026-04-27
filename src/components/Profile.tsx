@@ -3,6 +3,7 @@ import { User, KafeLog } from '../types';
 import { LogOut, Globe, Coffee, Clock, Zap, MessageCircle, MapPin } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import EditKafeModal from './EditKafeModal';
+import ReactionBar from './ReactionBar';
 import { supabase } from '../lib/supabase';
 
 interface ProfileProps {
@@ -171,6 +172,9 @@ export default function Profile({ user, onLogout }: ProfileProps) {
                       "{log.notes}"
                     </p>
                   )}
+
+                  {/* EMOJI REACTION BAR */}
+                  <ReactionBar kafeId={log.id} currentUser={user} />
 
                   <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
                     <div className="flex items-center gap-1.5 text-gray-400">
