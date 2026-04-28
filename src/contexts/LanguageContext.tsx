@@ -40,9 +40,10 @@ const translations: Record<Language, Record<string, string>> = {
     leaderboardSub: 'Who is vibrating the most?',
     otherType: 'Other',
     
-    // The new coffee types
+    // Coffees
     turkish: 'Turkish',
-    cai: 'Çai',
+    cai: 'Tea',
+    freddo: 'Iced',
     cannedCoffee: 'Canned Coffee',
     energyDrink: 'Energy Drink'
   },
@@ -57,7 +58,7 @@ const translations: Record<Language, Record<string, string>> = {
     ratingOpt: 'Vlerësimi (Opsional)',
     addDetails: 'Shto Detaje',
     closeDetails: 'Mbyll Detajet',
-    lokalDetails: 'Detajet e Lokalit', // Fixed spelling here
+    lokalDetails: 'Detajet e Lokalit',
     done: 'Gati',
     cafeName: 'Emri i Lokaliti ose Vendi',
     uploadPhoto: 'Ngarko Foto',
@@ -77,9 +78,10 @@ const translations: Record<Language, Record<string, string>> = {
     leaderboardSub: 'Kush po dridhet më shumë?',
     otherType: 'Tjetër',
     
-    // The new coffee types
+    // Coffees
     turkish: 'Kafe Turke',
     cai: 'Çaj',
+    freddo: 'Freddo',
     cannedCoffee: 'Kafe në Kanaçe',
     energyDrink: 'Pije Energjike'
   }

@@ -70,14 +70,13 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     setShowNotificationPrompt(false);
   };
 
-  // Translations wired up!
   const kafeOptions: { type: KafeType; icon: string; label: string }[] = [
     { type: 'kafe', icon: '☕️', label: 'Kafe' },
     { type: 'turkish kafe', icon: '🫖', label: t('turkish') || 'Turkish' },
     { type: 'macchiato', icon: '🥛', label: 'Macchiato' },
     { type: 'cappicino', icon: '☁️', label: 'Cappuccino' },
-    { type: 'cai', icon: '🍵', label: t('cai') || 'Çaj' },
-    { type: 'freddo', icon: '🧊', label: 'Freddo' },
+    { type: 'cai', icon: '🍵', label: t('cai') || 'Tea' },
+    { type: 'freddo', icon: '🧊', label: t('freddo') || 'Iced' },
     { type: 'canned_coffee', icon: '🥫', label: t('cannedCoffee') || 'Canned Coffee' },
     { type: 'energy_drink', icon: '🔋', label: t('energyDrink') || 'Energy Drink' },
     { type: 'other', icon: '❓', label: t('otherType') },
@@ -214,8 +213,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    // FIX: stripped out all the height constraints so it scrolls normally
-    <div className="w-full px-4 pt-12 pb-16 relative">
+    <div className="flex flex-col min-h-full px-4 pt-12 pb-16 relative">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
@@ -244,7 +242,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* FIX: removed flex-1 so it just sits at the top naturally */}
       <div className="flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
         
         <button
@@ -307,7 +304,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </div>
         </div>
 
-        {/* The Rating Cups */}
         <div className="w-full flex flex-col items-center shrink-0 mt-2">
           <div className="flex justify-between w-full px-1">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
@@ -333,7 +329,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </button>
       </div>
 
-      {/* Modal Overlay & Drawer */}
       {isAddingDetails && <div className="fixed inset-0 bg-gray-900/20 z-40 transition-opacity" onClick={() => setIsAddingDetails(false)} />}
       <div className={clsx(
         "fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 transition-transform duration-300 ease-in-out p-6 pb-8 border-t border-gray-100 max-w-2xl mx-auto",
