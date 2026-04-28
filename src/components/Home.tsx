@@ -44,6 +44,31 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
+  // NEW HELPER: Silently grabs a token if permission is already granted
+  const reconnectPushSubscription = async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        if (!vapidPublicKey) return;
+
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+        });
+
+        await supabase
+          .from('push_subscriptions')
+          .upsert({ 
+            user_id: user.id, 
+            subscription: JSON.parse(JSON.stringify(subscription)) 
+          }, { onConflict: 'user_id' });
+      }
+    } catch (error) {
+      console.error("Silent push renewal failed:", error);
+    }
+  };
+
   useEffect(() => {
     if ("Notification" in window) {
       setPermissionStatus(Notification.permission);
@@ -56,9 +81,12 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           const timer = setTimeout(() => setShowNotificationPrompt(true), 1500);
           return () => clearTimeout(timer);
         }
+      } else if (Notification.permission === 'granted') {
+        // THE FIX: If they already said yes in the past, silently renew their token!
+        reconnectPushSubscription();
       }
     }
-  }, []);
+  }, [user.id]);
 
   const handleDismissSession = () => {
     sessionStorage.setItem('kafe_notifications_session', 'true');
