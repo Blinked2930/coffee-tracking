@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase';
 
 interface LeaderboardProps {
   currentUser: User;
-  getUserMap: (id: string) => User | undefined; // <-- ADDED
+  getUserMap: (id: string) => User | undefined; 
 }
 
 export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProps) {
@@ -134,18 +134,18 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
                   {RankIcon || (index + 1)}
                 </div>
 
-                <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 font-bold flex items-center justify-center text-sm flex-shrink-0 relative overflow-hidden">
+                {/* Removed the muddy overlay, just kept the clean avatar */}
+                <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 font-bold flex items-center justify-center text-sm flex-shrink-0">
                   {user.name?.charAt(0) || '?'}
-                  {!isFriendOrMe && (
-                    <div className="absolute inset-0 bg-gray-900/10 backdrop-blur-[1px] flex items-center justify-center">
-                      <Lock size={14} className="text-gray-600 opacity-50" />
-                    </div>
-                  )}
                 </div>
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-end mb-1 gap-2">
-                    <span className="font-bold text-gray-900 truncate">{user.name}</span>
+                    {/* Moved the lock next to the name here! */}
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="font-bold text-gray-900 truncate">{user.name}</span>
+                      {!isFriendOrMe && <Lock size={14} strokeWidth={2.5} className="text-gray-400 shrink-0" />}
+                    </div>
                     <span className="font-black text-amber-600 tabular-nums shrink-0">{Number(user.total_kafes)}</span>
                   </div>
                   <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
@@ -169,7 +169,7 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
         <UserProfileDrawer 
           user={selectedUser} 
           currentUser={currentUser}
-          getUserMap={getUserMap} // <-- PASSED
+          getUserMap={getUserMap} 
           onClose={() => setSelectedUser(null)} 
         />
       )}
