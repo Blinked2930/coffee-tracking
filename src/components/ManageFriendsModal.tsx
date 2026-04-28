@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { User } from '../types';
-import { X, Search, UserPlus, Check, Clock } from 'lucide-react';
+import { X, Search, UserPlus, Check, Clock, UserMinus } from 'lucide-react';
 
 interface Props {
   currentUser: User;
@@ -15,12 +15,9 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
   const [friendships, setFriendships] = useState<any[]>([]);
 
   useEffect(() => {
-    // 1. Fetch all users
     supabase.from('users').select('*').then(({ data }) => {
       if (data) setAllUsers(data.filter(u => u.id !== currentUser.id && u.name !== 'Ghost' && u.name !== 'TestUser'));
     });
-
-    // 2. Fetch my friendships
     fetchFriendships();
   }, [currentUser.id]);
 
@@ -46,7 +43,14 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
     fetchFriendships();
   };
 
-  // Derived state
+  const handleUnfriend = async (otherUserId: string) => {
+    const rel = friendships.find(f => f.requester_id === otherUserId || f.receiver_id === otherUserId);
+    if (rel) {
+      await supabase.from('friendships').delete().eq('id', rel.id);
+      fetchFriendships();
+    }
+  };
+
   const pendingReceived = friendships.filter(f => f.receiver_id === currentUser.id && f.status === 'pending');
   
   const getFriendshipStatus = (otherUserId: string) => {
@@ -57,7 +61,6 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
     return 'received';
   };
 
-  // Advanced Search: Scans both Display Name AND @username
   const searchLower = searchQuery.toLowerCase();
   const filteredUsers = allUsers.filter(u => 
     u.name.toLowerCase().includes(searchLower) || 
@@ -65,10 +68,12 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
   );
 
   return (
-    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center sm:p-4">
-      <div className="bg-gray-50 rounded-t-3xl sm:rounded-3xl w-full max-w-md h-[80vh] sm:h-[600px] flex flex-col shadow-2xl animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300">
+    // Click outside to close (onClose attached to the backdrop)
+    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
+      
+      {/* Stop propagation so clicking inside the modal doesn't trigger the close */}
+      <div className="bg-gray-50 rounded-t-3xl sm:rounded-3xl w-full max-w-md h-[80vh] sm:h-[600px] flex flex-col shadow-2xl animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
         
-        {/* Header */}
         <div className="bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center rounded-t-3xl sm:rounded-3xl shrink-0">
           <div>
             <h3 className="text-xl font-black text-gray-900">Friends</h3>
@@ -79,7 +84,6 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex p-4 gap-2 shrink-0">
           <button 
             onClick={() => setActiveTab('search')}
@@ -100,26 +104,25 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
           </button>
         </div>
 
-        {/* Content Area */}
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           
           {activeTab === 'search' && (
             <div className="space-y-4">
-              <div className="relative">
+              {/* Added padding to container and focus:ring-inset to prevent clipping */}
+              <div className="relative p-[2px]">
                 <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input 
                   type="text" 
                   placeholder="Search by name or @username..." 
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-white border border-gray-100 rounded-2xl py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium shadow-sm"
+                  className="w-full bg-white border border-gray-100 rounded-2xl py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-inset focus:ring-amber-500 focus:border-amber-500 text-sm font-medium shadow-sm"
                 />
               </div>
 
               <div className="space-y-2 pt-2">
                 {filteredUsers.map(u => {
                   const status = getFriendshipStatus(u.id);
-                  // Fallback for older users without a username yet
                   const displayUsername = (u as any).username || u.name.toLowerCase().replace(/\s/g, '');
                   
                   return (
@@ -148,9 +151,18 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
                         <span className="shrink-0 text-[10px] font-bold text-amber-500 uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-md">Check Requests</span>
                       )}
                       {status === 'friends' && (
-                        <div className="shrink-0 w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center">
-                          <Check size={16} />
-                        </div>
+                        <button 
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to unfriend ${u.name}?`)) {
+                              handleUnfriend(u.id);
+                            }
+                          }}
+                          className="shrink-0 w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors group"
+                          title="Unfriend"
+                        >
+                          <Check size={16} className="group-hover:hidden" />
+                          <UserMinus size={16} className="hidden group-hover:block" />
+                        </button>
                       )}
                     </div>
                   );

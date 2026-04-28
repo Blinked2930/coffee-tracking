@@ -54,7 +54,7 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
   // Filter the leaderboard based on view toggle
   const visibleUsers = viewMode === 'friends'
     ? rankedUsers.filter(u => acceptedFriendIds.includes(u.user_id) || u.user_id === currentUser.id)
-    : rankedUsers.slice(0, 15); // Global view cuts off at top 15 for privacy
+    : rankedUsers.slice(0, 5); // Global view cuts off at top 5
 
   const maxCount = Math.max(...visibleUsers.map(u => Number(u.total_kafes) || 0), 1);
 
@@ -96,7 +96,7 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
           onClick={() => setViewMode('global')}
           className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${viewMode === 'global' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
         >
-          Global Top 15
+          Global Top 5
         </button>
       </div>
 
@@ -123,7 +123,6 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
               key={user.user_id} 
               className="relative group cursor-pointer" 
               onClick={() => {
-                // Privacy Lock: Only open profiles of friends or yourself
                 if (isFriendOrMe) {
                   setSelectedUser({ id: user.user_id, name: user.name, pin: '' } as User);
                 }
@@ -134,14 +133,12 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
                   {RankIcon || (index + 1)}
                 </div>
 
-                {/* Removed the muddy overlay, just kept the clean avatar */}
                 <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 font-bold flex items-center justify-center text-sm flex-shrink-0">
                   {user.name?.charAt(0) || '?'}
                 </div>
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-end mb-1 gap-2">
-                    {/* Moved the lock next to the name here! */}
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span className="font-bold text-gray-900 truncate">{user.name}</span>
                       {!isFriendOrMe && <Lock size={14} strokeWidth={2.5} className="text-gray-400 shrink-0" />}
