@@ -57,7 +57,12 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
     return 'received';
   };
 
-  const filteredUsers = allUsers.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  // Advanced Search: Scans both Display Name AND @username
+  const searchLower = searchQuery.toLowerCase();
+  const filteredUsers = allUsers.filter(u => 
+    u.name.toLowerCase().includes(searchLower) || 
+    ((u as any).username && (u as any).username.toLowerCase().includes(searchLower))
+  );
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center sm:p-4">
@@ -104,7 +109,7 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
                 <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input 
                   type="text" 
-                  placeholder="Search cohort..." 
+                  placeholder="Search by name or @username..." 
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="w-full bg-white border border-gray-100 rounded-2xl py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium shadow-sm"
@@ -114,30 +119,36 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
               <div className="space-y-2 pt-2">
                 {filteredUsers.map(u => {
                   const status = getFriendshipStatus(u.id);
+                  // Fallback for older users without a username yet
+                  const displayUsername = (u as any).username || u.name.toLowerCase().replace(/\s/g, '');
+                  
                   return (
                     <div key={u.id} className="bg-white p-3 rounded-2xl flex items-center justify-between shadow-sm border border-gray-100/50">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-sm">
+                        <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-sm shrink-0">
                           {u.name.charAt(0)}
                         </div>
-                        <span className="font-bold text-gray-900">{u.name}</span>
+                        <div className="min-w-0">
+                          <p className="font-bold text-gray-900 leading-tight truncate">{u.name}</p>
+                          <p className="text-[11px] font-medium text-gray-400 truncate">@{displayUsername}</p>
+                        </div>
                       </div>
                       
                       {status === 'none' && (
-                        <button onClick={() => handleSendRequest(u.id)} className="w-9 h-9 rounded-full bg-gray-50 text-gray-600 flex items-center justify-center hover:bg-amber-100 hover:text-amber-600 active:scale-95 transition-all">
+                        <button onClick={() => handleSendRequest(u.id)} className="shrink-0 w-9 h-9 rounded-full bg-gray-50 text-gray-600 flex items-center justify-center hover:bg-amber-100 hover:text-amber-600 active:scale-95 transition-all">
                           <UserPlus size={16} />
                         </button>
                       )}
                       {status === 'sent' && (
-                        <div className="px-3 py-1 bg-gray-50 rounded-lg text-xs font-bold text-gray-400 flex items-center gap-1 uppercase tracking-wider border border-gray-100">
+                        <div className="shrink-0 px-3 py-1 bg-gray-50 rounded-lg text-xs font-bold text-gray-400 flex items-center gap-1 uppercase tracking-wider border border-gray-100">
                           <Clock size={12} /> Sent
                         </div>
                       )}
                       {status === 'received' && (
-                        <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-md">Check Requests</span>
+                        <span className="shrink-0 text-[10px] font-bold text-amber-500 uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-md">Check Requests</span>
                       )}
                       {status === 'friends' && (
-                        <div className="w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center">
+                        <div className="shrink-0 w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center">
                           <Check size={16} />
                         </div>
                       )}
@@ -159,20 +170,23 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
                   const sender = allUsers.find(u => u.id === req.requester_id);
                   if (!sender) return null;
                   
+                  const displayUsername = (sender as any).username || sender.name.toLowerCase().replace(/\s/g, '');
+
                   return (
                     <div key={req.id} className="bg-white p-4 rounded-3xl flex items-center justify-between shadow-sm border border-amber-100">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-400 to-amber-500 text-white font-black flex items-center justify-center text-lg shadow-sm border-2 border-white">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-400 to-amber-500 text-white font-black flex items-center justify-center text-lg shadow-sm border-2 border-white shrink-0">
                           {sender.name.charAt(0)}
                         </div>
-                        <div>
-                          <p className="font-bold text-gray-900">{sender.name}</p>
-                          <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Wants to connect</p>
+                        <div className="min-w-0">
+                          <p className="font-bold text-gray-900 leading-tight truncate">{sender.name}</p>
+                          <p className="text-[11px] text-gray-400 font-medium mb-0.5 truncate">@{displayUsername}</p>
+                          <p className="text-[10px] uppercase tracking-widest text-amber-600 font-bold mt-1">Wants to connect</p>
                         </div>
                       </div>
                       <button 
                         onClick={() => handleAcceptRequest(req.id)}
-                        className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md shadow-amber-200 active:scale-95 transition-all"
+                        className="shrink-0 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md shadow-amber-200 active:scale-95 transition-all"
                       >
                         Accept
                       </button>
