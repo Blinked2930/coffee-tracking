@@ -13,6 +13,9 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [friendships, setFriendships] = useState<any[]>([]);
+  
+  // Custom Unfriend Confirmation State
+  const [userToUnfriend, setUserToUnfriend] = useState<User | null>(null);
 
   useEffect(() => {
     supabase.from('users').select('*').then(({ data }) => {
@@ -43,12 +46,14 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
     fetchFriendships();
   };
 
-  const handleUnfriend = async (otherUserId: string) => {
-    const rel = friendships.find(f => f.requester_id === otherUserId || f.receiver_id === otherUserId);
+  const executeUnfriend = async () => {
+    if (!userToUnfriend) return;
+    const rel = friendships.find(f => f.requester_id === userToUnfriend.id || f.receiver_id === userToUnfriend.id);
     if (rel) {
       await supabase.from('friendships').delete().eq('id', rel.id);
       fetchFriendships();
     }
+    setUserToUnfriend(null); // Close the popup
   };
 
   const pendingReceived = friendships.filter(f => f.receiver_id === currentUser.id && f.status === 'pending');
@@ -68,13 +73,42 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
   );
 
   return (
-    // Click outside to close (onClose attached to the backdrop)
     <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
       
-      {/* Stop propagation so clicking inside the modal doesn't trigger the close */}
-      <div className="bg-gray-50 rounded-t-3xl sm:rounded-3xl w-full max-w-md h-[80vh] sm:h-[600px] flex flex-col shadow-2xl animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+      <div className="bg-gray-50 rounded-t-3xl sm:rounded-3xl w-full max-w-md h-[80vh] sm:h-[600px] flex flex-col shadow-2xl animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 relative overflow-hidden" onClick={e => e.stopPropagation()}>
         
-        <div className="bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center rounded-t-3xl sm:rounded-3xl shrink-0">
+        {/* CUSTOM UNFRIEND OVERLAY */}
+        {userToUnfriend && (
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl animate-in zoom-in-95 duration-200 border border-gray-100">
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                <UserMinus size={28} />
+              </div>
+              <h3 className="text-xl font-black text-center text-gray-900 mb-2 leading-tight">
+                Unfriend {userToUnfriend.name}?
+              </h3>
+              <p className="text-xs text-gray-500 text-center mb-6 font-medium leading-relaxed">
+                They will be removed from your leaderboard and feed. They won't be notified.
+              </p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setUserToUnfriend(null)} 
+                  className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold active:scale-95 transition-all text-sm uppercase tracking-wider"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={executeUnfriend} 
+                  className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold shadow-md shadow-red-200 active:scale-95 transition-all text-sm uppercase tracking-wider"
+                >
+                  Unfriend
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
           <div>
             <h3 className="text-xl font-black text-gray-900">Friends</h3>
             <p className="text-xs font-bold text-amber-600 uppercase tracking-widest">Cohort Network</p>
@@ -105,10 +139,8 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 pb-6">
-          
           {activeTab === 'search' && (
             <div className="space-y-4">
-              {/* Added padding to container and focus:ring-inset to prevent clipping */}
               <div className="relative p-[2px]">
                 <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input 
@@ -152,11 +184,7 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
                       )}
                       {status === 'friends' && (
                         <button 
-                          onClick={() => {
-                            if (window.confirm(`Are you sure you want to unfriend ${u.name}?`)) {
-                              handleUnfriend(u.id);
-                            }
-                          }}
+                          onClick={() => setUserToUnfriend(u)}
                           className="shrink-0 w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors group"
                           title="Unfriend"
                         >
@@ -208,7 +236,6 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
               )}
             </div>
           )}
-
         </div>
       </div>
     </div>

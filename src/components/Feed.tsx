@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { KafeLog, User } from '../types';
 import { Coffee, MapPin, Pencil, MessageCircle, Users } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import EditKafeModal from './EditKafeModal';
 import CommentsDrawer from './CommentsDrawer';
 import ReactionBar from './ReactionBar';
@@ -21,11 +22,31 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
   const [editingLog, setEditingLog] = useState<KafeLog | null>(null);
   const [commentingOnLog, setCommentingOnLog] = useState<KafeLog | null>(null);
   const [showFriendsModal, setShowFriendsModal] = useState(false);
+  const [friendships, setFriendships] = useState<any[]>([]);
+
+  // Fetch friendships so we know whose posts to show!
+  useEffect(() => {
+    const fetchFriendships = async () => {
+      const { data } = await supabase
+        .from('friendships')
+        .select('*')
+        .or(`requester_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`);
+      if (data) setFriendships(data);
+    };
+    fetchFriendships();
+  }, [currentUser.id, showFriendsModal]); // Refreshes if you accept a friend and close the modal
+
+  // Calculate exactly who your accepted friends are
+  const acceptedFriendIds = friendships
+    .filter(f => f.status === 'accepted')
+    .map(f => f.requester_id === currentUser.id ? f.receiver_id : f.requester_id);
+
+  // Filter the global logs to ONLY show you and your friends
+  const visibleLogs = logs.filter(log => log.user_id === currentUser.id || acceptedFriendIds.includes(log.user_id));
 
   return (
     <div className="p-4 space-y-5 pb-24 overflow-x-hidden bg-gray-50 min-h-screen">
       
-      {/* HEADER IS ALWAYS VISIBLE NOW */}
       <div className="mb-2 flex justify-between items-center px-2">
         <h2 className="text-2xl font-black text-gray-900">{t('recentKafes')}</h2>
         <button 
@@ -36,7 +57,7 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
         </button>
       </div>
 
-      {logs.length === 0 ? (
+      {visibleLogs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
             <Coffee size={32} className="text-gray-400" />
@@ -46,9 +67,8 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
         </div>
       ) : (
         <>
-          {logs.map((log) => {
+          {visibleLogs.map((log) => {
             const user = getUserMap(log.user_id);
-            
             const date = new Date(log.created_at);
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
@@ -108,7 +128,6 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
                   </p>
                 )}
 
-                {/* EMOJI REACTION BAR */}
                 <ReactionBar kafeId={log.id} currentUser={currentUser} />
                 
                 <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
@@ -137,7 +156,6 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
             );
           })}
 
-          {/* LOAD MORE BUTTON */}
           {hasMore && (
             <button 
               onClick={onLoadMore}
@@ -161,7 +179,6 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
         />
       )}
 
-      {/* RENDER MODAL */}
       {showFriendsModal && (
         <ManageFriendsModal 
           currentUser={currentUser} 

@@ -16,14 +16,11 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [rankedUsers, setRankedUsers] = useState<any[]>([]);
   
-  // Friending State
   const [viewMode, setViewMode] = useState<'global' | 'friends'>('friends');
   const [friendships, setFriendships] = useState<any[]>([]);
   const [showFriendsModal, setShowFriendsModal] = useState(false);
 
-  // Fetch Leaderboard and Friendships
   const fetchData = async () => {
-    // 1. Get Scores
     const { data: scores } = await supabase
       .from('leaderboard_scores')
       .select('*')
@@ -33,7 +30,6 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
       setRankedUsers(scores.filter(user => user.name !== 'Ghost' && user.name !== 'TestUser'));
     }
 
-    // 2. Get Friendships
     const { data: friends } = await supabase
       .from('friendships')
       .select('*')
@@ -44,24 +40,21 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
 
   useEffect(() => {
     fetchData();
-  }, [currentUser.id, showFriendsModal]); // Refresh when modal closes
+  }, [currentUser.id, showFriendsModal]);
 
-  // Calculate who is a mutual friend
   const acceptedFriendIds = friendships
     .filter(f => f.status === 'accepted')
     .map(f => f.requester_id === currentUser.id ? f.receiver_id : f.requester_id);
 
-  // Filter the leaderboard based on view toggle
   const visibleUsers = viewMode === 'friends'
     ? rankedUsers.filter(u => acceptedFriendIds.includes(u.user_id) || u.user_id === currentUser.id)
-    : rankedUsers.slice(0, 5); // Global view cuts off at top 5
+    : rankedUsers.slice(0, 5); 
 
   const maxCount = Math.max(...visibleUsers.map(u => Number(u.total_kafes) || 0), 1);
 
   return (
     <div className="p-4 sm:p-6 pb-24">
       
-      {/* Header Area */}
       <div className="mb-6 flex justify-between items-start">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center">
@@ -84,7 +77,6 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
         </button>
       </div>
 
-      {/* Toggle View */}
       <div className="flex bg-gray-200/50 p-1 rounded-xl mb-6">
         <button
           onClick={() => setViewMode('friends')}
@@ -100,7 +92,6 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
         </button>
       </div>
 
-      {/* Leaderboard List */}
       <div className="space-y-3 pb-20">
         {visibleUsers.length === 0 && viewMode === 'friends' && (
           <div className="text-center p-8 bg-white rounded-3xl border border-dashed border-gray-200">
@@ -141,6 +132,14 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
                   <div className="flex justify-between items-end mb-1 gap-2">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span className="font-bold text-gray-900 truncate">{user.name}</span>
+                      
+                      {/* ADDED 'YOU' BADGE */}
+                      {user.user_id === currentUser.id && (
+                        <span className="ml-1 text-[9px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md uppercase tracking-wider shrink-0">
+                          You
+                        </span>
+                      )}
+                      
                       {!isFriendOrMe && <Lock size={14} strokeWidth={2.5} className="text-gray-400 shrink-0" />}
                     </div>
                     <span className="font-black text-amber-600 tabular-nums shrink-0">{Number(user.total_kafes)}</span>
