@@ -80,7 +80,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     { type: 'freddo', icon: '🧊', label: t('freddo') || 'Iced' },
     { type: 'canned_coffee', icon: '🥫', label: t('cannedCoffee') || 'Canned Coffee' },
     { type: 'energy_drink', icon: '🔋', label: t('energyDrink') || 'Energy Drink' },
-    { type: 'other', icon: '❔', label: t('otherType') }, // Swapped to neutral white question mark
+    { type: 'other', icon: '❔', label: t('otherType') },
   ];
 
   const requestNotificationPermission = async () => {
@@ -143,8 +143,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    // Natural flex container. Unbolted from the viewport to allow native elastic bounce, perfectly spaced with pb-[125px].
-    <div className="w-full min-h-[100dvh] bg-gray-50/30 flex flex-col pb-[125px]">
+    // BACK IN THE STRAIGHTJACKET: fixed inset-0 completely kills scrolling. pb-[125px] aligns it flawlessly.
+    <div className="fixed inset-0 w-full bg-gray-50/30 overflow-hidden flex flex-col pb-[125px]">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
@@ -177,11 +177,11 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* THE PERFECT CENTER: flex-1 ensures it dynamically splits the exact visual space above the nav bar */}
+      {/* THE PERFECT CENTER */}
       <div className="flex-1 w-full max-w-sm mx-auto flex flex-col items-center justify-center px-5">
         
         {/* Main Cutesy Button */}
-        <div className="flex justify-center w-full mb-6 shrink-0">
+        <div className="flex justify-center w-full mb-5 sm:mb-6 shrink-0">
           <button
             onClick={handleLogKafe}
             disabled={isSaving || showSuccess || !selectedType}
@@ -236,7 +236,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
 
         {/* Squircle Grid */}
-        <div className="w-full mb-6 shrink-0">
+        <div className="w-full mb-5 sm:mb-6 shrink-0">
           <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
             {kafeOptions.map((option) => (
               <button
