@@ -1,7 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { User, KafeLog } from '../types';
-// FIX: Added Pencil to the import list below!
-import { LogOut, Globe, Coffee, Clock, Zap, MessageCircle, MapPin, Pencil } from 'lucide-react';
+import { LogOut, Globe, Coffee, Clock, Zap, MessageCircle, MapPin, Pencil, Share as ShareIcon } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import EditKafeModal from './EditKafeModal';
 import ReactionBar from './ReactionBar';
@@ -36,9 +35,27 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
       });
   }, [user.id]);
 
-  // Instantly updates the local feed
   const handleUpdateCommentCount = (kafeId: string, delta: number) => {
     setUserLogs(prev => prev.map(l => l.id === kafeId ? { ...l, comment_count: Math.max(0, (l.comment_count || 0) + delta) } : l));
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: 'Kafe Tracker',
+      text: lang === 'sq' ? 'Bashkohu me mua në Kafe Tracker!' : 'Join my telemetry feed on Kafe Tracker!',
+      url: 'https://kafe.emmettfrett.com'
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      navigator.clipboard.writeText('https://kafe.emmettfrett.com');
+      alert(lang === 'sq' ? 'Linku u kopjua!' : 'Link copied to clipboard!');
+    }
   };
 
   const insights = useMemo(() => {
@@ -72,12 +89,12 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
     <div className="px-4 pt-8 pb-24 max-w-lg mx-auto bg-gray-50 min-h-screen">
       
       <div className="flex flex-col items-center mb-8">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-amber-400 to-amber-500 text-white font-black flex items-center justify-center text-4xl shadow-md border-4 border-white mb-4">
+        <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-tr from-amber-400 to-amber-500 text-white font-black flex items-center justify-center text-4xl shadow-lg shadow-amber-500/20 border-4 border-white mb-4 rotate-3">
           {user.name.charAt(0)}
         </div>
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">{user.name}</h1>
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight mt-2">{user.name}</h1>
         <p className="font-bold text-amber-600 uppercase tracking-widest text-xs mt-1">
-          {insights.total} Kafes Logged
+          {insights.total} {lang === 'sq' ? 'Kafe të rregjistruara' : 'Kafes Logged'}
         </p>
       </div>
 
@@ -87,7 +104,9 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
             <Coffee size={20} />
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Top Choice</p>
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">
+              {lang === 'sq' ? 'Zgjedhja Top' : 'Top Choice'}
+            </p>
             <p className="font-black text-gray-800 capitalize leading-tight">{insights.favoriteType.replace(/_/g, ' ')}</p>
           </div>
         </div>
@@ -97,18 +116,31 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
             <Zap size={20} className="fill-purple-500 text-purple-500" />
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Power Hour</p>
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">
+              {lang === 'sq' ? 'Ora e Pikut' : 'Power Hour'}
+            </p>
             <p className="font-black text-gray-800 capitalize leading-tight">{insights.peakHourStr}</p>
           </div>
         </div>
       </div>
 
       <div className="space-y-3 mb-8">
+        {/* NEW NATIVE SHARE BUTTON */}
+        <button 
+          onClick={handleShare}
+          className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all shadow-md shadow-amber-500/20 text-xs"
+        >
+          <ShareIcon size={16} className="opacity-80" /> 
+          {lang === 'sq' ? 'Fto në rrjet' : 'Invite to Cohort'}
+        </button>
+
         <button 
           onClick={toggleLang}
           className="w-full flex items-center justify-between px-6 py-4 bg-white border border-gray-100 shadow-sm rounded-2xl active:scale-95 transition-all"
         >
-          <span className="font-bold text-gray-700">Language</span>
+          <span className="font-black text-gray-700 text-sm uppercase tracking-widest">
+            {lang === 'sq' ? 'Gjuha' : 'Language'}
+          </span>
           <div className="flex items-center gap-2 text-amber-600 font-bold uppercase tracking-wider text-sm bg-amber-50 px-3 py-1 rounded-full">
             {lang} <Globe size={16} />
           </div>
@@ -116,22 +148,22 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
 
         <button 
           onClick={onLogout}
-          className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-red-50 text-red-600 rounded-2xl font-bold uppercase tracking-wider active:scale-95 transition-all"
+          className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-red-50 text-red-600 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all text-xs"
         >
-          <LogOut size={18} /> Log Out
+          <LogOut size={16} /> {lang === 'sq' ? 'Dilni' : 'Log Out'}
         </button>
       </div>
 
       <div>
         <h3 className="text-lg font-black text-gray-900 mb-4 px-2 flex items-center gap-2">
           <Clock size={18} className="text-gray-400" />
-          My Recent History
+          {lang === 'sq' ? 'Historia Ime' : 'My Recent History'}
         </h3>
         
         <div className="space-y-5">
           {userLogs.length === 0 ? (
             <div className="text-center p-8 bg-white rounded-3xl border border-dashed border-gray-200 text-gray-400 text-sm font-medium">
-              Go log your first Kafe!
+              {lang === 'sq' ? 'Rregjistroni kafen tuaj të parë!' : 'Go log your first Kafe!'}
             </div>
           ) : (
             userLogs.map((log) => {
@@ -142,18 +174,17 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
               return (
                 <div 
                   key={log.id} 
-                  className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100/80 flex flex-col w-full"
+                  className="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100/80 flex flex-col w-full"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-wrap items-center gap-3">
-                      <div className="px-2.5 py-1 bg-amber-50 rounded-lg border border-amber-100/50 inline-flex">
+                      <div className="px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-100/50 inline-flex">
                         <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">
-                          {/* FIX: Added fallback to prevent null crashes */}
                           {(log.type || 'unknown').replace(/_/g, ' ')}
                         </p>
                       </div>
-                      <span className="text-[11px] font-medium text-gray-400">
-                        {dateStr} at {timeStr}
+                      <span className="text-[11px] font-bold text-gray-400">
+                        {dateStr} • {timeStr}
                       </span>
                     </div>
 
@@ -163,8 +194,8 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
                   </div>
 
                   {log.location && (
-                    <div className="flex items-center gap-1 mb-4 text-[11px] text-gray-500 font-medium">
-                      <MapPin size={12} className="shrink-0 text-gray-400" />
+                    <div className="flex items-center gap-1.5 mb-4 text-[11px] text-gray-500 font-bold">
+                      <MapPin size={14} className="shrink-0 text-amber-500" />
                       <span className="truncate">{log.location}</span>
                     </div>
                   )}
@@ -181,7 +212,7 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
                   )}
 
                   {log.notes && (
-                    <p className="mb-4 text-sm text-gray-500 italic bg-gray-50 p-3 rounded-xl border-l-2 border-amber-200 leading-relaxed">
+                    <p className="mb-4 text-sm text-gray-600 italic bg-gray-50 p-4 rounded-2xl border border-gray-100 leading-relaxed font-medium">
                       "{log.notes}"
                     </p>
                   )}
@@ -204,7 +235,9 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
                         ))}
                       </div>
                     ) : (
-                      <span className="text-xs text-gray-300 font-medium italic">Unrated</span>
+                      <span className="text-xs text-gray-300 font-medium italic">
+                        {lang === 'sq' ? 'Pa vlerësim' : 'Unrated'}
+                      </span>
                     )}
                   </div>
 
