@@ -233,7 +233,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] px-4 pt-4 pb-24 relative overflow-hidden">
+    <div className="flex flex-col min-h-[100dvh] px-4 pt-4 pb-20 relative overflow-hidden">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
@@ -306,11 +306,11 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </button>
         </div>
 
-        {/* Static Bottom Elements - Anchored */}
+        {/* Static Bottom Elements - Tightly Clustered */}
         <div className="w-full flex flex-col items-center mt-2">
           
           {/* Options Grid */}
-          <div className="w-full px-1 mb-6">
+          <div className="w-full px-1 mb-5">
             <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
               {kafeOptions.map((option) => (
                 <button
@@ -333,7 +333,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </div>
 
           {/* Rating */}
-          <div className="w-full flex justify-between px-3 mb-8">
+          <div className="w-full flex justify-between px-3 mb-5">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
               <button
                 key={num}
@@ -348,10 +348,10 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
             ))}
           </div>
 
-          {/* Add Details Button - Shrunk and lifted off the bottom nav */}
+          {/* Add Details Button - Tucked in close */}
           <button 
             onClick={() => setIsAddingDetails(true)}
-            className="w-full max-w-[150px] py-3 rounded-full bg-white text-gray-400 font-bold shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em] shrink-0 mt-auto mb-6"
+            className="w-full max-w-[150px] py-3 rounded-full bg-white text-gray-400 font-bold shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em] shrink-0 mt-2 mb-2"
           >
             {t('addDetails')}
           </button>
