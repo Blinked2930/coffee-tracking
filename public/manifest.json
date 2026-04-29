@@ -1,6 +1,6 @@
 {
-  "name": "Kafe Tracker",
-  "short_name": "Kafes",
+  "name": "Kafe",
+  "short_name": "Kafe",
   "description": "Log your coffee dates instantly",
   "start_url": "/",
   "display": "standalone",

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Search, UserPlus, ShieldCheck } from 'lucide-react';
+import { Users, ShieldCheck } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { User } from '../types';
 
@@ -58,40 +58,27 @@ export default function UpdateAnnouncement({ currentUser }: { currentUser: User 
         <div className="bg-gray-50 rounded-2xl p-5 border border-amber-100/50 mb-6 shadow-inner">
           <div className="space-y-4 text-xs text-gray-600 leading-relaxed font-medium">
             <p>
-              Attention, esteemed founding member. Our global infrastructure specialists have successfully deployed an unprecedented architectural expansion to your prestigious telemetry suite.
+              Attention, esteemed founding member. The <strong>Cohort Network</strong> is officially live.
             </p>
             <p>
-              The system now supports seamless multi-user synchronization, officially classified as <strong>The Cohort Network</strong>. You are now authorized to recruit colleagues, associates, and subordinate coffee consumers into your localized feed.
+              You are now fully authorized to recruit colleagues, associates, and subordinate coffee consumers into your localized telemetry feed.
             </p>
             
-            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm mt-4">
-              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 pb-2">
-                Execution Protocol:
-              </h4>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Users size={14} className="text-amber-600 shrink-0" />
-                  <p className="text-[11px] text-gray-700">Access the <strong className="text-gray-900">Network Node</strong> (Users Icon) in your Feed.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Search size={14} className="text-amber-600 shrink-0" />
-                  <p className="text-[11px] text-gray-700">Query your target via their unique <strong className="text-gray-900">@username</strong>.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <UserPlus size={14} className="text-amber-600 shrink-0" />
-                  <p className="text-[11px] text-gray-700">Transmit a formalized <strong className="text-gray-900">Connection Request</strong>.</p>
-                </div>
-              </div>
+            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm mt-4 text-center">
+              <p className="text-[11px] text-gray-500 mb-1">To expand the network, direct them to:</p>
+              <a href="https://kafe.emmettfrett.com" target="_blank" rel="noopener noreferrer" className="text-sm font-black text-amber-600 tracking-tight">
+                kafe.emmettfrett.com
+              </a>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-4">
               <p className="text-center text-gray-400 font-bold uppercase tracking-widest text-[9px]">
                 With Distinguished Regards,
               </p>
               <p className="text-center text-amber-600 font-black text-sm tracking-tight mt-1">
                 Emmett R. Frett
               </p>
-              <p className="text-center text-[9px] text-gray-400 font-bold uppercase -mt-1">
+              <p className="text-center text-[9px] text-gray-400 font-bold uppercase mt-2">
                 Executive Visionary & Lead Architect
               </p>
             </div>
