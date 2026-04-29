@@ -28,12 +28,18 @@ interface HomeProps {
 }
 
 export default function Home({ user, onKafeLogged }: HomeProps) {
-  // FIXED: Destructured "lang" instead of "language" to match your actual Context
-  const { t, lang } = useLanguage();
+  // Aggressively destructure to ensure we catch the language string
+  const languageContext = useLanguage();
+  const t = languageContext?.t || ((k: string) => k);
+  const currentLang = languageContext?.lang || (languageContext as any)?.language || 'en';
+
   const [selectedType, setSelectedType] = useState<KafeType | null>(null);
   const [isAddingDetails, setIsAddingDetails] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  // HUD STATE - Adjust this slider in the app!
+  const [navOffset, setNavOffset] = useState(85);
   
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission | 'default'>('default');
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
@@ -45,47 +51,19 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
-  const reconnectPushSubscription = async () => {
-    try {
-      if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.ready;
-        const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-        if (!vapidPublicKey) return;
-
-        const subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
-        });
-
-        await supabase
-          .from('push_subscriptions')
-          .upsert({ 
-            user_id: user.id, 
-            subscription: JSON.parse(JSON.stringify(subscription)) 
-          }, { onConflict: 'user_id' });
-      }
-    } catch (error) {
-      console.error("Silent push renewal failed:", error);
-    }
-  };
-
   useEffect(() => {
     if ("Notification" in window) {
       setPermissionStatus(Notification.permission);
-      
       if (Notification.permission === 'default') {
         const declinedForever = localStorage.getItem('kafe_notifications_declined');
         const dismissedSession = sessionStorage.getItem('kafe_notifications_session');
-        
         if (!declinedForever && !dismissedSession) {
           const timer = setTimeout(() => setShowNotificationPrompt(true), 1500);
           return () => clearTimeout(timer);
         }
-      } else if (Notification.permission === 'granted') {
-        reconnectPushSubscription();
       }
     }
-  }, [user.id]);
+  }, []);
 
   const handleDismissSession = () => {
     sessionStorage.setItem('kafe_notifications_session', 'true');
@@ -110,34 +88,22 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   ];
 
   const requestNotificationPermission = async () => {
-    if (!("Notification" in window)) {
-      alert("This browser does not support notifications");
-      return;
-    }
-
+    if (!("Notification" in window)) return;
     try {
       const permission = await Notification.requestPermission();
       setPermissionStatus(permission);
       setShowNotificationPrompt(false);
-
-      if (permission === "granted") {
-        if ('serviceWorker' in navigator) {
-          const registration = await navigator.serviceWorker.ready;
-          const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-          if (!vapidPublicKey) return;
-
-          const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
-          });
-
-          await supabase
-            .from('push_subscriptions')
-            .upsert({ 
-              user_id: user.id, 
-              subscription: JSON.parse(JSON.stringify(subscription)) 
-            }, { onConflict: 'user_id' });
-        }
+      if (permission === "granted" && 'serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        if (!vapidPublicKey) return;
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+        });
+        await supabase.from('push_subscriptions').upsert({ 
+          user_id: user.id, subscription: JSON.parse(JSON.stringify(subscription)) 
+        }, { onConflict: 'user_id' });
       } else if (permission === "denied") {
         localStorage.setItem('kafe_notifications_declined', 'true');
       }
@@ -148,7 +114,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
   const handleLogKafe = async () => {
     if (!selectedType) return;
-    
     setIsSaving(true);
     let uploadedPhotoUrl = null;
     
@@ -156,22 +121,14 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       const compressedFile = await compressImage(photoFile);
       const fileExt = compressedFile.name.split('.').pop() || 'jpg';
       const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('kafes')
-        .upload(fileName, compressedFile);
-        
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('kafes').upload(fileName, compressedFile);
       if (!uploadError && uploadData) {
         uploadedPhotoUrl = supabase.storage.from('kafes').getPublicUrl(fileName).data.publicUrl;
       }
     }
     
     const { error } = await supabase.from('kafes').insert({
-      user_id: user.id,
-      type: selectedType,
-      location: location || null,
-      notes: notes || null,
-      photo_url: uploadedPhotoUrl,
-      rating: rating > 0 ? rating : null
+      user_id: user.id, type: selectedType, location: location || null, notes: notes || null, photo_url: uploadedPhotoUrl, rating: rating > 0 ? rating : null
     });
     
     if (error) {
@@ -182,178 +139,144 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
     setIsSaving(false);
     setShowSuccess(true);
-    
-    confetti({
-      particleCount: 150,
-      spread: 70,
-      origin: { y: 0.5 },
-      colors: ['#f59e0b', '#fbbf24', '#fcd34d', '#ffffff'],
-      disableForReducedMotion: true
-    });
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.5 }, colors: ['#f59e0b', '#fbbf24', '#fcd34d', '#ffffff'], disableForReducedMotion: true });
 
     setTimeout(() => {
-      setShowSuccess(false);
-      setLocation('');
-      setNotes('');
-      setRating(0);
-      setIsAddingDetails(false);
-      setSelectedType(null); 
-      setPhotoFile(null);
-      onKafeLogged();
+      setShowSuccess(false); setLocation(''); setNotes(''); setRating(0); setIsAddingDetails(false); setSelectedType(null); setPhotoFile(null); onKafeLogged();
     }, 2500);
   };
 
   return (
-    // STRICT IMMOBILIZATION: h-[100dvh] + overflow-hidden explicitly kills all scrolling. pb-[90px] accounts for nav bar.
-    <div className="flex flex-col h-[100dvh] w-full px-5 pb-[90px] bg-gray-50/30 overflow-hidden">
-      
-      {showNotificationPrompt && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
-          <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl text-center transform transition-all animate-in zoom-in-95 duration-200">
-            <div className="w-20 h-20 bg-amber-100 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-inner rotate-3">
-              <span className="text-4xl drop-shadow-sm">🔔</span>
-            </div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">
-              {lang === 'sq' ? 'Qëndro i Informuar' : 'Stay in the Loop'}
-            </h2>
-            <p className="text-gray-500 mb-8 text-sm font-medium leading-relaxed">
-              {lang === 'sq' 
-                ? 'Merr njoftime kur dikush rregjistron një kafe.' 
-                : 'Get notified instantly when the cohort logs a Kafe.'}
-            </p>
-            <div className="space-y-3">
-              <button onClick={requestNotificationPermission} className="w-full py-4 bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-md shadow-amber-500/20 text-[11px]">
-                {lang === 'sq' ? 'Aktivizo Njoftimet' : 'Enable Notifications'}
-              </button>
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <button onClick={handleDismissSession} className="w-full py-3.5 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-colors active:scale-95">
-                  {lang === 'sq' ? 'Ndoshta Më Vonë' : 'Maybe Later'}
-                </button>
-                <button onClick={handleDeclineForever} className="w-full py-3.5 bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-500 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-colors active:scale-95">
-                  {lang === 'sq' ? 'Jo Faleminderit' : 'No Thanks'}
-                </button>
-              </div>
-            </div>
-          </div>
+    <>
+      {/* HUD: Calibration Slider (TEMPORARY) */}
+      <div className="fixed top-0 left-0 w-full bg-black/90 text-white z-[999] p-3 text-xs font-mono flex flex-col gap-2 shadow-2xl backdrop-blur-md">
+        <div className="flex justify-between items-center font-bold">
+          <span className="text-amber-400">MATH CALIBRATION HUD</span>
+          <span>Nav Bar Height: <span className="text-amber-400 text-sm">{navOffset}px</span></span>
         </div>
-      )}
+        <input 
+          type="range" min="0" max="150" step="1" value={navOffset} onChange={(e) => setNavOffset(Number(e.target.value))} 
+          className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+        />
+        <p className="text-[10px] text-gray-400">Slide until top gap equals bottom gap. Tell me the number.</p>
+      </div>
 
-      {/* TRUE CENTERING WRAPPER: flex-1 ensures it dynamically splits the exact visual space above the nav bar */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm mx-auto">
-        
-        {/* Main Cutesy Button */}
-        <div className="flex justify-center w-full mb-6 shrink-0">
-          <button
-            onClick={handleLogKafe}
-            disabled={isSaving || showSuccess || !selectedType}
-            className={clsx(
-              "relative w-40 h-40 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300 disabled:opacity-100",
-              !selectedType && !showSuccess
-                ? "bg-white border-[3px] border-dashed border-gray-200 text-gray-400 scale-95 shadow-sm"
-                : showSuccess 
-                  ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_15px_40px_rgba(52,211,153,0.4)] scale-105 border-0"
-                  : "bg-gradient-to-tr from-amber-400 to-amber-300 shadow-[0_15px_40px_rgba(251,191,36,0.35)] hover:shadow-[0_20px_50px_rgba(251,191,36,0.4)] active:scale-95 border-0"
-            )}
-          >
-            {(!isSaving && !showSuccess && selectedType) && (
-              <div className="absolute inset-0 rounded-full border-[3px] border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
-            )}
-
-            {(!isSaving && !showSuccess && !selectedType) && (
-              <>
-                <Coffee size={36} className="text-gray-300 mb-1" />
-                <span className="text-gray-400 text-lg font-black tracking-tight leading-none mt-2">
-                  {/* FIXED: Uses lang from useLanguage hook directly */}
-                  {lang === 'sq' ? 'Zgjidh Pijen' : 'Select Drink'}
-                </span>
-              </>
-            )}
-
-            {isSaving && (
-              <>
-                <div className="absolute inset-0 rounded-full border-4 border-white/30 border-t-white animate-spin" />
-                <Coffee size={36} className="text-white mb-1 drop-shadow-md animate-pulse" />
-                <span className="text-white text-lg font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
-              </>
-            )}
-
-            {showSuccess && (
-              <>
-                <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_10s_linear_infinite]" />
-                <span className="text-5xl mb-1 drop-shadow-md animate-bounce">🎉</span>
-                <span className="text-white text-2xl font-black tracking-wider drop-shadow-md mt-1">{t('done')}</span>
-              </>
-            )}
-
-            {(!isSaving && !showSuccess && selectedType) && (
-              <>
-                <Coffee size={36} className="text-white mb-1 drop-shadow-md" />
-                <span className="text-white text-3xl font-black tracking-tight drop-shadow-md leading-none">+1 Kafe</span>
-                <span className="text-amber-700/80 font-black uppercase tracking-[0.2em] text-[9px] mt-2">
-                  {lang === 'sq' ? 'Shtyp Për Të Rregjistruar' : t('tapToLog')}
-                </span>
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Squircle Grid */}
-        <div className="w-full mb-6 shrink-0">
-          <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
-            {kafeOptions.map((option) => (
-              <button
-                key={option.type}
-                onClick={() => setSelectedType(option.type)}
-                className={clsx(
-                  "rounded-3xl aspect-square flex flex-col items-center justify-center p-2 transition-all overflow-hidden",
-                  selectedType === option.type
-                    ? "bg-white border-2 border-amber-400 scale-105 shadow-md shadow-amber-500/10"
-                    : "bg-white border-2 border-transparent text-gray-500 hover:bg-gray-50 shadow-sm"
-                )}
-              >
-                <span className="text-[32px] leading-none mb-1.5 transition-transform group-active:scale-95">{option.icon}</span>
-                <span className={clsx("text-[10px] leading-tight text-center px-0.5 font-bold line-clamp-2", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
-                  {option.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Compact Bottom Controls */}
-        <div className="w-full flex flex-col items-center gap-4 shrink-0">
+      {/* STRICT IMMOBILIZATION CONTAINER */}
+      <div 
+        className="fixed top-0 left-0 w-full bg-gray-50/30 overflow-hidden flex flex-col items-center justify-center pt-20"
+        style={{ bottom: `${navOffset}px` }} 
+      >
+        <div className="w-full max-w-sm px-5 flex flex-col items-center shrink-0">
           
-          <div className="w-full flex justify-between px-2">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-              <button
-                key={num}
-                onClick={() => setRating(num === rating ? 0 : num)}
-                className={clsx(
-                  "text-[24px] transition-all active:scale-75",
-                  rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-25 hover:opacity-60"
-                )}
-              >
-                ☕️
-              </button>
-            ))}
+          {/* Main Cutesy Button (Shrunk slightly to guarantee fit) */}
+          <div className="flex justify-center w-full mb-5">
+            <button
+              onClick={handleLogKafe}
+              disabled={isSaving || showSuccess || !selectedType}
+              className={clsx(
+                "relative w-36 h-36 sm:w-40 sm:h-40 rounded-full flex flex-col items-center justify-center transition-all duration-300 disabled:opacity-100",
+                !selectedType && !showSuccess
+                  ? "bg-white border-[3px] border-dashed border-gray-200 text-gray-400 scale-95 shadow-sm"
+                  : showSuccess 
+                    ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_15px_40px_rgba(52,211,153,0.4)] scale-105 border-0"
+                    : "bg-gradient-to-tr from-amber-400 to-amber-300 shadow-[0_15px_40px_rgba(251,191,36,0.35)] active:scale-95 border-0"
+              )}
+            >
+              {(!isSaving && !showSuccess && selectedType) && (
+                <div className="absolute inset-0 rounded-full border-[3px] border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
+              )}
+
+              {(!isSaving && !showSuccess && !selectedType) && (
+                <>
+                  <Coffee size={32} className="text-gray-300 mb-1" />
+                  <span className="text-gray-400 text-base font-black tracking-tight leading-none mt-2">
+                    {currentLang === 'sq' ? 'Zgjidh Pijen' : 'Select Drink'}
+                  </span>
+                </>
+              )}
+
+              {isSaving && (
+                <>
+                  <div className="absolute inset-0 rounded-full border-4 border-white/30 border-t-white animate-spin" />
+                  <Coffee size={32} className="text-white mb-1 drop-shadow-md animate-pulse" />
+                  <span className="text-white text-base font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
+                </>
+              )}
+
+              {showSuccess && (
+                <>
+                  <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_10s_linear_infinite]" />
+                  <span className="text-4xl mb-1 drop-shadow-md animate-bounce">🎉</span>
+                  <span className="text-white text-xl font-black tracking-wider drop-shadow-md mt-1">{t('done')}</span>
+                </>
+              )}
+
+              {(!isSaving && !showSuccess && selectedType) && (
+                <>
+                  <Coffee size={32} className="text-white mb-1 drop-shadow-md" />
+                  <span className="text-white text-2xl font-black tracking-tight drop-shadow-md leading-none">+1 Kafe</span>
+                  <span className="text-amber-700/80 font-black uppercase tracking-[0.2em] text-[8px] mt-2">
+                    {currentLang === 'sq' ? 'Shtyp Për Të Rregjistruar' : t('tapToLog')}
+                  </span>
+                </>
+              )}
+            </button>
           </div>
 
-          <button 
-            onClick={() => setIsAddingDetails(true)}
-            className="w-auto px-6 py-3 rounded-full bg-white text-gray-400 hover:text-gray-600 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em]"
-          >
-            {t('addDetails')}
-          </button>
-          
+          {/* Squircle Grid (Tightened to guarantee fit) */}
+          <div className="w-full mb-5">
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+              {kafeOptions.map((option) => (
+                <button
+                  key={option.type}
+                  onClick={() => setSelectedType(option.type)}
+                  className={clsx(
+                    "rounded-[1.25rem] aspect-square flex flex-col items-center justify-center p-1.5 transition-all overflow-hidden",
+                    selectedType === option.type
+                      ? "bg-white border-2 border-amber-400 scale-105 shadow-md shadow-amber-500/10"
+                      : "bg-white border-2 border-transparent text-gray-500 hover:bg-gray-50 shadow-sm"
+                  )}
+                >
+                  <span className="text-[28px] leading-none mb-1 transition-transform group-active:scale-95">{option.icon}</span>
+                  <span className={clsx("text-[9px] leading-tight text-center px-0.5 font-bold line-clamp-2", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
+                    {option.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Compact Bottom Controls */}
+          <div className="w-full flex flex-col items-center gap-3">
+            <div className="w-full flex justify-between px-2">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+                <button
+                  key={num}
+                  onClick={() => setRating(num === rating ? 0 : num)}
+                  className={clsx(
+                    "text-[20px] transition-all active:scale-75",
+                    rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-25 hover:opacity-60"
+                  )}
+                >
+                  ☕️
+                </button>
+              ))}
+            </div>
+
+            <button 
+              onClick={() => setIsAddingDetails(true)}
+              className="w-auto px-6 py-3 rounded-full bg-white text-gray-400 hover:text-gray-600 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em]"
+            >
+              {t('addDetails')}
+            </button>
+          </div>
+
         </div>
       </div>
       
       {/* Slide-Up Drawer for Add Details */}
       {isAddingDetails && (
-        <div 
-          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] transition-opacity" 
-          onClick={() => setIsAddingDetails(false)} 
-        />
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100]" onClick={() => setIsAddingDetails(false)} />
       )}
       
       <div className={clsx(
@@ -362,47 +285,25 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       )}>
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('lokalDetails')}</h3>
-          <button 
-            onClick={() => setIsAddingDetails(false)} 
-            className="px-5 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-full text-[10px] font-black text-gray-500 uppercase tracking-widest active:scale-95 transition-colors border border-gray-100"
-          >
-            {t('done')}
-          </button>
+          <button onClick={() => setIsAddingDetails(false)} className="px-5 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-full text-[10px] font-black text-gray-500 uppercase tracking-widest active:scale-95 transition-colors border border-gray-100">{t('done')}</button>
         </div>
-        
         <div className="space-y-4 pb-8">
           <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-200">
             <MapPin className="text-amber-400" size={20} />
             <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder={t('cafeName')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 font-bold text-sm" />
           </div>
-          
           <div className="flex gap-4">
             <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files?.[0] || null)} />
-            <button 
-              onClick={() => fileInputRef.current?.click()} 
-              className={clsx(
-                "flex-[0.8] flex flex-col items-center justify-center gap-2 p-4 rounded-2xl font-bold active:scale-95 transition-all text-xs border", 
-                photoFile 
-                  ? "bg-amber-50 border-amber-200 text-amber-600 shadow-sm" 
-                  : "bg-gray-50 border-transparent text-gray-400 hover:bg-gray-100"
-              )}
-            >
-              <Camera size={20} className={photoFile ? "text-amber-500" : "text-gray-300"} /> 
-              {photoFile ? t('photoAttached') : t('uploadPhoto')}
+            <button onClick={() => fileInputRef.current?.click()} className={clsx("flex-[0.8] flex flex-col items-center justify-center gap-2 p-4 rounded-2xl font-bold active:scale-95 transition-all text-xs border", photoFile ? "bg-amber-50 border-amber-200 text-amber-600 shadow-sm" : "bg-gray-50 border-transparent text-gray-400 hover:bg-gray-100")}>
+              <Camera size={20} className={photoFile ? "text-amber-500" : "text-gray-300"} /> {photoFile ? t('photoAttached') : t('uploadPhoto')}
             </button>
-            
             <div className="flex-[1.2] flex items-start gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-200">
                <Type className="text-amber-400 shrink-0 mt-0.5" size={18} />
-               <textarea 
-                 value={notes} 
-                 onChange={e => setNotes(e.target.value)} 
-                 placeholder={t('notes')} 
-                 className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 text-sm font-medium resize-none h-full min-h-[60px]" 
-               />
+               <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('notes')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 text-sm font-medium resize-none h-full min-h-[60px]" />
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
