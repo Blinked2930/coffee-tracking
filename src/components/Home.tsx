@@ -29,7 +29,8 @@ interface HomeProps {
 
 export default function Home({ user, onKafeLogged }: HomeProps) {
   const { t, language } = useLanguage();
-  const [selectedType, setSelectedType] = useState<KafeType>('kafe');
+  // Set initial state to null so nothing is selected by default
+  const [selectedType, setSelectedType] = useState<KafeType | null>(null);
   const [isAddingDetails, setIsAddingDetails] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -146,6 +147,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   const handleLogKafe = async () => {
+    if (!selectedType) return;
+    
     setIsSaving(true);
     let uploadedPhotoUrl = null;
     
@@ -194,14 +197,14 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       setNotes('');
       setRating(0);
       setIsAddingDetails(false);
-      setSelectedType('kafe');
+      setSelectedType(null); // Reset back to empty state
       setPhotoFile(null);
       onKafeLogged();
     }, 2500);
   };
 
   return (
-    <div className="flex flex-col h-full min-h-[100dvh] px-5 pt-6 pb-20 overflow-y-auto custom-scrollbar bg-gray-50/30">
+    <div className="flex flex-col min-h-[100dvh] px-5 py-12 overflow-y-auto custom-scrollbar bg-gray-50/30 justify-center items-center">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
@@ -234,28 +237,34 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* Dynamic top spacer */}
-      <div className="flex-1 min-h-[1vh]" />
-
       <div className="w-full max-w-sm mx-auto flex flex-col items-center">
         
         {/* Main Cutesy Button */}
         <div className="mb-4 flex justify-center w-full shrink-0">
           <button
             onClick={handleLogKafe}
-            disabled={isSaving || showSuccess}
+            disabled={isSaving || showSuccess || !selectedType}
             className={clsx(
-              "relative w-40 h-40 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300",
-              "active:scale-95 disabled:opacity-90",
-              showSuccess 
-                ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_15px_40px_rgba(52,211,153,0.4)] scale-105"
-                : "bg-gradient-to-tr from-amber-400 to-amber-300 shadow-[0_15px_40px_rgba(251,191,36,0.35)]",
-              (!showSuccess && !isSaving) && "hover:shadow-[0_20px_50px_rgba(251,191,36,0.4)]"
+              "relative w-40 h-40 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300 disabled:opacity-100",
+              !selectedType && !showSuccess
+                ? "bg-gray-100 border-4 border-white shadow-inner scale-95"
+                : showSuccess 
+                  ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_15px_40px_rgba(52,211,153,0.4)] scale-105 border-0"
+                  : "bg-gradient-to-tr from-amber-400 to-amber-300 shadow-[0_15px_40px_rgba(251,191,36,0.35)] hover:shadow-[0_20px_50px_rgba(251,191,36,0.4)] active:scale-95 border-0"
             )}
           >
-            {/* Dashed spinning ring */}
-            {(!isSaving && !showSuccess) && (
+            {/* Dashed spinning ring only when active */}
+            {(!isSaving && !showSuccess && selectedType) && (
               <div className="absolute inset-0 rounded-full border-[3px] border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
+            )}
+
+            {(!isSaving && !showSuccess && !selectedType) && (
+              <>
+                <Coffee size={36} className="text-gray-300 mb-1" />
+                <span className="text-gray-400 text-xl font-black tracking-tight leading-none mt-2">
+                  {language === 'sq' ? 'Zgjidh Pijen' : 'Select Drink'}
+                </span>
+              </>
             )}
 
             {isSaving && (
@@ -274,7 +283,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
               </>
             )}
 
-            {(!isSaving && !showSuccess) && (
+            {(!isSaving && !showSuccess && selectedType) && (
               <>
                 <Coffee size={36} className="text-white mb-1 drop-shadow-md" />
                 <span className="text-white text-3xl font-black tracking-tight drop-shadow-md leading-none">+1 Kafe</span>
@@ -310,7 +319,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         {/* Compact Bottom Controls */}
         <div className="w-full flex flex-col items-center shrink-0">
           
-          {/* Floating Rating System (No Bubble) */}
+          {/* Floating Rating System */}
           <div className="w-full flex justify-between px-2 mb-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
               <button
@@ -335,9 +344,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           
         </div>
       </div>
-
-      {/* Dynamic bottom spacer */}
-      <div className="flex-1 min-h-[1vh]" />
 
       {/* Slide-Up Drawer for Add Details */}
       {isAddingDetails && (
