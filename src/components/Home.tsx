@@ -185,7 +185,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     confetti({
       particleCount: 150,
       spread: 70,
-      origin: { y: 0.5 },
+      origin: { y: 0.4 }, // Adjusted confetti origin higher up
       colors: ['#f59e0b', '#fbbf24', '#fcd34d', '#ffffff'],
       disableForReducedMotion: true
     });
@@ -203,8 +203,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    // pb-[100px] specifically accounts for the exact height of your bottom nav bar, keeping the visual center perfectly balanced
-    <div className="flex flex-col min-h-[100dvh] w-full px-5 pt-4 pb-[100px] bg-gray-50/30 overflow-y-auto custom-scrollbar">
+    // Only pb-32 here to ensure you can scroll past the bottom nav bar. No centering magic.
+    <div className="flex flex-col min-h-[100dvh] w-full px-5 pt-4 pb-32 bg-gray-50/30 overflow-y-auto custom-scrollbar">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
@@ -237,8 +237,11 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* m-auto perfectly suspends this block vertically in the available space above the nav bar */}
-      <div className="m-auto w-full max-w-sm flex flex-col items-center shrink-0">
+      {/* MANUAL MARGINS ARE HERE: 
+        mt-8  = Top margin (pushes the circle down from the very top of the phone)
+        mb-12 = Bottom margin (pushes the layout away from the bottom)
+      */}
+      <div className="w-full max-w-sm mx-auto flex flex-col items-center shrink-0 mt-8 mb-12">
         
         {/* Main Cutesy Button */}
         <div className="flex justify-center w-full mb-6">
