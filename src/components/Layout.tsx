@@ -15,43 +15,24 @@ export default function Layout({ user, activeTab, onTabChange, children }: Layou
   const { t } = useLanguage();
   
   return (
-    // Desktop Wrapper: Dark background, centers the "phone" perfectly
     <div className="min-h-screen bg-gray-900 flex justify-center w-full">
-      
-      {/* The Phone Container */}
       <div className="w-full max-w-md bg-gray-50 h-[100dvh] relative overflow-hidden flex flex-col shadow-2xl sm:ring-1 sm:ring-gray-800">
         
-        {/* Main Content Area */}
+        {/* Main Content Area - Handles scroll and keeps content above nav bar natively */}
         <main className="flex-1 overflow-y-auto pb-28 pt-4">
           {children}
         </main>
 
-        {/* Bottom Navigation - Now absolute to anchor to the phone container, not the whole screen */}
+        {/* Bottom Navigation - Lowered to z-40 so the Drawer can safely eclipse it */}
         <nav 
-          className="absolute bottom-0 w-full bg-white border-t border-gray-100 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]"
+          className="absolute bottom-0 w-full bg-white border-t border-gray-100 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]"
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)' }}
         >
           <div className="flex justify-around items-center px-2 pt-3 pb-1 w-full">
-            <NavButton 
-              icon={<HomeIcon size={24} />} 
-              label={t('home')} 
-              isActive={activeTab === 'home'} 
-              onClick={() => onTabChange('home')} 
-            />
-            <NavButton 
-              icon={<List size={24} />} 
-              label={t('feed')} 
-              isActive={activeTab === 'feed'} 
-              onClick={() => onTabChange('feed')} 
-            />
-            <NavButton 
-              icon={<Trophy size={24} />} 
-              label={t('rankings')} 
-              isActive={activeTab === 'leaderboard'} 
-              onClick={() => onTabChange('leaderboard')} 
-            />
+            <NavButton icon={<HomeIcon size={24} />} label={t('home')} isActive={activeTab === 'home'} onClick={() => onTabChange('home')} />
+            <NavButton icon={<List size={24} />} label={t('feed')} isActive={activeTab === 'feed'} onClick={() => onTabChange('feed')} />
+            <NavButton icon={<Trophy size={24} />} label={t('rankings')} isActive={activeTab === 'leaderboard'} onClick={() => onTabChange('leaderboard')} />
             
-            {/* Profile Button (Avatar) */}
             <button
               onClick={() => onTabChange('profile')}
               className={clsx(
@@ -76,7 +57,6 @@ export default function Layout({ user, activeTab, onTabChange, children }: Layou
             </button>
           </div>
         </nav>
-
       </div>
     </div>
   );
