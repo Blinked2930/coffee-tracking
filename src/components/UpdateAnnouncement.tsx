@@ -86,7 +86,7 @@ export default function UpdateAnnouncement({ currentUser }: { currentUser: User 
           {/* Actionable Link Section */}
           <div className="flex flex-col items-center justify-center p-5 bg-amber-50/50 border border-amber-100/60 rounded-2xl">
             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-3">
-              Direct targets to:
+              Direct future victims, ummm sorry, targets. no... friends to:
             </p>
             <a 
               href="https://kafe.emmettfrett.com" 
