@@ -185,7 +185,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     confetti({
       particleCount: 150,
       spread: 70,
-      origin: { y: 0.4 }, 
+      origin: { y: 0.5 },
       colors: ['#f59e0b', '#fbbf24', '#fcd34d', '#ffffff'],
       disableForReducedMotion: true
     });
@@ -203,7 +203,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] w-full px-5 pt-2 pb-[90px] bg-gray-50/30 overflow-y-auto custom-scrollbar">
+    // STRICT ALIGNMENT: h-[100dvh] locks height, justify-center aligns content, pb-24 accurately compensates for the bottom nav bar.
+    <div className="flex flex-col h-[100dvh] w-full px-5 bg-gray-50/30 overflow-y-auto custom-scrollbar justify-center items-center pb-24">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
@@ -236,14 +237,11 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* MANUAL MARGINS: 
-        mt-2  = Way less top margin, pushes it right up to the ceiling
-        mb-1  = Microscopic bottom margin. Kills the empty space, leaves only the native OS rubber-band bounce.
-      */}
-      <div className="w-full max-w-sm mx-auto flex flex-col items-center shrink-0 mt-2 mb-1">
+      {/* CORE WRAPPER: No more m-auto or flexible spacers. Just strict vertical stacking. */}
+      <div className="w-full max-w-sm flex flex-col items-center shrink-0">
         
         {/* Main Cutesy Button */}
-        <div className="flex justify-center w-full mb-6">
+        <div className="flex justify-center w-full mb-6 mt-4">
           <button
             onClick={handleLogKafe}
             disabled={isSaving || showSuccess || !selectedType}
@@ -345,7 +343,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           
         </div>
       </div>
-
+      
       {/* Slide-Up Drawer for Add Details */}
       {isAddingDetails && (
         <div 
