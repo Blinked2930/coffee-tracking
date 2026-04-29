@@ -143,7 +143,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    // BACK IN THE STRAIGHTJACKET: fixed inset-0 completely kills scrolling. pb-[125px] aligns it flawlessly.
     <div className="fixed inset-0 w-full bg-gray-50/30 overflow-hidden flex flex-col pb-[125px]">
       
       {showNotificationPrompt && (
@@ -285,20 +284,21 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
       </div>
       
-      {/* Slide-Up Drawer for Add Details */}
+      {/* Slide-Up Drawer Background Overlay */}
       {isAddingDetails && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100]" onClick={() => setIsAddingDetails(false)} />
       )}
       
+      {/* 🚀 HOTFIX: Added pb-[110px] right here to pad the inside of the drawer above the nav bar */}
       <div className={clsx(
-        "fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-[0_-10px_50px_rgba(0,0,0,0.15)] z-[101] transition-transform duration-300 ease-out p-6 sm:p-8 pb-safe border-t border-gray-100 max-w-2xl mx-auto flex flex-col",
+        "fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-[0_-10px_50px_rgba(0,0,0,0.15)] z-[101] transition-transform duration-300 ease-out p-6 sm:p-8 pb-[110px] border-t border-gray-100 max-w-2xl mx-auto flex flex-col",
         isAddingDetails ? "translate-y-0" : "translate-y-[120%]"
       )}>
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('lokalDetails')}</h3>
           <button onClick={() => setIsAddingDetails(false)} className="px-5 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-full text-[10px] font-black text-gray-500 uppercase tracking-widest active:scale-95 transition-colors border border-gray-100">{t('done')}</button>
         </div>
-        <div className="space-y-4 pb-8">
+        <div className="space-y-4">
           <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-200">
             <MapPin className="text-amber-400" size={20} />
             <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder={t('cafeName')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 font-bold text-sm" />
