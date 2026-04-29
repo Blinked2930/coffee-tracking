@@ -118,6 +118,7 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
                       alt="Kafe moment" 
                       className="w-full h-auto max-h-72 object-cover"
                       loading="lazy"
+                      decoding="async"
                     />
                   </div>
                 )}

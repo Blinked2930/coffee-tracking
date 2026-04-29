@@ -1,20 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import Login from './components/Login';
 import Layout from './components/Layout';
-import Home from './components/Home';
-import Feed from './components/Feed';
-import Leaderboard from './components/Leaderboard';
-import Profile from './components/Profile';
 import InstallPrompt from './components/InstallPrompt';
 import { User, KafeLog } from './types';
 import { supabase } from './lib/supabase';
 
+// Code Splitting retains fast initial boot
+const Home = lazy(() => import('./components/Home'));
+const Feed = lazy(() => import('./components/Feed'));
+const Leaderboard = lazy(() => import('./components/Leaderboard'));
+const Profile = lazy(() => import('./components/Profile'));
+
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<'home' | 'feed' | 'leaderboard' | 'profile'>('home');
-  const [logs, setLogs] = useState<KafeLog[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   
+  // 👻 THE GHOST LOAD: Instantly load the cached feed from memory before hitting the database
+  const [logs, setLogs] = useState<KafeLog[]>(() => {
+    const cached = localStorage.getItem('kafe_feed_cache');
+    return cached ? JSON.parse(cached) : [];
+  });
+  
+  const [users, setUsers] = useState<User[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const PAGE_SIZE = 20;
@@ -23,46 +30,22 @@ function App() {
     const savedUser = localStorage.getItem('kafe_user');
     if (savedUser) {
       setCurrentUser(JSON.parse(savedUser));
-      
-      // 🚀 INSTANT LOAD CACHING (Stale-While-Revalidate)
-      // Load cached data immediately so the UI is fully populated at 0ms
-      const cachedUsers = localStorage.getItem('kafe_users_cache');
-      if (cachedUsers) setUsers(JSON.parse(cachedUsers));
-      
-      const cachedLogs = localStorage.getItem('kafe_logs_cache');
-      if (cachedLogs) setLogs(JSON.parse(cachedLogs));
-      
-      // Then, silently fetch the freshest data from Supabase in the background
-      supabase.from('users').select('id, name').then(({ data }) => {
-        if (data) {
-          setUsers(data);
-          localStorage.setItem('kafe_users_cache', JSON.stringify(data));
-        }
-      });
-      fetchLogs(0, true);
     }
     
-    // Real-time subscription so new Kafes pop in live
+    supabase.from('users').select('id, name').then(({ data }) => {
+      if (data) setUsers(data);
+    });
+    
+    fetchLogs(0, true);
+    
     const channel = supabase.channel('custom-all-channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'kafes' }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          setLogs(current => {
-            const newLogs = [{ ...payload.new as KafeLog, comment_count: 0 } as any, ...current];
-            localStorage.setItem('kafe_logs_cache', JSON.stringify(newLogs.slice(0, PAGE_SIZE)));
-            return newLogs;
-          });
+          setLogs(current => [{ ...payload.new as KafeLog, comment_count: 0 } as any, ...current]);
         } else if (payload.eventType === 'UPDATE') {
-          setLogs(current => {
-            const updated = current.map(l => l.id === payload.new.id ? { ...l, ...payload.new } as any : l);
-            localStorage.setItem('kafe_logs_cache', JSON.stringify(updated.slice(0, PAGE_SIZE)));
-            return updated;
-          });
+          setLogs(current => current.map(l => l.id === payload.new.id ? { ...l, ...payload.new } as any : l));
         } else if (payload.eventType === 'DELETE') {
-          setLogs(current => {
-            const filtered = current.filter(l => l.id !== payload.old.id);
-            localStorage.setItem('kafe_logs_cache', JSON.stringify(filtered.slice(0, PAGE_SIZE)));
-            return filtered;
-          });
+          setLogs(current => current.filter(l => l.id !== payload.old.id));
         }
       })
       .subscribe();
@@ -87,8 +70,8 @@ function App() {
 
       if (isInitial || pageNum === 0) {
         setLogs(formattedData as KafeLog[]);
-        // Update the cache with the freshest Page 1 data
-        localStorage.setItem('kafe_logs_cache', JSON.stringify(formattedData));
+        // 💾 Save the fresh first page of the feed to memory for the next time they open the app
+        localStorage.setItem('kafe_feed_cache', JSON.stringify(formattedData));
       } else {
         setLogs(prev => [...prev, ...(formattedData as KafeLog[])]);
       }
@@ -114,16 +97,6 @@ function App() {
     if (data && !error) {
       setCurrentUser(data);
       localStorage.setItem('kafe_user', JSON.stringify(data));
-      
-      // Kick off initial fetches and populate cache on fresh login
-      supabase.from('users').select('id, name').then(({ data: userData }) => { 
-        if (userData) {
-          setUsers(userData);
-          localStorage.setItem('kafe_users_cache', JSON.stringify(userData));
-        }
-      });
-      fetchLogs(0, true);
-      
       return true;
     } else {
       return false;
@@ -133,9 +106,6 @@ function App() {
   const handleLogout = () => {
     setCurrentUser(null);
     localStorage.removeItem('kafe_user');
-    // Clear the cache so a new user doesn't briefly see the old user's feed
-    localStorage.removeItem('kafe_logs_cache');
-    localStorage.removeItem('kafe_users_cache');
     setActiveTab('home');
   };
 
@@ -162,21 +132,27 @@ function App() {
         activeTab={activeTab} 
         onTabChange={setActiveTab}
       >
-        {activeTab === 'home' && <Home user={currentUser} onKafeLogged={() => fetchLogs(0, true)} />}
-        
-        {activeTab === 'feed' && (
-          <Feed 
-            logs={logs} 
-            getUserMap={getUserMap} 
-            currentUser={currentUser} 
-            onLoadMore={handleLoadMore} 
-            hasMore={hasMore} 
-            onUpdateCommentCount={handleUpdateCommentCount}
-          />
-        )}
-        
-        {activeTab === 'leaderboard' && <Leaderboard currentUser={currentUser} getUserMap={getUserMap} />}
-        {activeTab === 'profile' && <Profile user={currentUser} getUserMap={getUserMap} onLogout={handleLogout} />}
+        <Suspense fallback={
+          <div className="flex flex-col h-full w-full items-center justify-center min-h-[60vh] gap-3">
+            <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-amber-500/20 border-t-amber-500"></div>
+          </div>
+        }>
+          {activeTab === 'home' && <Home user={currentUser} onKafeLogged={() => fetchLogs(0, true)} />}
+          
+          {activeTab === 'feed' && (
+            <Feed 
+              logs={logs} 
+              getUserMap={getUserMap} 
+              currentUser={currentUser} 
+              onLoadMore={handleLoadMore} 
+              hasMore={hasMore} 
+              onUpdateCommentCount={handleUpdateCommentCount}
+            />
+          )}
+          
+          {activeTab === 'leaderboard' && <Leaderboard currentUser={currentUser} getUserMap={getUserMap} />}
+          {activeTab === 'profile' && <Profile user={currentUser} getUserMap={getUserMap} onLogout={handleLogout} />}
+        </Suspense>
       </Layout>
     </>
   );
