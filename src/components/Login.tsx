@@ -12,10 +12,7 @@ interface LoginProps {
 export default function Login({ users, onLogin }: LoginProps) {
   const { t } = useLanguage();
   
-  // Login State
   const [loginIdentifier, setLoginIdentifier] = useState(''); 
-  
-  // Signup State
   const [signupName, setSignupName] = useState('');
   const [signupUsername, setSignupUsername] = useState('');
   
@@ -23,7 +20,6 @@ export default function Login({ users, onLogin }: LoginProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
 
-  // Executive Error State
   const [errorConfig, setErrorConfig] = useState<{ show: boolean; title: string; message: string }>({
     show: false,
     title: '',
@@ -100,34 +96,27 @@ export default function Login({ users, onLogin }: LoginProps) {
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-gray-50 p-6 relative overflow-hidden">
       
-      {/* High-Fidelity Executive Error Modal */}
       {errorConfig.show && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
           <div className="bg-white rounded-[2rem] p-6 sm:p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300 border border-white/20 relative overflow-hidden">
-            
             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-500 via-rose-500 to-red-500" />
-            
             <button 
               onClick={() => setErrorConfig({ ...errorConfig, show: false })}
               className="absolute top-4 right-4 w-8 h-8 bg-gray-50 hover:bg-gray-100 rounded-full flex items-center justify-center text-gray-400 active:scale-95 transition-all"
             >
               <X size={16} />
             </button>
-
             <div className="flex justify-center mb-5 mt-2">
               <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center shadow-sm border border-red-100 rotate-3">
                 <ShieldAlert size={32} />
               </div>
             </div>
-
             <h3 className="text-2xl font-black text-center text-gray-900 mb-2 tracking-tight leading-none">
               {errorConfig.title}
             </h3>
-            
             <p className="text-sm text-gray-500 text-center mb-8 font-medium leading-relaxed px-2">
               {errorConfig.message}
             </p>
-            
             <button 
               onClick={() => setErrorConfig({ ...errorConfig, show: false })}
               className="w-full py-4 bg-gray-900 hover:bg-black text-white rounded-xl font-black shadow-xl shadow-gray-900/20 active:scale-[0.98] transition-all text-xs uppercase tracking-widest"
@@ -138,7 +127,6 @@ export default function Login({ users, onLogin }: LoginProps) {
         </div>
       )}
 
-      {/* Main Login Interface */}
       <div className="w-full max-w-sm bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 p-8 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 z-10 border border-gray-100">
         <div className="flex flex-col items-center">
           <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-[1.5rem] flex items-center justify-center mb-5 shadow-inner">
@@ -151,7 +139,6 @@ export default function Login({ users, onLogin }: LoginProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          
           {isSignUp ? (
             <div className="space-y-4">
               <div>
@@ -220,7 +207,7 @@ export default function Login({ users, onLogin }: LoginProps) {
           <button
             type="submit"
             disabled={isLoading || pin.length === 0 || (isSignUp ? (!signupName || !signupUsername) : !loginIdentifier)}
-            className="w-full bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-white font-black py-4.5 rounded-2xl shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center mt-4 uppercase tracking-[0.15em] text-xs h-14"
+            className="w-full bg-gradient-to-tr from-amber-400 to-amber-300 text-white font-black py-4 rounded-2xl shadow-[0_10px_30px_rgba(251,191,36,0.3)] transition-all active:scale-[0.98] disabled:opacity-50 flex justify-center items-center mt-4 uppercase tracking-[0.15em] text-xs h-14"
           >
             {isLoading ? (
               <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
