@@ -233,7 +233,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] px-4 pt-8 pb-20 relative overflow-hidden">
+    <div className="flex flex-col h-full px-4 pt-4 pb-20 relative overflow-hidden justify-center items-center">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
@@ -262,101 +262,95 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* Main Content Wrapper - Aggressively Stacked */}
-      <div className="flex flex-col items-center w-full max-w-sm mx-auto">
+      {/* Tightly Stacked Content Wrapper - Pulled up! */}
+      <div className="flex flex-col items-center w-full max-w-sm gap-5 -mt-6">
         
-        {/* Main Button with fixed bottom margin to pull elements up */}
-        <div className="mb-10 sm:mb-12 mt-4">
-          <button
-            onClick={handleLogKafe}
-            disabled={isSaving || showSuccess}
-            className={clsx(
-              "relative w-48 h-48 sm:w-52 sm:h-52 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0",
-              "active:scale-95 disabled:opacity-90",
-              showSuccess 
-                ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_20px_50px_rgba(52,211,153,0.5)] scale-105"
-                : "bg-gradient-to-tr from-amber-400 to-amber-300 shadow-[0_20px_50px_rgba(251,191,36,0.5)]",
-              (!showSuccess && !isSaving) && "active:shadow-[0_10px_20px_rgba(251,191,36,0.4)]"
-            )}
-          >
-            {isSaving && (
-              <>
-                <div className="absolute inset-0 rounded-full border-4 border-white/30 border-t-white animate-spin" />
-                <Coffee size={40} className="text-white mb-1 drop-shadow-md animate-pulse" />
-                <span className="text-white text-xl font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
-              </>
-            )}
+        {/* Main Button */}
+        <button
+          onClick={handleLogKafe}
+          disabled={isSaving || showSuccess}
+          className={clsx(
+            "relative w-48 h-48 sm:w-52 sm:h-52 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0 mb-2",
+            "active:scale-95 disabled:opacity-90",
+            showSuccess 
+              ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_20px_50px_rgba(52,211,153,0.5)] scale-105"
+              : "bg-gradient-to-tr from-amber-400 to-amber-300 shadow-[0_20px_50px_rgba(251,191,36,0.5)]",
+            (!showSuccess && !isSaving) && "active:shadow-[0_10px_20px_rgba(251,191,36,0.4)]"
+          )}
+        >
+          {isSaving && (
+            <>
+              <div className="absolute inset-0 rounded-full border-4 border-white/30 border-t-white animate-spin" />
+              <Coffee size={40} className="text-white mb-1 drop-shadow-md animate-pulse" />
+              <span className="text-white text-xl font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
+            </>
+          )}
 
-            {showSuccess && (
-              <>
-                <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_10s_linear_infinite]" />
-                <span className="text-5xl mb-1 drop-shadow-md animate-bounce">🎉</span>
-                <span className="text-white text-2xl font-black tracking-wider drop-shadow-md mt-1">{t('done')}</span>
-              </>
-            )}
+          {showSuccess && (
+            <>
+              <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_10s_linear_infinite]" />
+              <span className="text-5xl mb-1 drop-shadow-md animate-bounce">🎉</span>
+              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md mt-1">{t('done')}</span>
+            </>
+          )}
 
-            {(!isSaving && !showSuccess) && (
-              <>
-                <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
-                <Coffee size={40} className="text-white mb-1.5 drop-shadow-md" />
-                <span className="text-white text-3xl font-black tracking-wider drop-shadow-md leading-none">+1 Kafe</span>
-                <span className="text-amber-700/80 font-bold uppercase tracking-[0.15em] text-[10px] mt-2">{t('tapToLog')}</span>
-              </>
-            )}
-          </button>
-        </div>
+          {(!isSaving && !showSuccess) && (
+            <>
+              <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
+              <Coffee size={40} className="text-white mb-1.5 drop-shadow-md" />
+              <span className="text-white text-3xl font-black tracking-wider drop-shadow-md leading-none">+1 Kafe</span>
+              <span className="text-amber-700/80 font-bold uppercase tracking-[0.15em] text-[10px] mt-2">{t('tapToLog')}</span>
+            </>
+          )}
+        </button>
 
-        {/* Static Bottom Elements */}
-        <div className="w-full flex flex-col items-center">
-          
-          {/* Options Grid */}
-          <div className="w-full px-1 mb-5">
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
-              {kafeOptions.map((option) => (
-                <button
-                  key={option.type}
-                  onClick={() => setSelectedType(option.type)}
-                  className={clsx(
-                    "rounded-[1.25rem] aspect-square flex flex-col items-center justify-center p-2 transition-all shadow-sm overflow-hidden",
-                    selectedType === option.type
-                      ? "bg-white border-2 border-amber-500 scale-105 shadow-md"
-                      : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
-                  )}
-                >
-                  <span className="text-[32px] sm:text-[36px] leading-none mb-1">{option.icon}</span>
-                  <span className={clsx("text-[10px] leading-tight text-center px-0.5 font-bold line-clamp-2", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
-                    {option.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Rating */}
-          <div className="w-full flex justify-between px-3 mb-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+        {/* Options Grid */}
+        <div className="w-full px-1">
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+            {kafeOptions.map((option) => (
               <button
-                key={num}
-                onClick={() => setRating(num === rating ? 0 : num)}
+                key={option.type}
+                onClick={() => setSelectedType(option.type)}
                 className={clsx(
-                  "text-[22px] sm:text-2xl transition-all active:scale-75",
-                  rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-30 hover:opacity-60"
+                  "rounded-[1.25rem] aspect-square flex flex-col items-center justify-center p-2 transition-all shadow-sm overflow-hidden",
+                  selectedType === option.type
+                    ? "bg-white border-2 border-amber-500 scale-105 shadow-md"
+                    : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
                 )}
               >
-                ☕️
+                <span className="text-[32px] sm:text-[36px] leading-none mb-1">{option.icon}</span>
+                <span className={clsx("text-[10px] leading-tight text-center px-0.5 font-bold line-clamp-2", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
+                  {option.label}
+                </span>
               </button>
             ))}
           </div>
-
-          {/* Add Details Button */}
-          <button 
-            onClick={() => setIsAddingDetails(true)}
-            className="w-full max-w-[150px] py-3 rounded-full bg-white text-gray-400 font-bold shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em]"
-          >
-            {t('addDetails')}
-          </button>
-          
         </div>
+
+        {/* Rating */}
+        <div className="w-full flex justify-between px-3">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+            <button
+              key={num}
+              onClick={() => setRating(num === rating ? 0 : num)}
+              className={clsx(
+                "text-[22px] sm:text-2xl transition-all active:scale-75",
+                rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-30 hover:opacity-60"
+              )}
+            >
+              ☕️
+            </button>
+          ))}
+        </div>
+
+        {/* Add Details Button */}
+        <button 
+          onClick={() => setIsAddingDetails(true)}
+          className="w-full max-w-[150px] py-3 mt-1 rounded-full bg-white text-gray-400 font-bold shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em] shrink-0"
+        >
+          {t('addDetails')}
+        </button>
+          
       </div>
 
       {isAddingDetails && (
