@@ -266,7 +266,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       <div className="flex flex-col flex-1 w-full max-w-sm mx-auto h-full">
         
         {/* Dynamic Top Spacer - Allows the button to breathe vertically */}
-        <div className="flex-1 flex flex-col items-center justify-center min-h-[220px]">
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[200px]">
           <button
             onClick={handleLogKafe}
             disabled={isSaving || showSuccess}
@@ -307,24 +307,24 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
 
         {/* Static Bottom Elements - Anchored */}
-        <div className="w-full flex flex-col items-center mt-4">
+        <div className="w-full flex flex-col items-center mt-2">
           
           {/* Options Grid */}
           <div className="w-full px-1 mb-6">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
               {kafeOptions.map((option) => (
                 <button
                   key={option.type}
                   onClick={() => setSelectedType(option.type)}
                   className={clsx(
-                    "rounded-[1.25rem] flex flex-col items-center justify-center gap-1.5 py-4 transition-all shadow-sm",
+                    "rounded-[1.25rem] aspect-square flex flex-col items-center justify-center p-2 transition-all shadow-sm overflow-hidden",
                     selectedType === option.type
                       ? "bg-white border-2 border-amber-500 scale-105 shadow-md"
                       : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
                   )}
                 >
-                  <span className="text-[32px] sm:text-[36px] leading-none mb-0.5">{option.icon}</span>
-                  <span className={clsx("text-[11px] leading-tight text-center px-1 font-bold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
+                  <span className="text-[32px] sm:text-[36px] leading-none mb-1">{option.icon}</span>
+                  <span className={clsx("text-[10px] leading-tight text-center px-0.5 font-bold line-clamp-2", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
                     {option.label}
                   </span>
                 </button>
@@ -348,10 +348,10 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
             ))}
           </div>
 
-          {/* Add Details Button - Anchored at the absolute bottom above navigation */}
+          {/* Add Details Button - Shrunk and lifted off the bottom nav */}
           <button 
             onClick={() => setIsAddingDetails(true)}
-            className="w-full max-w-[200px] py-4 rounded-full bg-white text-gray-400 font-black shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[11px] uppercase tracking-[0.15em] shrink-0 mt-auto mb-2"
+            className="w-full max-w-[150px] py-3 rounded-full bg-white text-gray-400 font-bold shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em] shrink-0 mt-auto mb-6"
           >
             {t('addDetails')}
           </button>
