@@ -5,6 +5,8 @@ import Home from './components/Home';
 import Feed from './components/Feed';
 import Leaderboard from './components/Leaderboard';
 import Profile from './components/Profile';
+import InstallPrompt from './components/InstallPrompt';
+import UpdateAnnouncement from './components/UpdateAnnouncement';
 import { User, KafeLog } from './types';
 import { supabase } from './lib/supabase';
 
@@ -108,34 +110,43 @@ function App() {
   };
 
   if (!currentUser) {
-    return <Login users={users} onLogin={handleLogin} />;
+    return (
+      <>
+        <InstallPrompt onBypass={() => {}} />
+        <Login users={users} onLogin={handleLogin} />
+      </>
+    );
   }
 
   const getUserMap = (id: string) => users.find(u => u.id === id);
 
   return (
-    <Layout 
-      user={currentUser} 
-      activeTab={activeTab} 
-      onTabChange={setActiveTab}
-    >
-      {activeTab === 'home' && <Home user={currentUser} onKafeLogged={() => fetchLogs(0, true)} />}
-      
-      {activeTab === 'feed' && (
-        <Feed 
-          logs={logs} 
-          getUserMap={getUserMap} 
-          currentUser={currentUser} 
-          onLoadMore={handleLoadMore} 
-          hasMore={hasMore} 
-          onUpdateCommentCount={handleUpdateCommentCount}
-        />
-      )}
-      
-      {/* Passed getUserMap down to profiles so comments can display names */}
-      {activeTab === 'leaderboard' && <Leaderboard currentUser={currentUser} getUserMap={getUserMap} />}
-      {activeTab === 'profile' && <Profile user={currentUser} getUserMap={getUserMap} onLogout={handleLogout} />}
-    </Layout>
+    <>
+      <InstallPrompt onBypass={() => {}} />
+      <UpdateAnnouncement currentUser={currentUser} />
+      <Layout 
+        user={currentUser} 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+      >
+        {activeTab === 'home' && <Home user={currentUser} onKafeLogged={() => fetchLogs(0, true)} />}
+        
+        {activeTab === 'feed' && (
+          <Feed 
+            logs={logs} 
+            getUserMap={getUserMap} 
+            currentUser={currentUser} 
+            onLoadMore={handleLoadMore} 
+            hasMore={hasMore} 
+            onUpdateCommentCount={handleUpdateCommentCount}
+          />
+        )}
+        
+        {/* Passed getUserMap down to profiles so comments can display names */}
+        {activeTab === 'leaderboard' && <Leaderboard currentUser={currentUser} getUserMap={getUserMap} />}
+        {activeTab === 'profile' && <Profile user={currentUser} getUserMap={getUserMap} onLogout={handleLogout} />}
+      </Layout>
+    </>
   );
 }
 
