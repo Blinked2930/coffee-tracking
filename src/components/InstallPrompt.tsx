@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Share, PlusSquare, MoreVertical, Smartphone, Apple, X } from 'lucide-react';
+import { Share, PlusSquare, MoreVertical, MoreHorizontal, Smartphone, Apple, X, Check } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function InstallPrompt({ onBypass }: { onBypass: () => void }) {
   const [device, setDevice] = useState<'none' | 'ios' | 'android'>('none');
-  const [isStandalone, setIsStandalone] = useState(true); // Default to true so it doesn't flash before checking
+  const [isStandalone, setIsStandalone] = useState(true); 
 
   useEffect(() => {
     // Check if running as a PWA
@@ -71,16 +71,24 @@ export default function InstallPrompt({ onBypass }: { onBypass: () => void }) {
             <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-6">Must be in Chrome Browser</p>
           )}
 
-          <div className="space-y-6 text-gray-300 text-sm font-medium mb-8">
+          <div className="space-y-5 text-gray-300 text-sm font-medium mb-8">
             {device === 'ios' ? (
               <>
                 <div className="flex items-start gap-4">
+                  <MoreHorizontal size={20} className="text-amber-500 shrink-0 mt-0.5" />
+                  <p>Tap the <strong className="text-white">3-dot menu</strong> in the bottom right corner.</p>
+                </div>
+                <div className="flex items-start gap-4">
                   <Share size={20} className="text-amber-500 shrink-0 mt-0.5" />
-                  <p>Tap the <strong className="text-white">Share</strong> icon at the bottom of the Safari menu.</p>
+                  <p>Tap the <strong className="text-white">Share</strong> icon.</p>
                 </div>
                 <div className="flex items-start gap-4">
                   <PlusSquare size={20} className="text-amber-500 shrink-0 mt-0.5" />
                   <p>Scroll down and tap <strong className="text-white">Add to Home Screen</strong>.</p>
+                </div>
+                <div className="flex items-start gap-4">
+                  <Check size={20} className="text-amber-500 shrink-0 mt-0.5" />
+                  <p>Tap <strong className="text-white">Add</strong> in the top right corner.</p>
                 </div>
               </>
             ) : (
