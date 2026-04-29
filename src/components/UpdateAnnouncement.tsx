@@ -60,6 +60,11 @@ export default function UpdateAnnouncement({ currentUser }: { currentUser: User 
             <p>
               Attention, esteemed founding member. The <strong>Cohort Network</strong> is officially live.
             </p>
+            
+            <p className="text-sm font-black text-amber-600 text-center uppercase tracking-wide bg-amber-100/40 py-2 rounded-lg border border-amber-200">
+              YOU CAN NOW INVITE ANYONE TO JOIN!!
+            </p>
+
             <p>
               You are now fully authorized to recruit colleagues, associates, and subordinate coffee consumers into your localized telemetry feed.
             </p>
