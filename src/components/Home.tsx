@@ -203,7 +203,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    // pb-[90px] perfectly clears the nav bar without adding excessive dead space below it
     <div className="flex flex-col min-h-[100dvh] w-full px-5 pt-2 pb-[90px] bg-gray-50/30 overflow-y-auto custom-scrollbar">
       
       {showNotificationPrompt && (
@@ -238,10 +237,9 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       )}
 
       {/* MANUAL MARGINS: 
-        mt-2  = Way less top margin, pushes it right up to the ceiling
-        mb-24 = Way more bottom margin, creates that big space above the nav bar 
+        mb-6 = Slashed the bottom margin down. This removes the deep scroll space but allows a clean bounce.
       */}
-      <div className="w-full max-w-sm mx-auto flex flex-col items-center shrink-0 mt-2 mb-24">
+      <div className="w-full max-w-sm mx-auto flex flex-col items-center shrink-0 mt-2 mb-6">
         
         {/* Main Cutesy Button */}
         <div className="flex justify-center w-full mb-6">
