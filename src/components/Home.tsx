@@ -233,7 +233,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] px-4 pt-4 pb-28 relative overflow-hidden">
+    <div className="flex flex-col min-h-[100dvh] px-4 pt-8 pb-20 relative overflow-hidden">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
@@ -262,11 +262,11 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* Main Content Wrapper - Clustered layout using space-y */}
-      <div className="flex flex-col w-full max-w-sm mx-auto justify-center flex-1 space-y-6 sm:space-y-8">
+      {/* Main Content Wrapper - Aggressively Stacked */}
+      <div className="flex flex-col items-center w-full max-w-sm mx-auto">
         
-        {/* Central Button */}
-        <div className="flex justify-center mt-2">
+        {/* Main Button with fixed bottom margin to pull elements up */}
+        <div className="mb-10 sm:mb-12 mt-4">
           <button
             onClick={handleLogKafe}
             disabled={isSaving || showSuccess}
@@ -306,55 +306,57 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </button>
         </div>
 
-        {/* Options Grid */}
-        <div className="w-full px-1">
-          <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
-            {kafeOptions.map((option) => (
+        {/* Static Bottom Elements */}
+        <div className="w-full flex flex-col items-center">
+          
+          {/* Options Grid */}
+          <div className="w-full px-1 mb-5">
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+              {kafeOptions.map((option) => (
+                <button
+                  key={option.type}
+                  onClick={() => setSelectedType(option.type)}
+                  className={clsx(
+                    "rounded-[1.25rem] aspect-square flex flex-col items-center justify-center p-2 transition-all shadow-sm overflow-hidden",
+                    selectedType === option.type
+                      ? "bg-white border-2 border-amber-500 scale-105 shadow-md"
+                      : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
+                  )}
+                >
+                  <span className="text-[32px] sm:text-[36px] leading-none mb-1">{option.icon}</span>
+                  <span className={clsx("text-[10px] leading-tight text-center px-0.5 font-bold line-clamp-2", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
+                    {option.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Rating */}
+          <div className="w-full flex justify-between px-3 mb-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
               <button
-                key={option.type}
-                onClick={() => setSelectedType(option.type)}
+                key={num}
+                onClick={() => setRating(num === rating ? 0 : num)}
                 className={clsx(
-                  "rounded-[1.25rem] aspect-square flex flex-col items-center justify-center p-2 transition-all shadow-sm overflow-hidden",
-                  selectedType === option.type
-                    ? "bg-white border-2 border-amber-500 scale-105 shadow-md"
-                    : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
+                  "text-[22px] sm:text-2xl transition-all active:scale-75",
+                  rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-30 hover:opacity-60"
                 )}
               >
-                <span className="text-[32px] sm:text-[36px] leading-none mb-1">{option.icon}</span>
-                <span className={clsx("text-[10px] leading-tight text-center px-0.5 font-bold line-clamp-2", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
-                  {option.label}
-                </span>
+                ☕️
               </button>
             ))}
           </div>
-        </div>
 
-        {/* Rating */}
-        <div className="w-full flex justify-between px-3">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-            <button
-              key={num}
-              onClick={() => setRating(num === rating ? 0 : num)}
-              className={clsx(
-                "text-[22px] sm:text-2xl transition-all active:scale-75",
-                rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-30 hover:opacity-60"
-              )}
-            >
-              ☕️
-            </button>
-          ))}
-        </div>
-
-        {/* Add Details Button - Shrunk down */}
-        <div className="flex justify-center w-full">
+          {/* Add Details Button */}
           <button 
             onClick={() => setIsAddingDetails(true)}
-            className="w-32 py-2.5 rounded-full bg-white text-gray-400 font-bold shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[9px] uppercase tracking-[0.15em] shrink-0"
+            className="w-full max-w-[150px] py-3 rounded-full bg-white text-gray-400 font-bold shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em]"
           >
             {t('addDetails')}
           </button>
+          
         </div>
-
       </div>
 
       {isAddingDetails && (
