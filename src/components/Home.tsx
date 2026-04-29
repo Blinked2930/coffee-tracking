@@ -196,14 +196,14 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       setNotes('');
       setRating(0);
       setIsAddingDetails(false);
-      setSelectedType(null); // Reset back to empty state
+      setSelectedType(null); 
       setPhotoFile(null);
       onKafeLogged();
     }, 2500);
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] w-full px-5 pt-8 pb-24 bg-gray-50/30 overflow-y-auto custom-scrollbar">
+    <div className="flex flex-col min-h-[100dvh] w-full px-5 pb-28 pt-4 bg-gray-50/30 overflow-y-auto custom-scrollbar">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
@@ -236,24 +236,25 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* Safe Centering Wrapper - Distributes extra space perfectly, but allows scroll if small */}
-      <div className="my-auto mx-auto w-full max-w-sm flex flex-col items-center gap-6 sm:gap-7">
+      {/* TOP DYNAMIC SPACER - Pushes content perfectly to the middle */}
+      <div className="flex-1 min-h-[2vh]" />
+
+      <div className="w-full max-w-sm mx-auto flex flex-col items-center shrink-0">
         
         {/* Main Cutesy Button */}
-        <div className="flex justify-center w-full shrink-0">
+        <div className="flex justify-center w-full">
           <button
             onClick={handleLogKafe}
             disabled={isSaving || showSuccess || !selectedType}
             className={clsx(
               "relative w-40 h-40 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300 disabled:opacity-100",
               !selectedType && !showSuccess
-                ? "bg-gray-100 border-4 border-white shadow-inner scale-95"
+                ? "bg-white border-[3px] border-dashed border-gray-300 text-gray-400 scale-95 shadow-sm"
                 : showSuccess 
                   ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_15px_40px_rgba(52,211,153,0.4)] scale-105 border-0"
                   : "bg-gradient-to-tr from-amber-400 to-amber-300 shadow-[0_15px_40px_rgba(251,191,36,0.35)] hover:shadow-[0_20px_50px_rgba(251,191,36,0.4)] active:scale-95 border-0"
             )}
           >
-            {/* Dashed spinning ring only when active */}
             {(!isSaving && !showSuccess && selectedType) && (
               <div className="absolute inset-0 rounded-full border-[3px] border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
             )}
@@ -261,7 +262,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
             {(!isSaving && !showSuccess && !selectedType) && (
               <>
                 <Coffee size={36} className="text-gray-300 mb-1" />
-                <span className="text-gray-400 text-xl font-black tracking-tight leading-none mt-2">
+                <span className="text-gray-400 text-lg font-black tracking-tight leading-none mt-2">
                   {language === 'sq' ? 'Zgjidh Pijen' : 'Select Drink'}
                 </span>
               </>
@@ -294,7 +295,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
 
         {/* Squircle Grid */}
-        <div className="w-full shrink-0">
+        <div className="w-full mt-7 mb-6">
           <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
             {kafeOptions.map((option) => (
               <button
@@ -317,16 +318,15 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
 
         {/* Compact Bottom Controls */}
-        <div className="w-full flex flex-col items-center gap-4 shrink-0">
+        <div className="w-full flex flex-col items-center gap-5">
           
-          {/* Floating Rating System */}
-          <div className="w-full flex justify-between px-2">
+          <div className="w-full flex justify-between px-3">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
               <button
                 key={num}
                 onClick={() => setRating(num === rating ? 0 : num)}
                 className={clsx(
-                  "text-[24px] transition-all active:scale-75",
+                  "text-[22px] transition-all active:scale-75",
                   rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-25 hover:opacity-60"
                 )}
               >
@@ -337,13 +337,16 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
           <button 
             onClick={() => setIsAddingDetails(true)}
-            className="w-auto px-6 py-2.5 rounded-full bg-white text-gray-400 hover:text-gray-600 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em]"
+            className="px-5 py-2.5 rounded-[1rem] bg-white text-gray-400 hover:text-gray-600 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-[9px] uppercase tracking-[0.2em]"
           >
             {t('addDetails')}
           </button>
           
         </div>
       </div>
+
+      {/* BOTTOM DYNAMIC SPACER - Balances the top spacer perfectly above the nav bar */}
+      <div className="flex-1 min-h-[2vh]" />
 
       {/* Slide-Up Drawer for Add Details */}
       {isAddingDetails && (
