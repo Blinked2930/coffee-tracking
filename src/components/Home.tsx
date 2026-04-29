@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Coffee, MapPin, Camera, Type } from 'lucide-react';
+import { Coffee, MapPin, Camera, Type, Plus, Minus } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import clsx from 'clsx';
 import { KafeType, User } from '../types';
@@ -28,7 +28,6 @@ interface HomeProps {
 }
 
 export default function Home({ user, onKafeLogged }: HomeProps) {
-  // Aggressively destructure to ensure we catch the language string
   const languageContext = useLanguage();
   const t = languageContext?.t || ((k: string) => k);
   const currentLang = languageContext?.lang || (languageContext as any)?.language || 'en';
@@ -38,8 +37,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
-  // HUD STATE - Adjust this slider in the app!
-  const [navOffset, setNavOffset] = useState(85);
+  // HUD STATE - Adjust this to perfectly match your nav bar
+  const [navOffset, setNavOffset] = useState(90);
   
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission | 'default'>('default');
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
@@ -148,33 +147,27 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
   return (
     <>
-      {/* HUD: Calibration Slider (TEMPORARY) */}
-      <div className="fixed top-0 left-0 w-full bg-black/90 text-white z-[999] p-3 text-xs font-mono flex flex-col gap-2 shadow-2xl backdrop-blur-md">
-        <div className="flex justify-between items-center font-bold">
-          <span className="text-amber-400">MATH CALIBRATION HUD</span>
-          <span>Nav Bar Height: <span className="text-amber-400 text-sm">{navOffset}px</span></span>
-        </div>
-        <input 
-          type="range" min="0" max="150" step="1" value={navOffset} onChange={(e) => setNavOffset(Number(e.target.value))} 
-          className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
-        />
-        <p className="text-[10px] text-gray-400">Slide until top gap equals bottom gap. Tell me the number.</p>
+      {/* HUD: Middle-Left Control Panel (Will not block top or bottom gaps) */}
+      <div className="fixed left-2 top-1/2 -translate-y-1/2 bg-black/80 backdrop-blur-md text-white p-2 rounded-2xl z-[999] flex flex-col items-center gap-3 shadow-2xl border border-white/10">
+        <span className="text-[8px] uppercase tracking-widest text-amber-400 font-black px-1 text-center leading-tight">Nav<br/>Bar</span>
+        <button onClick={() => setNavOffset(n => n + 1)} className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center active:scale-95 transition-all"><Plus size={16} /></button>
+        <span className="font-mono text-sm font-bold">{navOffset}</span>
+        <button onClick={() => setNavOffset(n => Math.max(0, n - 1))} className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center active:scale-95 transition-all"><Minus size={16} /></button>
       </div>
 
-      {/* STRICT IMMOBILIZATION CONTAINER */}
-      <div 
-        className="fixed top-0 left-0 w-full bg-gray-50/30 overflow-hidden flex flex-col items-center justify-center pt-20"
-        style={{ bottom: `${navOffset}px` }} 
-      >
-        <div className="w-full max-w-sm px-5 flex flex-col items-center shrink-0">
+      {/* STRICT IMMOBILIZATION CONTAINER: Fixed to screen, no scroll allowed */}
+      <div className="fixed inset-0 w-full h-[100dvh] bg-gray-50/30 overflow-hidden flex flex-col">
+        
+        {/* MATHEMATICAL CENTERING BLOCK: Fills exactly the space above the nav bar */}
+        <div className="flex-1 w-full max-w-sm mx-auto flex flex-col items-center justify-center px-5">
           
-          {/* Main Cutesy Button (Shrunk slightly to guarantee fit) */}
-          <div className="flex justify-center w-full mb-5">
+          {/* Main Cutesy Button */}
+          <div className="flex justify-center w-full mb-6 shrink-0">
             <button
               onClick={handleLogKafe}
               disabled={isSaving || showSuccess || !selectedType}
               className={clsx(
-                "relative w-36 h-36 sm:w-40 sm:h-40 rounded-full flex flex-col items-center justify-center transition-all duration-300 disabled:opacity-100",
+                "relative w-36 h-36 sm:w-40 sm:h-40 rounded-full flex flex-col items-center justify-center transition-all duration-300 disabled:opacity-100 shrink-0",
                 !selectedType && !showSuccess
                   ? "bg-white border-[3px] border-dashed border-gray-200 text-gray-400 scale-95 shadow-sm"
                   : showSuccess 
@@ -216,15 +209,15 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
                   <Coffee size={32} className="text-white mb-1 drop-shadow-md" />
                   <span className="text-white text-2xl font-black tracking-tight drop-shadow-md leading-none">+1 Kafe</span>
                   <span className="text-amber-700/80 font-black uppercase tracking-[0.2em] text-[8px] mt-2">
-                    {currentLang === 'sq' ? 'Shtyp Për Të Rregjistruar' : t('tapToLog')}
+                    {currentLang === 'sq' ? 'Shtyp Të Rregjistrosh' : t('tapToLog')}
                   </span>
                 </>
               )}
             </button>
           </div>
 
-          {/* Squircle Grid (Tightened to guarantee fit) */}
-          <div className="w-full mb-5">
+          {/* Squircle Grid */}
+          <div className="w-full mb-6 shrink-0">
             <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
               {kafeOptions.map((option) => (
                 <button
@@ -247,7 +240,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </div>
 
           {/* Compact Bottom Controls */}
-          <div className="w-full flex flex-col items-center gap-3">
+          <div className="w-full flex flex-col items-center gap-4 shrink-0">
             <div className="w-full flex justify-between px-2">
               {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
                 <button
@@ -272,6 +265,10 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </div>
 
         </div>
+
+        {/* INVISIBLE NAV BAR COMPENSATOR: This forces the block above to sit perfectly in the true visual center */}
+        <div className="w-full shrink-0" style={{ height: `${navOffset}px` }} />
+
       </div>
       
       {/* Slide-Up Drawer for Add Details */}
