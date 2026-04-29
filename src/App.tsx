@@ -23,24 +23,46 @@ function App() {
     const savedUser = localStorage.getItem('kafe_user');
     if (savedUser) {
       setCurrentUser(JSON.parse(savedUser));
-    }
-    
-    // Only fetch heavy data if we actually have a logged-in user
-    if (savedUser) {
+      
+      // 🚀 INSTANT LOAD CACHING (Stale-While-Revalidate)
+      // Load cached data immediately so the UI is fully populated at 0ms
+      const cachedUsers = localStorage.getItem('kafe_users_cache');
+      if (cachedUsers) setUsers(JSON.parse(cachedUsers));
+      
+      const cachedLogs = localStorage.getItem('kafe_logs_cache');
+      if (cachedLogs) setLogs(JSON.parse(cachedLogs));
+      
+      // Then, silently fetch the freshest data from Supabase in the background
       supabase.from('users').select('id, name').then(({ data }) => {
-        if (data) setUsers(data);
+        if (data) {
+          setUsers(data);
+          localStorage.setItem('kafe_users_cache', JSON.stringify(data));
+        }
       });
       fetchLogs(0, true);
     }
     
+    // Real-time subscription so new Kafes pop in live
     const channel = supabase.channel('custom-all-channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'kafes' }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          setLogs(current => [{ ...payload.new as KafeLog, comment_count: 0 } as any, ...current]);
+          setLogs(current => {
+            const newLogs = [{ ...payload.new as KafeLog, comment_count: 0 } as any, ...current];
+            localStorage.setItem('kafe_logs_cache', JSON.stringify(newLogs.slice(0, PAGE_SIZE)));
+            return newLogs;
+          });
         } else if (payload.eventType === 'UPDATE') {
-          setLogs(current => current.map(l => l.id === payload.new.id ? { ...l, ...payload.new } as any : l));
+          setLogs(current => {
+            const updated = current.map(l => l.id === payload.new.id ? { ...l, ...payload.new } as any : l);
+            localStorage.setItem('kafe_logs_cache', JSON.stringify(updated.slice(0, PAGE_SIZE)));
+            return updated;
+          });
         } else if (payload.eventType === 'DELETE') {
-          setLogs(current => current.filter(l => l.id !== payload.old.id));
+          setLogs(current => {
+            const filtered = current.filter(l => l.id !== payload.old.id);
+            localStorage.setItem('kafe_logs_cache', JSON.stringify(filtered.slice(0, PAGE_SIZE)));
+            return filtered;
+          });
         }
       })
       .subscribe();
@@ -48,7 +70,7 @@ function App() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser?.id]);
+  }, []);
 
   const fetchLogs = async (pageNum = 0, isInitial = false) => {
     const { data } = await supabase
@@ -65,6 +87,8 @@ function App() {
 
       if (isInitial || pageNum === 0) {
         setLogs(formattedData as KafeLog[]);
+        // Update the cache with the freshest Page 1 data
+        localStorage.setItem('kafe_logs_cache', JSON.stringify(formattedData));
       } else {
         setLogs(prev => [...prev, ...(formattedData as KafeLog[])]);
       }
@@ -90,9 +114,16 @@ function App() {
     if (data && !error) {
       setCurrentUser(data);
       localStorage.setItem('kafe_user', JSON.stringify(data));
-      // Fetch data immediately upon fresh login
-      supabase.from('users').select('id, name').then(({ data }) => { if (data) setUsers(data); });
+      
+      // Kick off initial fetches and populate cache on fresh login
+      supabase.from('users').select('id, name').then(({ data: userData }) => { 
+        if (userData) {
+          setUsers(userData);
+          localStorage.setItem('kafe_users_cache', JSON.stringify(userData));
+        }
+      });
       fetchLogs(0, true);
+      
       return true;
     } else {
       return false;
@@ -102,6 +133,9 @@ function App() {
   const handleLogout = () => {
     setCurrentUser(null);
     localStorage.removeItem('kafe_user');
+    // Clear the cache so a new user doesn't briefly see the old user's feed
+    localStorage.removeItem('kafe_logs_cache');
+    localStorage.removeItem('kafe_users_cache');
     setActiveTab('home');
   };
 
