@@ -6,7 +6,6 @@ import Feed from './components/Feed';
 import Leaderboard from './components/Leaderboard';
 import Profile from './components/Profile';
 import InstallPrompt from './components/InstallPrompt';
-import UpdateAnnouncement from './components/UpdateAnnouncement';
 import { User, KafeLog } from './types';
 import { supabase } from './lib/supabase';
 
@@ -93,7 +92,6 @@ function App() {
       localStorage.setItem('kafe_user', JSON.stringify(data));
       return true;
     } else {
-      // Look ma, no native alert!
       return false;
     }
   };
@@ -104,7 +102,6 @@ function App() {
     setActiveTab('home');
   };
 
-  // Instantly updates the count in the Feed when a user comments/deletes
   const handleUpdateCommentCount = (kafeId: string, delta: number) => {
     setLogs(prev => prev.map(l => l.id === kafeId ? { ...l, comment_count: Math.max(0, (l.comment_count || 0) + delta) } : l));
   };
@@ -123,7 +120,6 @@ function App() {
   return (
     <>
       <InstallPrompt onBypass={() => {}} />
-      <UpdateAnnouncement currentUser={currentUser} />
       <Layout 
         user={currentUser} 
         activeTab={activeTab} 
@@ -142,7 +138,6 @@ function App() {
           />
         )}
         
-        {/* Passed getUserMap down to profiles so comments can display names */}
         {activeTab === 'leaderboard' && <Leaderboard currentUser={currentUser} getUserMap={getUserMap} />}
         {activeTab === 'profile' && <Profile user={currentUser} getUserMap={getUserMap} onLogout={handleLogout} />}
       </Layout>
