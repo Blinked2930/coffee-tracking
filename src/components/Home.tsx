@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Coffee, MapPin, Camera, Type } from 'lucide-react';
+import { Coffee, MapPin, Camera, Type, ChevronUp } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import clsx from 'clsx';
 import { KafeType, User } from '../types';
@@ -44,7 +44,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
-  // NEW HELPER: Silently grabs a token if permission is already granted
   const reconnectPushSubscription = async () => {
     try {
       if ('serviceWorker' in navigator) {
@@ -82,7 +81,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           return () => clearTimeout(timer);
         }
       } else if (Notification.permission === 'granted') {
-        // THE FIX: If they already said yes in the past, silently renew their token!
         reconnectPushSubscription();
       }
     }
@@ -136,18 +134,12 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
             applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
           });
 
-          const { error } = await supabase
+          await supabase
             .from('push_subscriptions')
             .upsert({ 
               user_id: user.id, 
               subscription: JSON.parse(JSON.stringify(subscription)) 
             }, { onConflict: 'user_id' });
-
-          if (error) {
-            console.error("Supabase Error:", error.message);
-          } else {
-            new Notification("Awesome! You will now get Kafe updates.");
-          }
         }
       } else if (permission === "denied") {
         localStorage.setItem('kafe_notifications_declined', 'true');
@@ -208,8 +200,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
       if (isIOS) {
         try {
-          new Notification("Kafe Logged! ☕️", {
-            body: `You successfully logged a ${selectedType}.`,
+          new Notification("Protocol Executed ☕️", {
+            body: `[${selectedType.toUpperCase()}] secured. Your telemetry has been updated.`,
             icon: '/vite.svg' 
           });
         } catch (e) {
@@ -217,8 +209,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         }
       } else if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then((registration) => {
-          registration.showNotification("Kafe Logged! ☕️", {
-            body: `You successfully logged a ${selectedType}.`,
+          registration.showNotification("Protocol Executed ☕️", {
+            body: `[${selectedType.toUpperCase()}] secured. Your telemetry has been updated.`,
             icon: '/vite.svg',
             vibrate: [200, 100, 200]
           });
@@ -241,7 +233,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-full px-4 pt-12 pb-16 relative">
+    <div className="flex flex-col min-h-full px-4 pt-8 pb-20 relative">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
@@ -276,7 +268,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           onClick={handleLogKafe}
           disabled={isSaving || showSuccess}
           className={clsx(
-            "relative w-48 h-48 sm:w-52 sm:h-52 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0",
+            "relative w-48 h-48 sm:w-52 sm:h-52 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0 mt-4",
             "active:scale-95 disabled:opacity-90",
             showSuccess 
               ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_20px_50px_rgba(52,211,153,0.5)] scale-105"
@@ -351,36 +343,63 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
         <button 
           onClick={() => setIsAddingDetails(true)}
-          className="px-6 py-2.5 mt-2 rounded-full bg-white text-gray-500 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-[11px] uppercase tracking-wider flex items-center justify-center shrink-0"
+          className="px-6 py-3 mt-4 rounded-full bg-white text-gray-500 font-bold shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shrink-0"
         >
           {t('addDetails')}
+          <ChevronUp size={14} className="opacity-60" />
         </button>
       </div>
 
-      {isAddingDetails && <div className="fixed inset-0 bg-gray-900/20 z-40 transition-opacity" onClick={() => setIsAddingDetails(false)} />}
+      {isAddingDetails && (
+        <div 
+          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] transition-opacity" 
+          onClick={() => setIsAddingDetails(false)} 
+        />
+      )}
+      
       <div className={clsx(
-        "fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 transition-transform duration-300 ease-in-out p-6 pb-8 border-t border-gray-100 max-w-2xl mx-auto",
+        "fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] z-[101] transition-transform duration-300 ease-out p-6 pb-safe border-t border-gray-100 max-w-2xl mx-auto flex flex-col",
         isAddingDetails ? "translate-y-0" : "translate-y-[120%]"
       )}>
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-gray-900">{t('lokalDetails')}</h3>
-          <button onClick={() => setIsAddingDetails(false)} className="px-4 py-2 bg-gray-100 rounded-full text-xs font-bold text-gray-500 uppercase tracking-widest active:scale-95">
+        <div className="flex justify-between items-center mb-6 pt-2">
+          <h3 className="text-xl font-black text-gray-900">{t('lokalDetails')}</h3>
+          <button 
+            onClick={() => setIsAddingDetails(false)} 
+            className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-full text-[10px] font-black text-gray-600 uppercase tracking-widest active:scale-95 transition-colors"
+          >
             {t('done')}
           </button>
         </div>
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl focus-within:ring-2 focus-within:ring-amber-500 transition-all">
+        
+        <div className="space-y-4 pb-8">
+          <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-100">
             <MapPin className="text-amber-500" size={20} />
-            <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder={t('cafeName')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400" />
+            <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder={t('cafeName')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 font-medium" />
           </div>
+          
           <div className="flex gap-4">
             <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files?.[0] || null)} />
-            <button onClick={() => fileInputRef.current?.click()} className={clsx("flex-1 flex items-center justify-center gap-2 p-4 rounded-xl font-medium active:scale-95 transition-all text-sm", photoFile ? "bg-amber-100 text-amber-700" : "bg-gray-50 text-gray-600")}>
-              <Camera size={18} className="text-amber-500 shrink-0" /> {photoFile ? t('photoAttached') : t('uploadPhoto')}
+            <button 
+              onClick={() => fileInputRef.current?.click()} 
+              className={clsx(
+                "flex-[0.8] flex flex-col items-center justify-center gap-2 p-4 rounded-2xl font-bold active:scale-95 transition-all text-xs border", 
+                photoFile 
+                  ? "bg-amber-50 border-amber-200 text-amber-700 shadow-sm" 
+                  : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+              )}
+            >
+              <Camera size={20} className={photoFile ? "text-amber-600" : "text-gray-400"} /> 
+              {photoFile ? t('photoAttached') : t('uploadPhoto')}
             </button>
-            <div className="flex-[1.5] flex items-center gap-3 bg-gray-50 p-4 rounded-xl focus-within:ring-2 focus-within:ring-amber-500 transition-all">
-               <Type className="text-amber-500 shrink-0" size={18} />
-               <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('notes')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 text-sm" />
+            
+            <div className="flex-[1.2] flex items-start gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-100">
+               <Type className="text-amber-500 shrink-0 mt-0.5" size={18} />
+               <textarea 
+                 value={notes} 
+                 onChange={e => setNotes(e.target.value)} 
+                 placeholder={t('notes')} 
+                 className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 text-sm font-medium resize-none h-full min-h-[60px]" 
+               />
             </div>
           </div>
         </div>

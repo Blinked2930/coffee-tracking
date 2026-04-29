@@ -4,63 +4,91 @@ import webpush from 'npm:web-push'
 
 serve(async (req) => {
   try {
-    const payload = await req.json()
-    const newKafe = payload.record
+    const payload = await req.json();
+    const newKafe = payload.record;
 
-    // Check both variable names to ensure it finds the key
-    const publicKey = Deno.env.get('VITE_VAPID_PUBLIC_KEY') || Deno.env.get('VAPID_PUBLIC_KEY') || ''
-    const privateKey = Deno.env.get('VAPID_PRIVATE_KEY') || ''
+    const publicKey = Deno.env.get('VITE_VAPID_PUBLIC_KEY') || Deno.env.get('VAPID_PUBLIC_KEY') || '';
+    const privateKey = Deno.env.get('VAPID_PRIVATE_KEY') || '';
 
-    webpush.setVapidDetails('mailto:admin@kafe.app', publicKey, privateKey)
+    if (!publicKey || !privateKey) {
+      console.error("CRITICAL: VAPID keys are missing from this function's environment!");
+    }
+
+    webpush.setVapidDetails('mailto:admin@kafe.app', publicKey, privateKey);
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    );
 
-    const { data: userData } = await supabaseAdmin
+    // 1. Get the name of the person who logged it
+    const { data: logger } = await supabaseAdmin
       .from('users')
       .select('name')
       .eq('id', newKafe.user_id)
-      .single()
+      .single();
 
-    const userName = userData?.name || 'Someone'
+    const loggerName = logger?.name || 'Someone';
 
-    // Fetch all subscriptions EXCEPT the person who just logged the coffee
-    const { data: subscriptions, error } = await supabaseAdmin
-      .from('push_subscriptions')
-      .select('subscription')
-      .neq('user_id', newKafe.user_id)
+    // 2. Query the network: Find ONLY accepted friendships involving this user
+    const { data: friendships, error: friendError } = await supabaseAdmin
+      .from('friendships')
+      .select('requester_id, receiver_id')
+      .eq('status', 'accepted')
+      .or(`requester_id.eq.${newKafe.user_id},receiver_id.eq.${newKafe.user_id}`);
 
-    if (error) throw error
-    if (!subscriptions || subscriptions.length === 0) {
-      return new Response(JSON.stringify({ success: true, notified: 0 }), { status: 200 })
+    if (friendError) {
+      console.error("Error fetching friendships:", friendError);
+      throw friendError;
     }
 
+    if (!friendships || friendships.length === 0) {
+      console.log("User has no active network. Exiting silently.");
+      return new Response(JSON.stringify({ success: true, message: "No friends to notify." }), { status: 200 });
+    }
+
+    // 3. Extract just the IDs of the friends (filtering out the logger's own ID)
+    const friendIds = friendships.map(f => 
+      f.requester_id === newKafe.user_id ? f.receiver_id : f.requester_id
+    );
+
+    // 4. Get push subscriptions ONLY for those specific friend IDs
+    const { data: subs, error: subError } = await supabaseAdmin
+      .from('push_subscriptions')
+      .select('subscription')
+      .in('user_id', friendIds);
+
+    if (subError) {
+      console.error("Error fetching subscriptions:", subError);
+      throw subError;
+    }
+
+    if (!subs || subs.length === 0) {
+      console.log("Network found, but no active push subscriptions detected.");
+      return new Response(JSON.stringify({ success: true, message: "No target subs." }), { status: 200 });
+    }
+
+    console.log(`[AUTHORIZED] Sending broadcast to ${subs.length} network members...`);
+
     const notificationPayload = JSON.stringify({
-      title: 'New Kafe Alert! ☕️',
-      body: `${userName} logged a ${(newKafe.type || 'kafe').replace(/_/g, ' ')}!`,
+      title: 'Cohort Activity Detected 📡',
+      body: `${loggerName} just fueled up with a ${newKafe.type}. The leaderboard shifts.`,
       icon: '/vite.svg',
-      image: newKafe.photo_url ? newKafe.photo_url : undefined,
       vibrate: [200, 100, 200],
       data: { url: 'https://kafe.emmettfrett.com/' }
-    })
+    });
 
-    const sendPromises = subscriptions.map((sub: any) => {
-      // Ensure it is parsed as a JSON object, not a string
-      const subObject = typeof sub.subscription === 'string' ? JSON.parse(sub.subscription) : sub.subscription
-      return webpush.sendNotification(subObject, notificationPayload)
-        .catch(err => console.error('Push failed for a user:', err))
-    })
+    const sendPromises = subs.map((sub: any) => {
+      const subObject = typeof sub.subscription === 'string' ? JSON.parse(sub.subscription) : sub.subscription;
+      return webpush.sendNotification(subObject, notificationPayload).catch(err => console.error('Push failed:', err));
+    });
 
-    await Promise.all(sendPromises)
+    await Promise.all(sendPromises);
 
-    return new Response(JSON.stringify({ success: true, notified: subscriptions.length }), { 
-      headers: { 'Content-Type': 'application/json' } 
-    })
+    return new Response(JSON.stringify({ success: true, notified: subs.length }), { headers: { 'Content-Type': 'application/json' } });
 
   } catch (err: any) {
-    console.error("Webhook Error:", err.message)
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 })
+    console.error("Function crashed:", err.message);
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 })
