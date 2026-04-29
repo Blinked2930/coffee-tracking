@@ -18,7 +18,7 @@ export default function UpdateAnnouncement({ currentUser }: { currentUser: User 
 
       if (data) {
         const createdDate = new Date(data.created_at);
-        // UPDATED CUTOFF: Pinpointed to exactly when the update went live (April 29)
+        // CRITICAL FIX: Cutoff is exactly when you deployed, so new signups never see this
         const cutoffDate = new Date('2026-04-29T12:00:00Z'); 
 
         if (createdDate < cutoffDate) {
@@ -40,75 +40,88 @@ export default function UpdateAnnouncement({ currentUser }: { currentUser: User 
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-md z-[9999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-500">
-      <div className="bg-white rounded-[2.5rem] w-full max-w-sm shadow-[0_30px_100px_-20px_rgba(0,0,0,0.5)] flex flex-col max-h-[85vh] overflow-hidden border border-white/20">
-        <div className="flex-1 overflow-y-auto p-8 pt-10 relative">
-          <div className="flex justify-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-[2rem] flex items-center justify-center shadow-lg shadow-amber-500/30 rotate-3">
-              <Users size={36} className="text-white drop-shadow-md" />
-            </div>
+    <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+      
+      <div className="bg-white rounded-[2rem] w-full max-w-sm shadow-2xl flex flex-col max-h-[85vh] overflow-hidden animate-in zoom-in-95 duration-500 border border-white/20">
+        
+        {/* Scrollable Body */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 relative">
+          
+          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-amber-50 to-white -z-10" />
+
+          <div className="w-16 h-16 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-sm shadow-amber-500/10 relative z-10">
+            <Users size={28} className="text-amber-600 drop-shadow-sm" />
           </div>
 
-          <div className="text-center mb-8">
-            <span className="inline-block px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-3 border border-amber-100">
-              Legacy Release
-            </span>
-            <h3 className="text-3xl font-black text-gray-900 tracking-tight leading-none">
-              Executive<br/>Communiqué
+          <div className="text-center mb-6">
+            <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1.5">
+              Official Release
+            </p>
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight">
+              Executive Communiqué
             </h3>
           </div>
 
-          <div className="space-y-8">
-            <p className="text-sm text-gray-500 leading-relaxed text-center font-medium">
-              Attention, esteemed founding member. The <strong className="text-gray-900">Cohort Network</strong> is officially live.
+          <div className="space-y-6">
+            
+            <p className="text-sm text-gray-600 leading-relaxed text-center font-medium px-2">
+              Attention, esteemed founding member. The <strong className="text-gray-900 font-black">Cohort Network</strong> is officially live.
             </p>
             
-            <div className="relative bg-gray-900 rounded-3xl p-6 text-center shadow-xl overflow-hidden">
+            <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 text-center shadow-lg overflow-hidden transform transition-all hover:scale-[1.02]">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-300 via-amber-500 to-amber-300" />
-              <Sparkles className="absolute -bottom-2 -right-2 text-white/5 w-24 h-24" />
+              <Sparkles className="absolute -bottom-4 -right-4 text-amber-500/10 w-24 h-24 rotate-12" />
               
-              <p className="text-amber-400 font-black text-lg uppercase tracking-tight mb-2 relative z-10">
-                Network Gates Open.
+              <p className="text-amber-400 font-black text-lg sm:text-xl uppercase tracking-wider leading-tight drop-shadow-md mb-3 relative z-10">
+                You can now invite anyone to join.
               </p>
               
-              <p className="text-gray-400 text-[11px] font-medium leading-relaxed relative z-10">
-                You are now authorized to recruit anyone to join your telemetry feed.
+              <p className="text-gray-300 text-xs font-medium leading-relaxed relative z-10">
+                Full authorization granted to recruit colleagues, associates, and subordinate coffee consumers into your telemetry feed.
               </p>
             </div>
             
-            <div className="bg-gray-50 rounded-3xl p-5 border border-gray-100 text-center">
-              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-3">
-                Expansion Link
+            <div className="flex flex-col items-center justify-center p-5 bg-amber-50/50 border border-amber-100/60 rounded-2xl">
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-3 text-center">
+                Direct future victims, ummm sorry,<br/>targets. no... friends to:
               </p>
-              <div className="flex items-center justify-center gap-2 bg-white px-4 py-3 rounded-2xl border border-gray-100 shadow-sm font-black text-amber-600 text-sm">
+              <a 
+                href="https://kafe.emmettfrett.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-center justify-center gap-2 w-full text-sm font-black text-amber-600 hover:text-amber-700 active:scale-95 transition-all bg-white px-4 py-3 rounded-xl shadow-sm border border-amber-100"
+              >
                 <LinkIcon size={16} />
                 kafe.emmettfrett.com
-              </div>
+              </a>
             </div>
 
-            <div className="pt-4 text-center">
-              <p className="text-gray-400 font-bold uppercase tracking-[0.1em] text-[8px] mb-1">
-                Distinguished Regards,
+            <div className="pt-4 border-t border-gray-100">
+              <p className="text-center text-gray-400 font-bold uppercase tracking-[0.15em] text-[8px] mb-2">
+                With Distinguished Regards,
               </p>
-              <p className="text-gray-900 font-black text-lg tracking-tight">
+              <p className="text-center text-gray-900 font-black text-base tracking-tight">
                 Emmett R. Frett
               </p>
-              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
-                Executive Visionary & Architect
+              <p className="text-center text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                Executive Visionary & Lead Architect
               </p>
             </div>
+
           </div>
         </div>
 
-        <div className="p-6 pt-2 bg-white/80 backdrop-blur-sm border-t border-gray-50">
+        {/* Sticky Footer */}
+        <div className="p-4 sm:p-6 bg-white border-t border-gray-50 shrink-0 relative z-20 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.02)]">
           <button
             onClick={handleAcknowledge}
-            className="w-full py-5 bg-gray-900 hover:bg-black text-white font-black rounded-2xl transition-all active:scale-[0.97] shadow-xl flex items-center justify-center gap-3 uppercase tracking-widest text-[11px]"
+            className="w-full py-4 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 font-black rounded-xl transition-all active:scale-95 shadow-md shadow-amber-500/20 uppercase tracking-widest text-xs flex items-center justify-center gap-2"
           >
-            <ShieldCheck size={18} className="text-amber-500" /> 
+            <ShieldCheck size={18} className="opacity-80" /> 
             Acknowledge & Appreciate
           </button>
         </div>
+
       </div>
     </div>
   );
