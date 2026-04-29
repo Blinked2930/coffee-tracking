@@ -1,15 +1,13 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Layout from './components/Layout';
+import Home from './components/Home';
+import Feed from './components/Feed';
+import Leaderboard from './components/Leaderboard';
+import Profile from './components/Profile';
 import InstallPrompt from './components/InstallPrompt';
 import { User, KafeLog } from './types';
 import { supabase } from './lib/supabase';
-
-// 🚀 CODE SPLITTING: Only load these heavy components when the user actually taps their tab!
-const Home = lazy(() => import('./components/Home'));
-const Feed = lazy(() => import('./components/Feed'));
-const Leaderboard = lazy(() => import('./components/Leaderboard'));
-const Profile = lazy(() => import('./components/Profile'));
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -27,11 +25,13 @@ function App() {
       setCurrentUser(JSON.parse(savedUser));
     }
     
-    supabase.from('users').select('id, name').then(({ data }) => {
-      if (data) setUsers(data);
-    });
-    
-    fetchLogs(0, true);
+    // Only fetch heavy data if we actually have a logged-in user
+    if (savedUser) {
+      supabase.from('users').select('id, name').then(({ data }) => {
+        if (data) setUsers(data);
+      });
+      fetchLogs(0, true);
+    }
     
     const channel = supabase.channel('custom-all-channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'kafes' }, (payload) => {
@@ -48,7 +48,7 @@ function App() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [currentUser?.id]);
 
   const fetchLogs = async (pageNum = 0, isInitial = false) => {
     const { data } = await supabase
@@ -90,6 +90,9 @@ function App() {
     if (data && !error) {
       setCurrentUser(data);
       localStorage.setItem('kafe_user', JSON.stringify(data));
+      // Fetch data immediately upon fresh login
+      supabase.from('users').select('id, name').then(({ data }) => { if (data) setUsers(data); });
+      fetchLogs(0, true);
       return true;
     } else {
       return false;
@@ -125,28 +128,21 @@ function App() {
         activeTab={activeTab} 
         onTabChange={setActiveTab}
       >
-        {/* Suspense handles the tiny loading gap when switching to a tab for the first time */}
-        <Suspense fallback={
-          <div className="flex flex-col h-full w-full items-center justify-center min-h-[60vh] gap-3">
-            <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-amber-500/20 border-t-amber-500"></div>
-          </div>
-        }>
-          {activeTab === 'home' && <Home user={currentUser} onKafeLogged={() => fetchLogs(0, true)} />}
-          
-          {activeTab === 'feed' && (
-            <Feed 
-              logs={logs} 
-              getUserMap={getUserMap} 
-              currentUser={currentUser} 
-              onLoadMore={handleLoadMore} 
-              hasMore={hasMore} 
-              onUpdateCommentCount={handleUpdateCommentCount}
-            />
-          )}
-          
-          {activeTab === 'leaderboard' && <Leaderboard currentUser={currentUser} getUserMap={getUserMap} />}
-          {activeTab === 'profile' && <Profile user={currentUser} getUserMap={getUserMap} onLogout={handleLogout} />}
-        </Suspense>
+        {activeTab === 'home' && <Home user={currentUser} onKafeLogged={() => fetchLogs(0, true)} />}
+        
+        {activeTab === 'feed' && (
+          <Feed 
+            logs={logs} 
+            getUserMap={getUserMap} 
+            currentUser={currentUser} 
+            onLoadMore={handleLoadMore} 
+            hasMore={hasMore} 
+            onUpdateCommentCount={handleUpdateCommentCount}
+          />
+        )}
+        
+        {activeTab === 'leaderboard' && <Leaderboard currentUser={currentUser} getUserMap={getUserMap} />}
+        {activeTab === 'profile' && <Profile user={currentUser} getUserMap={getUserMap} onLogout={handleLogout} />}
       </Layout>
     </>
   );
