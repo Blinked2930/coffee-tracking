@@ -233,7 +233,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-full px-4 pt-4 pb-20 relative">
+    <div className="flex flex-col h-full px-4 pt-6 pb-24 relative overflow-hidden">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
@@ -262,13 +262,14 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      <div className="flex flex-col items-center gap-4 w-full max-w-sm mx-auto">
+      {/* Main Content Wrapper - Uses flex-1 to distribute vertical space dynamically */}
+      <div className="flex flex-col items-center justify-evenly flex-1 w-full max-w-sm mx-auto">
         
         <button
           onClick={handleLogKafe}
           disabled={isSaving || showSuccess}
           className={clsx(
-            "relative w-40 h-40 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0",
+            "relative w-44 h-44 sm:w-48 sm:h-48 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0",
             "active:scale-95 disabled:opacity-90",
             showSuccess 
               ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_20px_50px_rgba(52,211,153,0.5)] scale-105"
@@ -296,27 +297,27 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
               <Coffee size={36} className="text-white mb-1 drop-shadow-md" />
-              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md">+1 Kafe</span>
-              <span className="text-amber-700/80 font-medium uppercase tracking-widest text-[9px]">{t('tapToLog')}</span>
+              <span className="text-white text-[26px] font-black tracking-wider drop-shadow-md leading-none">+1 Kafe</span>
+              <span className="text-amber-700/80 font-bold uppercase tracking-[0.15em] text-[10px] mt-1">{t('tapToLog')}</span>
             </>
           )}
         </button>
 
         <div className="w-full px-1">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2.5">
             {kafeOptions.map((option) => (
               <button
                 key={option.type}
                 onClick={() => setSelectedType(option.type)}
                 className={clsx(
-                  "rounded-2xl flex flex-col items-center justify-center gap-1 py-3 transition-all shadow-sm",
+                  "rounded-2xl flex flex-col items-center justify-center gap-1.5 py-3.5 transition-all shadow-sm",
                   selectedType === option.type
                     ? "bg-white border-2 border-amber-500 scale-105 shadow-md"
                     : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
                 )}
               >
-                <span className="text-3xl">{option.icon}</span>
-                <span className={clsx("text-[10px] leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
+                <span className="text-[32px] sm:text-[36px] leading-none">{option.icon}</span>
+                <span className={clsx("text-[11px] leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
                   {option.label}
                 </span>
               </button>
@@ -325,13 +326,13 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
 
         <div className="w-full flex flex-col items-center shrink-0">
-          <div className="flex justify-between w-full px-2">
+          <div className="flex justify-between w-full px-3">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
               <button
                 key={num}
                 onClick={() => setRating(num === rating ? 0 : num)}
                 className={clsx(
-                  "text-xl transition-all active:scale-75",
+                  "text-[22px] sm:text-2xl transition-all active:scale-75",
                   rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-30 hover:opacity-60"
                 )}
               >
@@ -343,7 +344,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
         <button 
           onClick={() => setIsAddingDetails(true)}
-          className="px-6 py-2.5 mt-2 rounded-full bg-white text-gray-400 font-black shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em] shrink-0"
+          className="px-8 py-3.5 rounded-full bg-white text-gray-400 font-black shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[11px] uppercase tracking-[0.15em] shrink-0"
         >
           {t('addDetails')}
         </button>
