@@ -29,7 +29,6 @@ interface HomeProps {
 
 export default function Home({ user, onKafeLogged }: HomeProps) {
   const { t, language } = useLanguage();
-  // Set initial state to null so nothing is selected by default
   const [selectedType, setSelectedType] = useState<KafeType | null>(null);
   const [isAddingDetails, setIsAddingDetails] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -186,7 +185,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     confetti({
       particleCount: 150,
       spread: 70,
-      origin: { y: 0.55 },
+      origin: { y: 0.5 },
       colors: ['#f59e0b', '#fbbf24', '#fcd34d', '#ffffff'],
       disableForReducedMotion: true
     });
@@ -204,7 +203,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] px-5 py-12 overflow-y-auto custom-scrollbar bg-gray-50/30 justify-center items-center">
+    <div className="flex flex-col min-h-[100dvh] w-full px-5 pt-8 pb-24 bg-gray-50/30 overflow-y-auto custom-scrollbar">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
@@ -237,10 +236,11 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      <div className="w-full max-w-sm mx-auto flex flex-col items-center">
+      {/* Safe Centering Wrapper - Distributes extra space perfectly, but allows scroll if small */}
+      <div className="my-auto mx-auto w-full max-w-sm flex flex-col items-center gap-6 sm:gap-7">
         
         {/* Main Cutesy Button */}
-        <div className="mb-4 flex justify-center w-full shrink-0">
+        <div className="flex justify-center w-full shrink-0">
           <button
             onClick={handleLogKafe}
             disabled={isSaving || showSuccess || !selectedType}
@@ -294,7 +294,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
 
         {/* Squircle Grid */}
-        <div className="w-full mb-4 shrink-0">
+        <div className="w-full shrink-0">
           <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
             {kafeOptions.map((option) => (
               <button
@@ -317,10 +317,10 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
 
         {/* Compact Bottom Controls */}
-        <div className="w-full flex flex-col items-center shrink-0">
+        <div className="w-full flex flex-col items-center gap-4 shrink-0">
           
           {/* Floating Rating System */}
-          <div className="w-full flex justify-between px-2 mb-4">
+          <div className="w-full flex justify-between px-2">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
               <button
                 key={num}
