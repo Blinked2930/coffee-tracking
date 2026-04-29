@@ -201,7 +201,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col h-full min-h-[100dvh] px-5 pt-8 pb-28 overflow-y-auto custom-scrollbar bg-gray-50/30">
+    <div className="flex flex-col h-full min-h-[100dvh] px-5 pt-6 pb-20 overflow-y-auto custom-scrollbar bg-gray-50/30">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
@@ -234,13 +234,13 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* Dynamic top spacer to push content into the natural thumb zone */}
-      <div className="flex-1 min-h-[2vh]" />
+      {/* Dynamic top spacer */}
+      <div className="flex-1 min-h-[1vh]" />
 
       <div className="w-full max-w-sm mx-auto flex flex-col items-center">
         
         {/* Main Cutesy Button */}
-        <div className="mb-6 flex justify-center w-full shrink-0">
+        <div className="mb-4 flex justify-center w-full shrink-0">
           <button
             onClick={handleLogKafe}
             disabled={isSaving || showSuccess}
@@ -285,8 +285,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
 
         {/* Squircle Grid */}
-        <div className="w-full mb-5 shrink-0">
-          <div className="grid grid-cols-3 gap-3">
+        <div className="w-full mb-4 shrink-0">
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
             {kafeOptions.map((option) => (
               <button
                 key={option.type}
@@ -310,14 +310,15 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         {/* Compact Bottom Controls */}
         <div className="w-full flex flex-col items-center shrink-0">
           
-          <div className="w-full flex justify-between px-4 mb-5 bg-white py-3 rounded-3xl shadow-sm border border-gray-100">
+          {/* Floating Rating System (No Bubble) */}
+          <div className="w-full flex justify-between px-2 mb-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
               <button
                 key={num}
                 onClick={() => setRating(num === rating ? 0 : num)}
                 className={clsx(
-                  "text-[20px] transition-all active:scale-75",
-                  rating >= num ? "opacity-100 scale-110 drop-shadow-sm saturate-150" : "grayscale opacity-20 hover:opacity-60"
+                  "text-[24px] transition-all active:scale-75",
+                  rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-25 hover:opacity-60"
                 )}
               >
                 ☕️
@@ -336,7 +337,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       </div>
 
       {/* Dynamic bottom spacer */}
-      <div className="flex-1 min-h-[2vh]" />
+      <div className="flex-1 min-h-[1vh]" />
 
       {/* Slide-Up Drawer for Add Details */}
       {isAddingDetails && (
