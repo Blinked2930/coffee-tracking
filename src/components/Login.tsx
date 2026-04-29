@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Coffee, AtSign, ShieldAlert, X } from 'lucide-react';
+import { Coffee, AtSign, ShieldAlert, X, Globe } from 'lucide-react';
 import { User } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
@@ -10,15 +10,16 @@ interface LoginProps {
 }
 
 export default function Login({ users, onLogin }: LoginProps) {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   
   const [loginIdentifier, setLoginIdentifier] = useState(''); 
   const [signupName, setSignupName] = useState('');
   const [signupUsername, setSignupUsername] = useState('');
-  
   const [pin, setPin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
+  
+  // Default to Sign Up!
+  const [isSignUp, setIsSignUp] = useState(true);
 
   const [errorConfig, setErrorConfig] = useState<{ show: boolean; title: string; message: string }>({
     show: false,
@@ -41,13 +42,19 @@ export default function Login({ users, onLogin }: LoginProps) {
       const formattedName = signupName.trim();
 
       if (!formattedUsername || !formattedName) {
-        showError("Incomplete Protocol", "All identification fields must be populated before initializing.");
+        showError(
+          language === 'sq' ? "Mungojnë Të Dhëna" : "Incomplete Protocol", 
+          language === 'sq' ? "Të gjitha fushat duhet të plotësohen." : "All identification fields must be populated."
+        );
         return;
       }
 
       const exists = users.find(u => (u as any).username === formattedUsername);
       if (exists) {
-        showError("Identity Conflict", "This @username is already registered to an active operative. Select another.");
+        showError(
+          language === 'sq' ? "Përdoruesi Ekziston" : "Identity Conflict", 
+          language === 'sq' ? "Ky emër përdoruesi është marrë." : "This @username is already registered."
+        );
         return;
       }
 
@@ -67,7 +74,10 @@ export default function Login({ users, onLogin }: LoginProps) {
       setIsLoading(false);
       if (!success) {
         setPin('');
-        showError("Access Denied", "Credentials rejected by the mainframe. Verify your PIN.");
+        showError(
+          language === 'sq' ? "Qasje e Refuzuar" : "Access Denied", 
+          language === 'sq' ? "PIN-i është i pasaktë." : "Credentials rejected by the mainframe."
+        );
       }
       
     } else {
@@ -88,7 +98,10 @@ export default function Login({ users, onLogin }: LoginProps) {
       setIsLoading(false);
       if (!success) {
         setPin('');
-        showError("Security Breach", "Invalid credentials. You do not have authorization for this node.");
+        showError(
+          language === 'sq' ? "Qasje e Refuzuar" : "Security Breach", 
+          language === 'sq' ? "Të dhënat janë të pasakta." : "Invalid credentials. You do not have authorization."
+        );
       }
     }
   };
@@ -96,6 +109,16 @@ export default function Login({ users, onLogin }: LoginProps) {
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-gray-50 p-6 relative overflow-hidden">
       
+      {/* Language Toggle */}
+      <button 
+        onClick={() => setLanguage(language === 'en' ? 'sq' : 'en')}
+        className="absolute top-6 right-6 z-20 px-4 py-2 bg-white border border-gray-100 shadow-sm hover:bg-gray-50 text-gray-600 rounded-full font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all flex items-center gap-2"
+      >
+        <Globe size={14} className="text-amber-500" />
+        {language === 'en' ? 'SHQIP' : 'ENGLISH'}
+      </button>
+
+      {/* Error Modal */}
       {errorConfig.show && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
           <div className="bg-white rounded-[2rem] p-6 sm:p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300 border border-white/20 relative overflow-hidden">
@@ -121,19 +144,20 @@ export default function Login({ users, onLogin }: LoginProps) {
               onClick={() => setErrorConfig({ ...errorConfig, show: false })}
               className="w-full py-4 bg-gray-900 hover:bg-black text-white rounded-xl font-black shadow-xl shadow-gray-900/20 active:scale-[0.98] transition-all text-xs uppercase tracking-widest"
             >
-              Acknowledge
+              {language === 'sq' ? 'Kuptoj' : 'Acknowledge'}
             </button>
           </div>
         </div>
       )}
 
+      {/* Main Login Interface */}
       <div className="w-full max-w-sm bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 p-8 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 z-10 border border-gray-100">
         <div className="flex flex-col items-center">
           <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-[1.5rem] flex items-center justify-center mb-5 shadow-inner">
             <Coffee size={36} className="drop-shadow-sm" />
           </div>
           <h2 className="text-3xl font-black text-gray-900 mb-1 tracking-tight">
-            {isSignUp ? 'Join Cohort' : t('welcomeBack')}
+            {isSignUp ? (language === 'sq' ? 'Bashkohu' : 'Join Cohort') : t('welcomeBack')}
           </h2>
           <p className="text-amber-600/80 font-bold text-[10px] uppercase tracking-[0.2em]">Kafe Tracker</p>
         </div>
@@ -143,20 +167,20 @@ export default function Login({ users, onLogin }: LoginProps) {
             <div className="space-y-4">
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 pl-1">
-                  Display Name
+                  {language === 'sq' ? 'Emri Ekranit' : 'Display Name'}
                 </label>
                 <input
                   type="text"
                   value={signupName}
                   onChange={(e) => setSignupName(e.target.value)}
                   className="w-full px-5 py-4 rounded-2xl bg-gray-50 border border-transparent focus:bg-white focus:border-amber-200 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all font-medium text-gray-900 placeholder:text-gray-400"
-                  placeholder="e.g. Emmett Frett"
+                  placeholder={language === 'sq' ? 'psh. Emmett Frett' : 'e.g. Emmett Frett'}
                   required
                 />
               </div>
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 pl-1">
-                  Username
+                  {language === 'sq' ? 'Përdoruesi' : 'Username'}
                 </label>
                 <div className="relative">
                   <AtSign size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -174,14 +198,14 @@ export default function Login({ users, onLogin }: LoginProps) {
           ) : (
             <div>
               <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 pl-1">
-                Username or Name
+                {language === 'sq' ? 'Përdoruesi ose Emri' : 'Username or Name'}
               </label>
               <input
                 type="text"
                 value={loginIdentifier}
                 onChange={(e) => setLoginIdentifier(e.target.value)}
                 className="w-full px-5 py-4 rounded-2xl bg-gray-50 border border-transparent focus:bg-white focus:border-amber-200 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all font-medium text-gray-900 placeholder:text-gray-400"
-                placeholder="e.g. @emmett"
+                placeholder={language === 'sq' ? 'psh. @emmett' : 'e.g. @emmett'}
                 required
               />
             </div>
@@ -189,7 +213,7 @@ export default function Login({ users, onLogin }: LoginProps) {
 
           <div className="pt-2">
             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 pl-1 text-center">
-              Security PIN
+              {language === 'sq' ? 'PIN-i i Sigurisë' : 'Security PIN'}
             </label>
             <input
               type="password"
@@ -207,12 +231,12 @@ export default function Login({ users, onLogin }: LoginProps) {
           <button
             type="submit"
             disabled={isLoading || pin.length === 0 || (isSignUp ? (!signupName || !signupUsername) : !loginIdentifier)}
-            className="w-full bg-gradient-to-tr from-amber-400 to-amber-300 text-white font-black py-4 rounded-2xl shadow-[0_10px_30px_rgba(251,191,36,0.3)] transition-all active:scale-[0.98] disabled:opacity-50 flex justify-center items-center mt-4 uppercase tracking-[0.15em] text-xs h-14"
+            className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 font-black py-4.5 rounded-2xl shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center mt-4 uppercase tracking-[0.15em] text-xs h-14"
           >
             {isLoading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-amber-950/20 border-t-amber-950"></div>
             ) : (
-              isSignUp ? 'Create Account' : t('enter')
+              isSignUp ? (language === 'sq' ? 'Krijo Llogari' : 'Create Account') : t('enter')
             )}
           </button>
         </form>
@@ -226,14 +250,18 @@ export default function Login({ users, onLogin }: LoginProps) {
             }}
             className="text-[10px] font-black text-gray-400 hover:text-amber-600 transition-colors uppercase tracking-widest border-b border-transparent hover:border-amber-600 pb-0.5"
           >
-            {isSignUp ? 'Already authorized? Log In' : 'New operative? Join Cohort'}
+            {isSignUp 
+              ? (language === 'sq' ? 'Keni llogari? Hyni' : 'Already have an account? Log In') 
+              : (language === 'sq' ? 'I ri këtu? Bashkohu!' : 'New here? Come join!')}
           </button>
         </div>
       </div>
 
-      <div className="absolute bottom-6 left-0 right-0 px-8 text-center opacity-60">
+      <div className="absolute bottom-6 left-0 right-0 px-8 text-center opacity-60 pointer-events-none">
         <p className="text-[8px] text-gray-400 font-bold uppercase tracking-[0.15em] leading-relaxed max-w-xs mx-auto">
-          By accessing this node, you acknowledge this application is intended strictly for telemetry tracking. The Executive Visionary assumes no liability for caffeine-induced incidents.
+          {language === 'sq' 
+            ? 'Duke hyrë këtu, ju pranoni që ky aplikacion është rreptësisht për argëtim. Zhvilluesi nuk mban përgjegjësi për incidentet e shkaktuara nga kafeina.' 
+            : 'By accessing this node, you acknowledge this application is intended strictly for telemetry tracking. The Executive Visionary assumes no liability for caffeine-induced incidents.'}
         </p>
       </div>
     </div>
