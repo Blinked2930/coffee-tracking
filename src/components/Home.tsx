@@ -237,9 +237,10 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       )}
 
       {/* MANUAL MARGINS: 
-        mb-6 = Slashed the bottom margin down. This removes the deep scroll space but allows a clean bounce.
+        mt-2  = Way less top margin, pushes it right up to the ceiling
+        mb-1  = Microscopic bottom margin. Kills the empty space, leaves only the native OS rubber-band bounce.
       */}
-      <div className="w-full max-w-sm mx-auto flex flex-col items-center shrink-0 mt-2 mb-6">
+      <div className="w-full max-w-sm mx-auto flex flex-col items-center shrink-0 mt-2 mb-1">
         
         {/* Main Cutesy Button */}
         <div className="flex justify-center w-full mb-6">
