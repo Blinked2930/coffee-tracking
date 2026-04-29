@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { User } from '../types';
-import { X, Search, UserPlus, Check, Clock, UserMinus } from 'lucide-react';
+import { X, Search, UserPlus, Check, UserMinus, ShieldAlert } from 'lucide-react';
+import clsx from 'clsx';
 
 interface Props {
   currentUser: User;
@@ -81,34 +82,39 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
   );
 
   return (
-    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
       
-      <div className="bg-gray-50 rounded-t-3xl sm:rounded-3xl w-full max-w-md h-[85vh] sm:h-[650px] flex flex-col shadow-2xl animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 relative overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="bg-gray-50 rounded-t-[2.5rem] sm:rounded-[2.5rem] w-full max-w-md h-[85dvh] sm:h-[700px] flex flex-col shadow-2xl animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 relative overflow-hidden" onClick={e => e.stopPropagation()}>
         
-        {/* CUSTOM UNFRIEND OVERLAY */}
+        {/* CUSTOM UNFRIEND OVERLAY - Matches Login Error Style */}
         {userToUnfriend && (
-          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2rem] p-6 w-full max-w-xs shadow-2xl animate-in zoom-in-95 duration-200 border border-gray-100 overflow-hidden relative">
-              <div className="absolute top-0 left-0 w-full h-1 bg-red-500" />
-              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
-                <UserMinus size={28} />
+          <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-md z-[110] flex items-center justify-center p-6 animate-in fade-in duration-200">
+            <div className="bg-white rounded-[2rem] p-6 w-full max-w-xs shadow-2xl animate-in zoom-in-95 duration-200 border border-white/20 overflow-hidden relative">
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-500 via-rose-500 to-red-500" />
+              
+              <div className="flex justify-center mb-5 mt-2">
+                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center shadow-sm border border-red-100 rotate-3">
+                  <ShieldAlert size={32} />
+                </div>
               </div>
+
               <h3 className="text-xl font-black text-center text-gray-900 mb-2 leading-tight">
-                Unfriend {userToUnfriend.name}?
+                Sever Connection?
               </h3>
               <p className="text-xs text-gray-500 text-center mb-6 font-medium leading-relaxed px-2">
-                They will be removed from your leaderboard and feed. They won't be notified.
+                <strong className="text-gray-900">{userToUnfriend.name}</strong> will be purged from your telemetry. They will not be notified.
               </p>
+
               <div className="flex gap-3">
                 <button 
                   onClick={() => setUserToUnfriend(null)} 
-                  className="flex-1 py-3.5 bg-gray-100 text-gray-600 rounded-xl font-black active:scale-95 transition-all text-[10px] uppercase tracking-widest"
+                  className="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl font-black active:scale-95 transition-all text-[10px] uppercase tracking-widest"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={executeUnfriend} 
-                  className="flex-1 py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-black shadow-md shadow-red-200 active:scale-95 transition-all text-[10px] uppercase tracking-widest"
+                  className="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white rounded-xl font-black shadow-lg shadow-red-500/20 active:scale-95 transition-all text-[10px] uppercase tracking-widest"
                 >
                   Unfriend
                 </button>
@@ -117,98 +123,102 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
           </div>
         )}
 
-        <div className="bg-white px-6 py-5 border-b border-gray-100 flex justify-between items-center shrink-0 shadow-sm relative z-10">
+        {/* Header */}
+        <div className="bg-white px-8 py-6 border-b border-gray-100 flex justify-between items-center shrink-0 shadow-sm relative z-10">
           <div>
-            <h3 className="text-xl font-black text-gray-900">Friends</h3>
-            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Cohort Network</p>
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight">Network</h3>
+            <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">Cohort Management</p>
           </div>
-          <button onClick={onClose} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 active:scale-95 transition-colors">
+          <button onClick={onClose} className="w-10 h-10 bg-gray-50 hover:bg-gray-100 rounded-full flex items-center justify-center text-gray-400 active:scale-95 transition-all border border-gray-100">
             <X size={20} />
           </button>
         </div>
 
+        {/* Segmented Control Tabs */}
         <div className="flex p-4 gap-2 shrink-0 bg-white">
           <button 
             onClick={() => setActiveTab('search')}
-            className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${activeTab === 'search' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}
+            className={clsx(
+              "flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all",
+              activeTab === 'search' ? "bg-gray-900 text-white shadow-md" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+            )}
           >
-            Find Friends
+            Find Operatives
           </button>
           <button 
             onClick={() => setActiveTab('requests')}
-            className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all relative ${activeTab === 'requests' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}
+            className={clsx(
+              "flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all relative",
+              activeTab === 'requests' ? "bg-gray-900 text-white shadow-md" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+            )}
           >
-            Requests
+            Clearances
             {pendingReceived.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center shadow-sm border-2 border-white">
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center shadow-sm border-2 border-white">
                 {pendingReceived.length}
               </span>
             )}
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 pb-6 custom-scrollbar">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-5 pb-8 pt-2 custom-scrollbar">
           {activeTab === 'search' && (
-            <div className="space-y-4">
-              <div className="relative p-[2px]">
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div className="space-y-5">
+              <div className="relative">
+                <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input 
                   type="text" 
                   placeholder="Search by name or @username..." 
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-white border border-gray-100 rounded-2xl py-3.5 pl-11 pr-4 outline-none focus:ring-2 focus:ring-inset focus:ring-amber-500 focus:border-amber-500 text-sm font-medium shadow-sm"
+                  className="w-full bg-white border border-transparent focus:border-amber-200 rounded-2xl py-4 pl-12 pr-5 outline-none focus:ring-4 focus:ring-amber-500/10 text-sm font-medium shadow-sm transition-all placeholder:text-gray-400"
                 />
               </div>
 
-              <div className="space-y-2 pt-2">
+              <div className="space-y-3 pt-2">
                 {filteredUsers.map(u => {
                   const status = getFriendshipStatus(u.id);
                   const displayUsername = (u as any).username || u.name.toLowerCase().replace(/\s/g, '');
                   
                   return (
-                    <div key={u.id} className="bg-white p-3 rounded-2xl flex items-center justify-between shadow-sm border border-gray-100/50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-sm shrink-0 border border-amber-100">
+                    <div key={u.id} className="bg-white p-3.5 rounded-2xl flex items-center justify-between shadow-sm border border-gray-100 hover:border-amber-100/50 transition-colors">
+                      <div className="flex items-center gap-3 min-w-0 pr-2">
+                        <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-gray-50 to-gray-100 text-gray-600 font-black flex items-center justify-center text-lg shrink-0 border border-gray-200 shadow-inner">
                           {u.name.charAt(0)}
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-gray-900 leading-tight truncate">{u.name}</p>
-                          <p className="text-[11px] font-medium text-gray-400 truncate">@{displayUsername}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-black text-gray-900 leading-tight truncate text-sm">{u.name}</p>
+                          <p className="text-[11px] font-bold text-gray-400 truncate mt-0.5 tracking-wide">@{displayUsername}</p>
                         </div>
                       </div>
                       
                       {status === 'none' && (
-                        <button onClick={() => handleSendRequest(u.id)} className="shrink-0 w-9 h-9 rounded-full bg-gray-50 text-gray-600 flex items-center justify-center hover:bg-amber-100 hover:text-amber-600 active:scale-95 transition-all">
-                          <UserPlus size={16} />
+                        <button onClick={() => handleSendRequest(u.id)} className="shrink-0 px-4 py-2.5 rounded-xl bg-gray-50 text-gray-600 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-amber-100 hover:text-amber-700 active:scale-95 transition-all border border-gray-100">
+                          <UserPlus size={14} /> Add
                         </button>
                       )}
                       
-                      {/* NEW UNSEND FEATURE */}
+                      {/* TOUCH-FRIENDLY UNSEND BUTTON */}
                       {status === 'sent' && (
                         <button 
                           onClick={() => handleCancelRequest(u.id)}
-                          className="shrink-0 px-3 py-1.5 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-lg text-[10px] font-bold transition-all border border-gray-100 flex items-center gap-1.5 group active:scale-95"
+                          className="shrink-0 px-4 py-2.5 bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-xl text-[10px] font-black transition-all border border-gray-200 hover:border-red-200 flex items-center gap-1.5 active:scale-95 uppercase tracking-widest shadow-sm"
                         >
-                          <Clock size={12} className="group-hover:hidden" />
-                          <span className="group-hover:hidden uppercase tracking-wider">Sent</span>
-                          <X size={12} className="hidden group-hover:block" />
-                          <span className="hidden group-hover:block uppercase tracking-wider">Cancel</span>
+                          <X size={14} /> Revoke
                         </button>
                       )}
 
                       {status === 'received' && (
-                        <span className="shrink-0 text-[9px] font-black text-amber-500 uppercase tracking-widest bg-amber-50 px-2.5 py-1.5 rounded-md border border-amber-100">Check Requests</span>
+                        <span className="shrink-0 text-[9px] font-black text-amber-500 uppercase tracking-widest bg-amber-50 px-3 py-2 rounded-lg border border-amber-100 shadow-sm">Review</span>
                       )}
                       
                       {status === 'friends' && (
                         <button 
                           onClick={() => setUserToUnfriend(u)}
-                          className="shrink-0 w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors group border border-green-100 hover:border-red-100"
-                          title="Unfriend"
+                          className="shrink-0 px-4 py-2.5 rounded-xl bg-green-50 text-green-600 font-bold text-[10px] uppercase tracking-widest flex items-center gap-1.5 hover:bg-red-50 hover:text-red-600 hover:border-red-200 active:scale-95 transition-all border border-green-100"
                         >
-                          <Check size={14} className="group-hover:hidden" />
-                          <UserMinus size={14} className="hidden group-hover:block" />
+                          <Check size={14} /> Connected
                         </button>
                       )}
                     </div>
@@ -221,8 +231,11 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
           {activeTab === 'requests' && (
             <div className="space-y-4">
               {pendingReceived.length === 0 ? (
-                <div className="text-center p-8 border border-dashed border-gray-200 rounded-3xl mt-4">
-                  <p className="text-gray-400 font-medium text-sm">No pending requests</p>
+                <div className="text-center p-10 border-2 border-dashed border-gray-100 rounded-[2rem] mt-4 bg-gray-50/50">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border border-gray-100">
+                    <Check size={24} className="text-gray-300" />
+                  </div>
+                  <p className="text-gray-400 font-black text-sm tracking-tight">No Pending Clearances</p>
                 </div>
               ) : (
                 pendingReceived.map(req => {
@@ -232,22 +245,22 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
                   const displayUsername = (sender as any).username || sender.name.toLowerCase().replace(/\s/g, '');
 
                   return (
-                    <div key={req.id} className="bg-white p-4 rounded-3xl flex items-center justify-between shadow-sm border border-amber-100">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-400 to-amber-500 text-white font-black flex items-center justify-center text-lg shadow-sm border-2 border-white shrink-0">
+                    <div key={req.id} className="bg-white p-4 rounded-3xl flex items-center justify-between shadow-lg shadow-gray-200/40 border border-amber-100">
+                      <div className="flex items-center gap-3 min-w-0 pr-3">
+                        <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-amber-400 to-amber-500 text-white font-black flex items-center justify-center text-lg shadow-md shadow-amber-500/20 border border-amber-300 shrink-0">
                           {sender.name.charAt(0)}
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-gray-900 leading-tight truncate">{sender.name}</p>
-                          <p className="text-[11px] text-gray-400 font-medium mb-0.5 truncate">@{displayUsername}</p>
-                          <p className="text-[9px] uppercase tracking-widest text-amber-600 font-black mt-1">Wants to connect</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-black text-gray-900 leading-tight truncate">{sender.name}</p>
+                          <p className="text-[11px] text-gray-400 font-bold mb-0.5 truncate tracking-wide">@{displayUsername}</p>
+                          <p className="text-[8px] uppercase tracking-[0.2em] text-amber-600 font-black mt-1">Requesting Access</p>
                         </div>
                       </div>
                       <button 
                         onClick={() => handleAcceptRequest(req.id)}
-                        className="shrink-0 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-white px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider shadow-md shadow-amber-200 active:scale-95 transition-all"
+                        className="shrink-0 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 px-5 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
                       >
-                        Accept
+                        Authorize
                       </button>
                     </div>
                   );
