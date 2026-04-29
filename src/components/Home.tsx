@@ -135,7 +135,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
     setIsSaving(false);
     setShowSuccess(true);
-    confetti({ particleCount: 150, spread: 70, origin: { y: 0.5 }, colors: ['#f59e0b', '#fbbf24', '#fcd34d', '#ffffff'], disableForReducedMotion: true });
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.45 }, colors: ['#f59e0b', '#fbbf24', '#fcd34d', '#ffffff'], disableForReducedMotion: true });
 
     setTimeout(() => {
       setShowSuccess(false); setLocation(''); setNotes(''); setRating(0); setIsAddingDetails(false); setSelectedType(null); setPhotoFile(null); onKafeLogged();
@@ -143,7 +143,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col w-full h-[100dvh] bg-gray-50/30 overflow-y-auto custom-scrollbar">
+    // THE STRAIGHTJACKET: fixed inset-0 completely disables scrolling. pb-[125px] is your 125px offset built directly into the padding.
+    <div className="fixed inset-0 w-full bg-gray-50/30 overflow-hidden flex flex-col pb-[125px]">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
@@ -176,11 +177,11 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* MATHEMATICAL CENTERING BLOCK: Automatically divides the exact remaining space evenly */}
+      {/* THE PERFECT CENTER: flex-1 takes whatever space is left (screen height minus 125px) and perfectly centers the content inside it. */}
       <div className="flex-1 w-full max-w-sm mx-auto flex flex-col items-center justify-center px-5">
         
         {/* Main Cutesy Button */}
-        <div className="flex justify-center w-full mb-7 shrink-0">
+        <div className="flex justify-center w-full mb-6 shrink-0">
           <button
             onClick={handleLogKafe}
             disabled={isSaving || showSuccess || !selectedType}
@@ -283,13 +284,37 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
 
       </div>
-
-      {/* Dynamic bottom spacer to match the top one */}
-      <div className="flex-1 min-h-[10px]" />
-
-      {/* The 125px hardcoded nav bar compensator */}
-      <div className="w-full shrink-0 h-[125px]" />
-
+      
+      {/* Slide-Up Drawer for Add Details */}
+      {isAddingDetails && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100]" onClick={() => setIsAddingDetails(false)} />
+      )}
+      
+      <div className={clsx(
+        "fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-[0_-10px_50px_rgba(0,0,0,0.15)] z-[101] transition-transform duration-300 ease-out p-6 sm:p-8 pb-safe border-t border-gray-100 max-w-2xl mx-auto flex flex-col",
+        isAddingDetails ? "translate-y-0" : "translate-y-[120%]"
+      )}>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('lokalDetails')}</h3>
+          <button onClick={() => setIsAddingDetails(false)} className="px-5 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-full text-[10px] font-black text-gray-500 uppercase tracking-widest active:scale-95 transition-colors border border-gray-100">{t('done')}</button>
+        </div>
+        <div className="space-y-4 pb-8">
+          <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-200">
+            <MapPin className="text-amber-400" size={20} />
+            <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder={t('cafeName')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 font-bold text-sm" />
+          </div>
+          <div className="flex gap-4">
+            <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files?.[0] || null)} />
+            <button onClick={() => fileInputRef.current?.click()} className={clsx("flex-[0.8] flex flex-col items-center justify-center gap-2 p-4 rounded-2xl font-bold active:scale-95 transition-all text-xs border", photoFile ? "bg-amber-50 border-amber-200 text-amber-600 shadow-sm" : "bg-gray-50 border-transparent text-gray-400 hover:bg-gray-100")}>
+              <Camera size={20} className={photoFile ? "text-amber-500" : "text-gray-300"} /> {photoFile ? t('photoAttached') : t('uploadPhoto')}
+            </button>
+            <div className="flex-[1.2] flex items-start gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-200">
+               <Type className="text-amber-400 shrink-0 mt-0.5" size={18} />
+               <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('notes')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 text-sm font-medium resize-none h-full min-h-[60px]" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
