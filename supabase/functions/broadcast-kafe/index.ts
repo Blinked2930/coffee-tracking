@@ -71,8 +71,8 @@ serve(async (req) => {
     console.log(`[AUTHORIZED] Sending broadcast to ${subs.length} network members...`);
 
     const notificationPayload = JSON.stringify({
-      title: 'Cohort Activity Detected 📡',
-      body: `${loggerName} just fueled up with a ${newKafe.type}. The leaderboard shifts.`,
+      title: 'New Kafe Alert! ☕️',
+      body: `${loggerName} logged a ${newKafe.type}!`,
       icon: '/vite.svg',
       vibrate: [200, 100, 200],
       data: { url: 'https://kafe.emmettfrett.com/' }

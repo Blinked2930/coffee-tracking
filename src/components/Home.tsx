@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Coffee, MapPin, Camera, Type, ChevronUp } from 'lucide-react';
+import { Coffee, MapPin, Camera, Type } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import clsx from 'clsx';
 import { KafeType, User } from '../types';
@@ -200,8 +200,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
       if (isIOS) {
         try {
-          new Notification("Protocol Executed ☕️", {
-            body: `[${selectedType.toUpperCase()}] secured. Your telemetry has been updated.`,
+          new Notification("Kafe Logged! ☕️", {
+            body: `Successfully logged your ${selectedType}.`,
             icon: '/vite.svg' 
           });
         } catch (e) {
@@ -209,8 +209,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         }
       } else if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then((registration) => {
-          registration.showNotification("Protocol Executed ☕️", {
-            body: `[${selectedType.toUpperCase()}] secured. Your telemetry has been updated.`,
+          registration.showNotification("Kafe Logged! ☕️", {
+            body: `Successfully logged your ${selectedType}.`,
             icon: '/vite.svg',
             vibrate: [200, 100, 200]
           });
@@ -233,7 +233,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-full px-4 pt-8 pb-20 relative">
+    <div className="flex flex-col min-h-full px-4 pt-4 pb-20 relative">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
@@ -262,61 +262,61 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      <div className="flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
+      <div className="flex flex-col items-center gap-4 w-full max-w-sm mx-auto">
         
         <button
           onClick={handleLogKafe}
           disabled={isSaving || showSuccess}
           className={clsx(
-            "relative w-48 h-48 sm:w-52 sm:h-52 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0 mt-4",
+            "relative w-40 h-40 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0",
             "active:scale-95 disabled:opacity-90",
             showSuccess 
               ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_20px_50px_rgba(52,211,153,0.5)] scale-105"
-              : "bg-gradient-to-tr from-amber-400 to-amber-300 shadow-[0_20px_50px_rgba(251,191,36,0.5)]",
+              : "bg-gradient-to-tr from-amber-400 to-amber-300 shadow-[0_20px_40px_rgba(251,191,36,0.4)]",
             (!showSuccess && !isSaving) && "active:shadow-[0_10px_20px_rgba(251,191,36,0.4)]"
           )}
         >
           {isSaving && (
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/30 border-t-white animate-spin" />
-              <Coffee size={40} className="text-white mb-1 drop-shadow-md animate-pulse" />
-              <span className="text-white text-xl font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
+              <Coffee size={36} className="text-white mb-1 drop-shadow-md animate-pulse" />
+              <span className="text-white text-lg font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
             </>
           )}
 
           {showSuccess && (
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_10s_linear_infinite]" />
-              <span className="text-5xl mb-1 drop-shadow-md animate-bounce">🎉</span>
-              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md mt-1">{t('done')}</span>
+              <span className="text-4xl mb-1 drop-shadow-md animate-bounce">🎉</span>
+              <span className="text-white text-xl font-black tracking-wider drop-shadow-md mt-1">{t('done')}</span>
             </>
           )}
 
           {(!isSaving && !showSuccess) && (
             <>
               <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
-              <Coffee size={40} className="text-white mb-1.5 drop-shadow-md" />
-              <span className="text-white text-3xl font-black tracking-wider drop-shadow-md">+1 Kafe</span>
-              <span className="text-amber-700/80 font-medium mt-0.5 uppercase tracking-widest text-[10px]">{t('tapToLog')}</span>
+              <Coffee size={36} className="text-white mb-1 drop-shadow-md" />
+              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md">+1 Kafe</span>
+              <span className="text-amber-700/80 font-medium uppercase tracking-widest text-[9px]">{t('tapToLog')}</span>
             </>
           )}
         </button>
 
-        <div className="w-full px-1 mt-4">
-          <div className="grid grid-cols-3 gap-3">
+        <div className="w-full px-1">
+          <div className="grid grid-cols-3 gap-2">
             {kafeOptions.map((option) => (
               <button
                 key={option.type}
                 onClick={() => setSelectedType(option.type)}
                 className={clsx(
-                  "aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all shadow-sm",
+                  "rounded-2xl flex flex-col items-center justify-center gap-1 py-3 transition-all shadow-sm",
                   selectedType === option.type
                     ? "bg-white border-2 border-amber-500 scale-105 shadow-md"
                     : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
                 )}
               >
-                <span className="text-3xl sm:text-4xl">{option.icon}</span>
-                <span className={clsx("text-[10px] sm:text-[11px] leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
+                <span className="text-3xl">{option.icon}</span>
+                <span className={clsx("text-[10px] leading-tight text-center px-1 font-semibold", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
                   {option.label}
                 </span>
               </button>
@@ -324,14 +324,14 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </div>
         </div>
 
-        <div className="w-full flex flex-col items-center shrink-0 mt-2">
-          <div className="flex justify-between w-full px-1">
+        <div className="w-full flex flex-col items-center shrink-0">
+          <div className="flex justify-between w-full px-2">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
               <button
                 key={num}
                 onClick={() => setRating(num === rating ? 0 : num)}
                 className={clsx(
-                  "text-xl sm:text-2xl transition-all active:scale-75",
+                  "text-xl transition-all active:scale-75",
                   rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-30 hover:opacity-60"
                 )}
               >
@@ -343,10 +343,9 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
         <button 
           onClick={() => setIsAddingDetails(true)}
-          className="px-6 py-3 mt-4 rounded-full bg-white text-gray-500 font-bold shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shrink-0"
+          className="px-6 py-2.5 mt-2 rounded-full bg-white text-gray-400 font-black shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em] shrink-0"
         >
           {t('addDetails')}
-          <ChevronUp size={14} className="opacity-60" />
         </button>
       </div>
 
