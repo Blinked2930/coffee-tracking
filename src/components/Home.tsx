@@ -28,7 +28,7 @@ interface HomeProps {
 }
 
 export default function Home({ user, onKafeLogged }: HomeProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [selectedType, setSelectedType] = useState<KafeType>('kafe');
   const [isAddingDetails, setIsAddingDetails] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -122,12 +122,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       if (permission === "granted") {
         if ('serviceWorker' in navigator) {
           const registration = await navigator.serviceWorker.ready;
-          
           const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-          if (!vapidPublicKey) {
-            console.error("VITE_VAPID_PUBLIC_KEY is missing!");
-            return;
-          }
+          if (!vapidPublicKey) return;
 
           const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
@@ -151,8 +147,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
   const handleLogKafe = async () => {
     setIsSaving(true);
-    
     let uploadedPhotoUrl = null;
+    
     if (photoFile) {
       const compressedFile = await compressImage(photoFile);
       const fileExt = compressedFile.name.split('.').pop() || 'jpg';
@@ -163,8 +159,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         
       if (!uploadError && uploadData) {
         uploadedPhotoUrl = supabase.storage.from('kafes').getPublicUrl(fileName).data.publicUrl;
-      } else {
-        console.error("Image upload failed:", uploadError);
       }
     }
     
@@ -179,7 +173,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     
     if (error) {
       console.error(error);
-      alert("Failed to save Kafe. Make sure the database schema is running!");
       setIsSaving(false);
       return;
     }
@@ -190,35 +183,10 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     confetti({
       particleCount: 150,
       spread: 70,
-      origin: { y: 0.6 },
+      origin: { y: 0.55 },
       colors: ['#f59e0b', '#fbbf24', '#fcd34d', '#ffffff'],
       disableForReducedMotion: true
     });
-
-    if ("Notification" in window && permissionStatus === "granted") {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
-
-      if (isIOS) {
-        try {
-          new Notification("Kafe Logged! ☕️", {
-            body: `Successfully logged your ${selectedType}.`,
-            icon: '/vite.svg' 
-          });
-        } catch (e) {
-          console.error("iOS local notification failed:", e);
-        }
-      } else if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-          registration.showNotification("Kafe Logged! ☕️", {
-            body: `Successfully logged your ${selectedType}.`,
-            icon: '/vite.svg',
-            vibrate: [200, 100, 200]
-          });
-        }).catch((err) => {
-          console.log("Service Worker notification failed:", err);
-        });
-      }
-    }
 
     setTimeout(() => {
       setShowSuccess(false);
@@ -233,28 +201,32 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    <div className="flex flex-col h-full px-4 pt-4 pb-20 relative overflow-hidden justify-center items-center">
+    <div className="flex flex-col h-full min-h-[100dvh] px-5 pt-8 pb-28 overflow-y-auto custom-scrollbar bg-gray-50/30">
       
       {showNotificationPrompt && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 transition-all">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center transform transition-all animate-in zoom-in-95 duration-200">
-            <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
+          <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl text-center transform transition-all animate-in zoom-in-95 duration-200">
+            <div className="w-20 h-20 bg-amber-100 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-inner rotate-3">
               <span className="text-4xl drop-shadow-sm">🔔</span>
             </div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Stay in the Loop</h2>
+            <h2 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">
+              {language === 'sq' ? 'Qëndro i Informuar' : 'Stay in the Loop'}
+            </h2>
             <p className="text-gray-500 mb-8 text-sm font-medium leading-relaxed">
-              Get notified instantly when the cohort logs a Kafe so you never miss a moment.
+              {language === 'sq' 
+                ? 'Merr njoftime kur dikush rregjistron një kafe.' 
+                : 'Get notified instantly when the cohort logs a Kafe.'}
             </p>
             <div className="space-y-3">
-              <button onClick={requestNotificationPermission} className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-white rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-amber-500/20">
-                Enable Notifications
+              <button onClick={requestNotificationPermission} className="w-full py-4 bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-md shadow-amber-500/20 text-[11px]">
+                {language === 'sq' ? 'Aktivizo Njoftimet' : 'Enable Notifications'}
               </button>
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <button onClick={handleDismissSession} className="w-full py-3 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors active:scale-95">
-                  Maybe Later
+                <button onClick={handleDismissSession} className="w-full py-3.5 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-colors active:scale-95">
+                  {language === 'sq' ? 'Ndoshta Më Vonë' : 'Maybe Later'}
                 </button>
-                <button onClick={handleDeclineForever} className="w-full py-3 bg-gray-50 text-red-400 hover:bg-red-50 hover:text-red-500 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors active:scale-95">
-                  No Thanks
+                <button onClick={handleDeclineForever} className="w-full py-3.5 bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-500 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-colors active:scale-95">
+                  {language === 'sq' ? 'Jo Faleminderit' : 'No Thanks'}
                 </button>
               </div>
             </div>
@@ -262,63 +234,71 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* Tightly Stacked Content Wrapper - Pulled up! */}
-      <div className="flex flex-col items-center w-full max-w-sm gap-5 -mt-6">
+      {/* Dynamic top spacer to push content into the natural thumb zone */}
+      <div className="flex-1 min-h-[2vh]" />
+
+      <div className="w-full max-w-sm mx-auto flex flex-col items-center">
         
-        {/* Main Button */}
-        <button
-          onClick={handleLogKafe}
-          disabled={isSaving || showSuccess}
-          className={clsx(
-            "relative w-48 h-48 sm:w-52 sm:h-52 rounded-full flex flex-col items-center justify-center transition-all duration-300 shrink-0 mb-2",
-            "active:scale-95 disabled:opacity-90",
-            showSuccess 
-              ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_20px_50px_rgba(52,211,153,0.5)] scale-105"
-              : "bg-gradient-to-tr from-amber-400 to-amber-300 shadow-[0_20px_50px_rgba(251,191,36,0.5)]",
-            (!showSuccess && !isSaving) && "active:shadow-[0_10px_20px_rgba(251,191,36,0.4)]"
-          )}
-        >
-          {isSaving && (
-            <>
-              <div className="absolute inset-0 rounded-full border-4 border-white/30 border-t-white animate-spin" />
-              <Coffee size={40} className="text-white mb-1 drop-shadow-md animate-pulse" />
-              <span className="text-white text-xl font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
-            </>
-          )}
+        {/* Main Cutesy Button */}
+        <div className="mb-6 flex justify-center w-full shrink-0">
+          <button
+            onClick={handleLogKafe}
+            disabled={isSaving || showSuccess}
+            className={clsx(
+              "relative w-40 h-40 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300",
+              "active:scale-95 disabled:opacity-90",
+              showSuccess 
+                ? "bg-gradient-to-tr from-green-400 to-emerald-400 shadow-[0_15px_40px_rgba(52,211,153,0.4)] scale-105"
+                : "bg-gradient-to-tr from-amber-400 to-amber-300 shadow-[0_15px_40px_rgba(251,191,36,0.35)]",
+              (!showSuccess && !isSaving) && "hover:shadow-[0_20px_50px_rgba(251,191,36,0.4)]"
+            )}
+          >
+            {/* Dashed spinning ring */}
+            {(!isSaving && !showSuccess) && (
+              <div className="absolute inset-0 rounded-full border-[3px] border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
+            )}
 
-          {showSuccess && (
-            <>
-              <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_10s_linear_infinite]" />
-              <span className="text-5xl mb-1 drop-shadow-md animate-bounce">🎉</span>
-              <span className="text-white text-2xl font-black tracking-wider drop-shadow-md mt-1">{t('done')}</span>
-            </>
-          )}
+            {isSaving && (
+              <>
+                <div className="absolute inset-0 rounded-full border-4 border-white/30 border-t-white animate-spin" />
+                <Coffee size={36} className="text-white mb-1 drop-shadow-md animate-pulse" />
+                <span className="text-white text-lg font-black tracking-wider drop-shadow-md">{t('loggingIn')}</span>
+              </>
+            )}
 
-          {(!isSaving && !showSuccess) && (
-            <>
-              <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_30s_linear_infinite]" />
-              <Coffee size={40} className="text-white mb-1.5 drop-shadow-md" />
-              <span className="text-white text-3xl font-black tracking-wider drop-shadow-md leading-none">+1 Kafe</span>
-              <span className="text-amber-700/80 font-bold uppercase tracking-[0.15em] text-[10px] mt-2">{t('tapToLog')}</span>
-            </>
-          )}
-        </button>
+            {showSuccess && (
+              <>
+                <div className="absolute inset-0 rounded-full border-4 border-white/40 border-dashed animate-[spin_10s_linear_infinite]" />
+                <span className="text-5xl mb-1 drop-shadow-md animate-bounce">🎉</span>
+                <span className="text-white text-2xl font-black tracking-wider drop-shadow-md mt-1">{t('done')}</span>
+              </>
+            )}
 
-        {/* Options Grid */}
-        <div className="w-full px-1">
-          <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+            {(!isSaving && !showSuccess) && (
+              <>
+                <Coffee size={36} className="text-white mb-1 drop-shadow-md" />
+                <span className="text-white text-3xl font-black tracking-tight drop-shadow-md leading-none">+1 Kafe</span>
+                <span className="text-amber-700/80 font-black uppercase tracking-[0.2em] text-[9px] mt-2">{t('tapToLog')}</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Squircle Grid */}
+        <div className="w-full mb-5 shrink-0">
+          <div className="grid grid-cols-3 gap-3">
             {kafeOptions.map((option) => (
               <button
                 key={option.type}
                 onClick={() => setSelectedType(option.type)}
                 className={clsx(
-                  "rounded-[1.25rem] aspect-square flex flex-col items-center justify-center p-2 transition-all shadow-sm overflow-hidden",
+                  "rounded-3xl aspect-square flex flex-col items-center justify-center p-2 transition-all overflow-hidden",
                   selectedType === option.type
-                    ? "bg-white border-2 border-amber-500 scale-105 shadow-md"
-                    : "bg-white/60 border-2 border-transparent text-gray-500 hover:bg-white"
+                    ? "bg-white border-2 border-amber-400 scale-105 shadow-md shadow-amber-500/10"
+                    : "bg-white border-2 border-transparent text-gray-500 hover:bg-gray-50 shadow-sm"
                 )}
               >
-                <span className="text-[32px] sm:text-[36px] leading-none mb-1">{option.icon}</span>
+                <span className="text-[32px] leading-none mb-1.5 transition-transform group-active:scale-95">{option.icon}</span>
                 <span className={clsx("text-[10px] leading-tight text-center px-0.5 font-bold line-clamp-2", selectedType === option.type ? "text-amber-600" : "text-gray-400")}>
                   {option.label}
                 </span>
@@ -327,32 +307,38 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </div>
         </div>
 
-        {/* Rating */}
-        <div className="w-full flex justify-between px-3">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-            <button
-              key={num}
-              onClick={() => setRating(num === rating ? 0 : num)}
-              className={clsx(
-                "text-[22px] sm:text-2xl transition-all active:scale-75",
-                rating >= num ? "opacity-100 scale-110 drop-shadow-md saturate-150" : "grayscale opacity-30 hover:opacity-60"
-              )}
-            >
-              ☕️
-            </button>
-          ))}
-        </div>
-
-        {/* Add Details Button */}
-        <button 
-          onClick={() => setIsAddingDetails(true)}
-          className="w-full max-w-[150px] py-3 mt-1 rounded-full bg-white text-gray-400 font-bold shadow-sm border border-gray-100 hover:border-gray-200 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em] shrink-0"
-        >
-          {t('addDetails')}
-        </button>
+        {/* Compact Bottom Controls */}
+        <div className="w-full flex flex-col items-center shrink-0">
           
+          <div className="w-full flex justify-between px-4 mb-5 bg-white py-3 rounded-3xl shadow-sm border border-gray-100">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+              <button
+                key={num}
+                onClick={() => setRating(num === rating ? 0 : num)}
+                className={clsx(
+                  "text-[20px] transition-all active:scale-75",
+                  rating >= num ? "opacity-100 scale-110 drop-shadow-sm saturate-150" : "grayscale opacity-20 hover:opacity-60"
+                )}
+              >
+                ☕️
+              </button>
+            ))}
+          </div>
+
+          <button 
+            onClick={() => setIsAddingDetails(true)}
+            className="w-auto px-6 py-2.5 rounded-full bg-white text-gray-400 hover:text-gray-600 font-bold shadow-sm border border-gray-100 active:scale-95 transition-all text-[10px] uppercase tracking-[0.15em]"
+          >
+            {t('addDetails')}
+          </button>
+          
+        </div>
       </div>
 
+      {/* Dynamic bottom spacer */}
+      <div className="flex-1 min-h-[2vh]" />
+
+      {/* Slide-Up Drawer for Add Details */}
       {isAddingDetails && (
         <div 
           className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] transition-opacity" 
@@ -361,23 +347,23 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
       )}
       
       <div className={clsx(
-        "fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] z-[101] transition-transform duration-300 ease-out p-6 pb-safe border-t border-gray-100 max-w-2xl mx-auto flex flex-col",
+        "fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-[0_-10px_50px_rgba(0,0,0,0.15)] z-[101] transition-transform duration-300 ease-out p-6 sm:p-8 pb-safe border-t border-gray-100 max-w-2xl mx-auto flex flex-col",
         isAddingDetails ? "translate-y-0" : "translate-y-[120%]"
       )}>
-        <div className="flex justify-between items-center mb-6 pt-2">
-          <h3 className="text-xl font-black text-gray-900">{t('lokalDetails')}</h3>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('lokalDetails')}</h3>
           <button 
             onClick={() => setIsAddingDetails(false)} 
-            className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-full text-[10px] font-black text-gray-600 uppercase tracking-widest active:scale-95 transition-colors"
+            className="px-5 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-full text-[10px] font-black text-gray-500 uppercase tracking-widest active:scale-95 transition-colors border border-gray-100"
           >
             {t('done')}
           </button>
         </div>
         
         <div className="space-y-4 pb-8">
-          <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-100">
-            <MapPin className="text-amber-500" size={20} />
-            <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder={t('cafeName')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 font-medium" />
+          <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-200">
+            <MapPin className="text-amber-400" size={20} />
+            <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder={t('cafeName')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 font-bold text-sm" />
           </div>
           
           <div className="flex gap-4">
@@ -387,16 +373,16 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
               className={clsx(
                 "flex-[0.8] flex flex-col items-center justify-center gap-2 p-4 rounded-2xl font-bold active:scale-95 transition-all text-xs border", 
                 photoFile 
-                  ? "bg-amber-50 border-amber-200 text-amber-700 shadow-sm" 
-                  : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+                  ? "bg-amber-50 border-amber-200 text-amber-600 shadow-sm" 
+                  : "bg-gray-50 border-transparent text-gray-400 hover:bg-gray-100"
               )}
             >
-              <Camera size={20} className={photoFile ? "text-amber-600" : "text-gray-400"} /> 
+              <Camera size={20} className={photoFile ? "text-amber-500" : "text-gray-300"} /> 
               {photoFile ? t('photoAttached') : t('uploadPhoto')}
             </button>
             
-            <div className="flex-[1.2] flex items-start gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-100">
-               <Type className="text-amber-500 shrink-0 mt-0.5" size={18} />
+            <div className="flex-[1.2] flex items-start gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-200">
+               <Type className="text-amber-400 shrink-0 mt-0.5" size={18} />
                <textarea 
                  value={notes} 
                  onChange={e => setNotes(e.target.value)} 
