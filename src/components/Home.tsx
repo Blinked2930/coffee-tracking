@@ -37,6 +37,9 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
+  // 🚀 Tracks when the user is typing so we can adjust the drawer padding
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission | 'default'>('default');
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   
@@ -289,10 +292,11 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100]" onClick={() => setIsAddingDetails(false)} />
       )}
       
-      {/* 🚀 HOTFIX: Added pb-[110px] right here to pad the inside of the drawer above the nav bar */}
+      {/* 🚀 DYNAMIC DRAWER PADDING: Drops the padding to pb-6 when typing to cover the nav bar and sit flush on keyboard */}
       <div className={clsx(
-        "fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-[0_-10px_50px_rgba(0,0,0,0.15)] z-[101] transition-transform duration-300 ease-out p-6 sm:p-8 pb-[110px] border-t border-gray-100 max-w-2xl mx-auto flex flex-col",
-        isAddingDetails ? "translate-y-0" : "translate-y-[120%]"
+        "fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-[0_-10px_50px_rgba(0,0,0,0.15)] z-[101] transition-all duration-300 ease-out p-6 sm:p-8 border-t border-gray-100 max-w-2xl mx-auto flex flex-col",
+        isAddingDetails ? "translate-y-0" : "translate-y-[120%]",
+        isInputFocused ? "pb-6 sm:pb-8" : "pb-[110px]"
       )}>
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('lokalDetails')}</h3>
@@ -301,7 +305,15 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         <div className="space-y-4">
           <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-200">
             <MapPin className="text-amber-400" size={20} />
-            <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder={t('cafeName')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 font-bold text-sm" />
+            <input 
+              type="text" 
+              value={location} 
+              onChange={e => setLocation(e.target.value)} 
+              onFocus={() => setIsInputFocused(true)} 
+              onBlur={() => setIsInputFocused(false)} 
+              placeholder={t('cafeName')} 
+              className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 font-bold text-sm" 
+            />
           </div>
           <div className="flex gap-4">
             <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files?.[0] || null)} />
@@ -310,7 +322,14 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
             </button>
             <div className="flex-[1.2] flex items-start gap-3 bg-gray-50 p-4 rounded-2xl focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:bg-white transition-all border border-transparent focus-within:border-amber-200">
                <Type className="text-amber-400 shrink-0 mt-0.5" size={18} />
-               <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('notes')} className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 text-sm font-medium resize-none h-full min-h-[60px]" />
+               <textarea 
+                 value={notes} 
+                 onChange={e => setNotes(e.target.value)} 
+                 onFocus={() => setIsInputFocused(true)} 
+                 onBlur={() => setIsInputFocused(false)} 
+                 placeholder={t('notes')} 
+                 className="bg-transparent outline-none w-full text-gray-800 placeholder:text-gray-400 text-sm font-medium resize-none h-full min-h-[60px]" 
+               />
             </div>
           </div>
         </div>
