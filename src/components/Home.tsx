@@ -145,7 +145,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   return (
     <div className="fixed inset-0 w-full bg-gray-50/30 overflow-hidden flex flex-col pb-[125px]">
       
-      {/* ... [Notification Prompt code remains exactly the same] ... */}
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
           <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl text-center transform transition-all animate-in zoom-in-95 duration-200">
@@ -177,10 +176,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* THE PERFECT CENTER */}
       <div className="flex-1 w-full max-w-sm mx-auto flex flex-col items-center justify-center px-5">
         
-        {/* Main Cutesy Button */}
         <div className="flex justify-center w-full mb-5 sm:mb-6 shrink-0">
           <button
             onClick={handleLogKafe}
@@ -235,7 +232,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </button>
         </div>
 
-        {/* Squircle Grid */}
         <div className="w-full mb-5 sm:mb-6 shrink-0">
           <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
             {kafeOptions.map((option) => (
@@ -258,7 +254,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
           </div>
         </div>
 
-        {/* Compact Bottom Controls */}
         <div className="w-full flex flex-col items-center gap-4 shrink-0">
           <div className="w-full flex justify-between px-2">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
@@ -285,14 +280,13 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
       </div>
       
-      {/* 🚀 GOD-TIER Z-INDEX OVERLAY: z-[9998] completely covers the nav bar */}
       {isAddingDetails && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[9998]" onClick={() => setIsAddingDetails(false)} />
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100]" onClick={() => setIsAddingDetails(false)} />
       )}
       
-      {/* 🚀 GOD-TIER Z-INDEX DRAWER: z-[9999] crushes the layout nav bar. Standard padding. Safari naturally handles the keyboard push. */}
+      {/* 🚀 THE FAIL-SAFE: Static pb-[120px]. No dynamic CSS. No React state races. It just pushes the inputs high enough to be completely usable no matter what Safari does. */}
       <div className={clsx(
-        "fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-[0_-10px_50px_rgba(0,0,0,0.15)] z-[9999] transition-transform duration-300 ease-out p-6 sm:p-8 pb-10 border-t border-gray-100 max-w-2xl mx-auto flex flex-col",
+        "fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-[0_-10px_50px_rgba(0,0,0,0.15)] z-[101] transition-transform duration-300 ease-out p-6 sm:p-8 border-t border-gray-100 max-w-2xl mx-auto flex flex-col pb-[120px]",
         isAddingDetails ? "translate-y-0" : "translate-y-[120%]"
       )}>
         <div className="flex justify-between items-center mb-6">
