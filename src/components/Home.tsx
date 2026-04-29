@@ -145,6 +145,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   return (
     <div className="fixed inset-0 w-full bg-gray-50/30 overflow-hidden flex flex-col pb-[125px]">
       
+      {/* ... [Notification Prompt code remains exactly the same] ... */}
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
           <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl text-center transform transition-all animate-in zoom-in-95 duration-200">
@@ -284,16 +285,15 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
 
       </div>
       
-      {/* Slide-Up Drawer Background Overlay */}
+      {/* 🚀 GOD-TIER Z-INDEX OVERLAY: z-[9998] completely covers the nav bar */}
       {isAddingDetails && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100]" onClick={() => setIsAddingDetails(false)} />
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[9998]" onClick={() => setIsAddingDetails(false)} />
       )}
       
-      {/* 🚀 CSS-ONLY FIX: focus-within:pb-8 snaps perfectly to the keyboard instantly. transition-transform ensures it doesn't fight the keyboard animation. */}
+      {/* 🚀 GOD-TIER Z-INDEX DRAWER: z-[9999] crushes the layout nav bar. Standard padding. Safari naturally handles the keyboard push. */}
       <div className={clsx(
-        "fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-[0_-10px_50px_rgba(0,0,0,0.15)] z-[101] transition-transform duration-300 ease-out p-6 sm:p-8 border-t border-gray-100 max-w-2xl mx-auto flex flex-col",
-        isAddingDetails ? "translate-y-0" : "translate-y-[120%]",
-        "pb-[110px] focus-within:pb-8"
+        "fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-[0_-10px_50px_rgba(0,0,0,0.15)] z-[9999] transition-transform duration-300 ease-out p-6 sm:p-8 pb-10 border-t border-gray-100 max-w-2xl mx-auto flex flex-col",
+        isAddingDetails ? "translate-y-0" : "translate-y-[120%]"
       )}>
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('lokalDetails')}</h3>
