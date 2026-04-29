@@ -28,7 +28,8 @@ interface HomeProps {
 }
 
 export default function Home({ user, onKafeLogged }: HomeProps) {
-  const { t, language } = useLanguage();
+  // FIXED: Destructured "lang" instead of "language" to match your actual Context
+  const { t, lang } = useLanguage();
   const [selectedType, setSelectedType] = useState<KafeType | null>(null);
   const [isAddingDetails, setIsAddingDetails] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -203,8 +204,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    // STRICT ALIGNMENT: h-[100dvh] locks height, justify-center aligns content, pb-24 accurately compensates for the bottom nav bar.
-    <div className="flex flex-col h-[100dvh] w-full px-5 bg-gray-50/30 overflow-y-auto custom-scrollbar justify-center items-center pb-24">
+    // STRICT IMMOBILIZATION: h-[100dvh] + overflow-hidden explicitly kills all scrolling. pb-[90px] accounts for nav bar.
+    <div className="flex flex-col h-[100dvh] w-full px-5 pb-[90px] bg-gray-50/30 overflow-hidden">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
@@ -213,23 +214,23 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
               <span className="text-4xl drop-shadow-sm">🔔</span>
             </div>
             <h2 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">
-              {language === 'sq' ? 'Qëndro i Informuar' : 'Stay in the Loop'}
+              {lang === 'sq' ? 'Qëndro i Informuar' : 'Stay in the Loop'}
             </h2>
             <p className="text-gray-500 mb-8 text-sm font-medium leading-relaxed">
-              {language === 'sq' 
+              {lang === 'sq' 
                 ? 'Merr njoftime kur dikush rregjistron një kafe.' 
                 : 'Get notified instantly when the cohort logs a Kafe.'}
             </p>
             <div className="space-y-3">
               <button onClick={requestNotificationPermission} className="w-full py-4 bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-md shadow-amber-500/20 text-[11px]">
-                {language === 'sq' ? 'Aktivizo Njoftimet' : 'Enable Notifications'}
+                {lang === 'sq' ? 'Aktivizo Njoftimet' : 'Enable Notifications'}
               </button>
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <button onClick={handleDismissSession} className="w-full py-3.5 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-colors active:scale-95">
-                  {language === 'sq' ? 'Ndoshta Më Vonë' : 'Maybe Later'}
+                  {lang === 'sq' ? 'Ndoshta Më Vonë' : 'Maybe Later'}
                 </button>
                 <button onClick={handleDeclineForever} className="w-full py-3.5 bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-500 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-colors active:scale-95">
-                  {language === 'sq' ? 'Jo Faleminderit' : 'No Thanks'}
+                  {lang === 'sq' ? 'Jo Faleminderit' : 'No Thanks'}
                 </button>
               </div>
             </div>
@@ -237,11 +238,11 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* CORE WRAPPER: No more m-auto or flexible spacers. Just strict vertical stacking. */}
-      <div className="w-full max-w-sm flex flex-col items-center shrink-0">
+      {/* TRUE CENTERING WRAPPER: flex-1 ensures it dynamically splits the exact visual space above the nav bar */}
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm mx-auto">
         
         {/* Main Cutesy Button */}
-        <div className="flex justify-center w-full mb-6 mt-4">
+        <div className="flex justify-center w-full mb-6 shrink-0">
           <button
             onClick={handleLogKafe}
             disabled={isSaving || showSuccess || !selectedType}
@@ -262,7 +263,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
               <>
                 <Coffee size={36} className="text-gray-300 mb-1" />
                 <span className="text-gray-400 text-lg font-black tracking-tight leading-none mt-2">
-                  {language === 'sq' ? 'Zgjidh Pijen' : 'Select Drink'}
+                  {/* FIXED: Uses lang from useLanguage hook directly */}
+                  {lang === 'sq' ? 'Zgjidh Pijen' : 'Select Drink'}
                 </span>
               </>
             )}
@@ -287,7 +289,9 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
               <>
                 <Coffee size={36} className="text-white mb-1 drop-shadow-md" />
                 <span className="text-white text-3xl font-black tracking-tight drop-shadow-md leading-none">+1 Kafe</span>
-                <span className="text-amber-700/80 font-black uppercase tracking-[0.2em] text-[9px] mt-2">{t('tapToLog')}</span>
+                <span className="text-amber-700/80 font-black uppercase tracking-[0.2em] text-[9px] mt-2">
+                  {lang === 'sq' ? 'Shtyp Për Të Rregjistruar' : t('tapToLog')}
+                </span>
               </>
             )}
           </button>
