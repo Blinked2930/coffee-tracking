@@ -80,7 +80,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     { type: 'freddo', icon: '🧊', label: t('freddo') || 'Iced' },
     { type: 'canned_coffee', icon: '🥫', label: t('cannedCoffee') || 'Canned Coffee' },
     { type: 'energy_drink', icon: '🔋', label: t('energyDrink') || 'Energy Drink' },
-    { type: 'other', icon: '❓', label: t('otherType') },
+    { type: 'other', icon: '❔', label: t('otherType') }, // Swapped to neutral white question mark
   ];
 
   const requestNotificationPermission = async () => {
@@ -143,8 +143,8 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
   };
 
   return (
-    // THE STRAIGHTJACKET: fixed inset-0 completely disables scrolling. pb-[125px] is your 125px offset built directly into the padding.
-    <div className="fixed inset-0 w-full bg-gray-50/30 overflow-hidden flex flex-col pb-[125px]">
+    // Natural flex container. Unbolted from the viewport to allow native elastic bounce, perfectly spaced with pb-[125px].
+    <div className="w-full min-h-[100dvh] bg-gray-50/30 flex flex-col pb-[125px]">
       
       {showNotificationPrompt && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 transition-all">
@@ -177,7 +177,7 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         </div>
       )}
 
-      {/* THE PERFECT CENTER: flex-1 takes whatever space is left (screen height minus 125px) and perfectly centers the content inside it. */}
+      {/* THE PERFECT CENTER: flex-1 ensures it dynamically splits the exact visual space above the nav bar */}
       <div className="flex-1 w-full max-w-sm mx-auto flex flex-col items-center justify-center px-5">
         
         {/* Main Cutesy Button */}
