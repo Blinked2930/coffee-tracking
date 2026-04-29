@@ -44,7 +44,7 @@ export default function UpdateAnnouncement({ currentUser }: { currentUser: User 
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[2rem] w-full max-w-sm p-6 sm:p-8 shadow-2xl relative animate-in zoom-in-95 duration-500 overflow-hidden">
+      <div className="bg-white rounded-[2rem] w-full max-w-sm p-6 sm:p-8 shadow-2xl relative animate-in zoom-in-95 duration-500 max-h-[90dvh] overflow-y-auto">
         
         {/* Subtle background decoration */}
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-amber-50 to-white -z-10" />
@@ -116,7 +116,7 @@ export default function UpdateAnnouncement({ currentUser }: { currentUser: User 
 
         <button
           onClick={handleAcknowledge}
-          className="w-full mt-8 py-4 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 font-black rounded-xl transition-all active:scale-95 shadow-md shadow-amber-500/20 uppercase tracking-widest text-xs flex items-center justify-center gap-2"
+          className="w-full mt-8 py-4 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 font-black rounded-xl transition-all active:scale-95 shadow-md shadow-amber-500/20 uppercase tracking-widest text-xs flex items-center justify-center gap-2 shrink-0"
         >
           <ShieldCheck size={18} className="opacity-80" /> 
           Acknowledge & Appreciate
