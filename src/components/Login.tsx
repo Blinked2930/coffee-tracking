@@ -141,7 +141,7 @@ export default function Login({ users, onLogin }: LoginProps) {
       {/* Main Login Interface */}
       <div className="w-full max-w-sm bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 p-8 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 z-10 border border-gray-100">
         <div className="flex flex-col items-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-amber-200 text-amber-600 rounded-[1.5rem] flex items-center justify-center mb-5 shadow-sm shadow-amber-500/10 border-4 border-white rotate-3">
+          <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-[1.5rem] flex items-center justify-center mb-5 shadow-inner">
             <Coffee size={36} className="drop-shadow-sm" />
           </div>
           <h2 className="text-3xl font-black text-gray-900 mb-1 tracking-tight">
@@ -220,10 +220,10 @@ export default function Login({ users, onLogin }: LoginProps) {
           <button
             type="submit"
             disabled={isLoading || pin.length === 0 || (isSignUp ? (!signupName || !signupUsername) : !loginIdentifier)}
-            className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 font-black py-4.5 rounded-2xl shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center mt-4 uppercase tracking-[0.15em] text-xs h-14"
+            className="w-full bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-white font-black py-4.5 rounded-2xl shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center mt-4 uppercase tracking-[0.15em] text-xs h-14"
           >
             {isLoading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-amber-950/20 border-t-amber-950"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
             ) : (
               isSignUp ? 'Create Account' : t('enter')
             )}

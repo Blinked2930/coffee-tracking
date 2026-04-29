@@ -93,7 +93,7 @@ function App() {
       localStorage.setItem('kafe_user', JSON.stringify(data));
       return true;
     } else {
-      alert("Invalid PIN or user not configured.");
+      // Look ma, no native alert!
       return false;
     }
   };
