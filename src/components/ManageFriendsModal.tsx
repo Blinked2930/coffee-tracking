@@ -86,7 +86,7 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
       
       <div className="bg-gray-50 rounded-t-[2.5rem] sm:rounded-[2.5rem] w-full max-w-md h-[85dvh] sm:h-[700px] flex flex-col shadow-2xl animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 relative overflow-hidden" onClick={e => e.stopPropagation()}>
         
-        {/* CUSTOM UNFRIEND OVERLAY - Matches Login Error Style */}
+        {/* CUSTOM UNFRIEND OVERLAY */}
         {userToUnfriend && (
           <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-md z-[110] flex items-center justify-center p-6 animate-in fade-in duration-200">
             <div className="bg-white rounded-[2rem] p-6 w-full max-w-xs shadow-2xl animate-in zoom-in-95 duration-200 border border-white/20 overflow-hidden relative">
@@ -99,10 +99,10 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
               </div>
 
               <h3 className="text-xl font-black text-center text-gray-900 mb-2 leading-tight">
-                Sever Connection?
+                Remove Friend?
               </h3>
               <p className="text-xs text-gray-500 text-center mb-6 font-medium leading-relaxed px-2">
-                <strong className="text-gray-900">{userToUnfriend.name}</strong> will be purged from your telemetry. They will not be notified.
+                <strong className="text-gray-900">{userToUnfriend.name}</strong> will be removed from your friends list. They won't be notified.
               </p>
 
               <div className="flex gap-3">
@@ -126,8 +126,8 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
         {/* Header */}
         <div className="bg-white px-8 py-6 border-b border-gray-100 flex justify-between items-center shrink-0 shadow-sm relative z-10">
           <div>
-            <h3 className="text-2xl font-black text-gray-900 tracking-tight">Network</h3>
-            <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">Cohort Management</p>
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight">Friends</h3>
+            <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">Coffee Buddies</p>
           </div>
           <button onClick={onClose} className="w-10 h-10 bg-gray-50 hover:bg-gray-100 rounded-full flex items-center justify-center text-gray-400 active:scale-95 transition-all border border-gray-100">
             <X size={20} />
@@ -143,7 +143,7 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
               activeTab === 'search' ? "bg-gray-900 text-white shadow-md" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
             )}
           >
-            Find Operatives
+            Find Friends
           </button>
           <button 
             onClick={() => setActiveTab('requests')}
@@ -152,7 +152,7 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
               activeTab === 'requests' ? "bg-gray-900 text-white shadow-md" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
             )}
           >
-            Clearances
+            Requests
             {pendingReceived.length > 0 && (
               <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center shadow-sm border-2 border-white">
                 {pendingReceived.length}
@@ -205,7 +205,7 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
                           onClick={() => handleCancelRequest(u.id)}
                           className="shrink-0 px-4 py-2.5 bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-xl text-[10px] font-black transition-all border border-gray-200 hover:border-red-200 flex items-center gap-1.5 active:scale-95 uppercase tracking-widest shadow-sm"
                         >
-                          <X size={14} /> Revoke
+                          <X size={14} /> Cancel
                         </button>
                       )}
 
@@ -218,7 +218,7 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
                           onClick={() => setUserToUnfriend(u)}
                           className="shrink-0 px-4 py-2.5 rounded-xl bg-green-50 text-green-600 font-bold text-[10px] uppercase tracking-widest flex items-center gap-1.5 hover:bg-red-50 hover:text-red-600 hover:border-red-200 active:scale-95 transition-all border border-green-100"
                         >
-                          <Check size={14} /> Connected
+                          <Check size={14} /> Friends
                         </button>
                       )}
                     </div>
@@ -235,7 +235,7 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border border-gray-100">
                     <Check size={24} className="text-gray-300" />
                   </div>
-                  <p className="text-gray-400 font-black text-sm tracking-tight">No Pending Clearances</p>
+                  <p className="text-gray-400 font-black text-sm tracking-tight">No Pending Requests</p>
                 </div>
               ) : (
                 pendingReceived.map(req => {
@@ -253,14 +253,14 @@ export default function ManageFriendsModal({ currentUser, onClose }: Props) {
                         <div className="min-w-0 flex-1">
                           <p className="font-black text-gray-900 leading-tight truncate">{sender.name}</p>
                           <p className="text-[11px] text-gray-400 font-bold mb-0.5 truncate tracking-wide">@{displayUsername}</p>
-                          <p className="text-[8px] uppercase tracking-[0.2em] text-amber-600 font-black mt-1">Requesting Access</p>
+                          <p className="text-[8px] uppercase tracking-[0.2em] text-amber-600 font-black mt-1">Wants to connect</p>
                         </div>
                       </div>
                       <button 
                         onClick={() => handleAcceptRequest(req.id)}
                         className="shrink-0 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 px-5 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
                       >
-                        Authorize
+                        Accept
                       </button>
                     </div>
                   );

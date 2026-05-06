@@ -85,6 +85,8 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
     return { total, favoriteType, peakHourStr };
   }, [userLogs]);
 
+  const displayUsername = (user as any).username || user.name.toLowerCase().replace(/\s/g, '');
+
   return (
     <div className="px-4 pt-8 pb-24 max-w-lg mx-auto bg-gray-50 min-h-screen">
       
@@ -92,8 +94,9 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
         <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-tr from-amber-400 to-amber-500 text-white font-black flex items-center justify-center text-4xl shadow-lg shadow-amber-500/20 border-4 border-white mb-4 rotate-3">
           {user.name.charAt(0)}
         </div>
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight mt-2">{user.name}</h1>
-        <p className="font-bold text-amber-600 uppercase tracking-widest text-xs mt-1">
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight mt-2 leading-none">{user.name}</h1>
+        <p className="font-bold text-gray-400 text-sm mt-1 tracking-wide">@{displayUsername}</p>
+        <p className="font-bold text-amber-600 uppercase tracking-widest text-xs mt-2">
           {insights.total} {lang === 'sq' ? 'Kafe të rregjistruara' : 'Kafes Logged'}
         </p>
       </div>
@@ -131,7 +134,7 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
           className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all shadow-md shadow-amber-500/20 text-xs"
         >
           <ShareIcon size={16} className="opacity-80" /> 
-          {lang === 'sq' ? 'Fto në rrjet' : 'Invite to Cohort'}
+          {lang === 'sq' ? 'Fto miq' : 'Invite Friends'}
         </button>
 
         <button 
