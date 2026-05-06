@@ -423,3 +423,14 @@ entrypoint = "./functions/daily-reminder/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/daily-reminder/*.html" ]
+
+[functions.notify-interaction]
+enabled = true
+verify_jwt = true
+import_map = "./functions/notify-interaction/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/notify-interaction/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/notify-interaction/*.html" ]
