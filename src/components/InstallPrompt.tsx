@@ -129,15 +129,22 @@ export default function InstallPrompt({ onBypass }: { onBypass: () => void }) {
                   <p>
                     {localLang === 'sq' ? 'Shtypni ' : 'Tap the '}
                     <strong className="text-gray-900">{localLang === 'sq' ? 'menunë (3 pika)' : '3-dot menu'}</strong> 
-                    {localLang === 'sq' ? ' lart djathtas.' : ' in the top right corner of Chrome.'}
+                    {localLang === 'sq' ? ' lart djathtas.' : ' in the top right corner.'}
                   </p>
                 </div>
                 <div className="flex items-start gap-4">
                   <PlusSquare size={20} className="text-amber-500 shrink-0 mt-0.5" />
                   <p>
+                    {localLang === 'sq' ? 'Rrëshqisni poshtë dhe shtypni ' : 'Scroll down and tap '}
+                    <strong className="text-gray-900">Add to Home screen</strong>.
+                  </p>
+                </div>
+                <div className="flex items-start gap-4">
+                  <Check size={20} className="text-amber-500 shrink-0 mt-0.5" />
+                  <p>
                     {localLang === 'sq' ? 'Shtypni ' : 'Tap '}
-                    <strong className="text-gray-900">Add to Home screen</strong> 
-                    {localLang === 'sq' ? ' ose Install app.' : ' or Install app.'}
+                    <strong className="text-gray-900">Install</strong> 
+                    {localLang === 'sq' ? ' në dritaren e re.' : ' on the popup.'}
                   </p>
                 </div>
               </>
