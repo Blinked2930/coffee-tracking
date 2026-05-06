@@ -42,7 +42,7 @@ export default function Profile({ user, getUserMap, onLogout }: ProfileProps) {
   const handleShare = async () => {
     const shareData = {
       title: 'Kafe Tracker',
-      text: lang === 'sq' ? 'Bashkohu me mua në Kafe Tracker!' : 'Join my telemetry feed on Kafe Tracker!',
+      text: lang === 'sq' ? 'Eja të rregjistrojmë kafet bashkë në Kafe ☕️' : 'Come track coffees with me on Kafe ☕️',
       url: 'https://kafe.emmettfrett.com'
     };
 
