@@ -96,8 +96,14 @@ export default function InstallPrompt({ onBypass }: { onBypass: () => void }) {
                   <MoreHorizontal size={20} className="text-amber-500 shrink-0 mt-0.5" />
                   <p>
                     {localLang === 'sq' ? 'Shtypni ' : 'Tap the '} 
-                    <strong className="text-gray-900">{localLang === 'sq' ? 'menunë (Share)' : 'Share icon'}</strong> 
-                    {localLang === 'sq' ? ' në fund të ekranit.' : ' in the bottom bar.'}
+                    <strong className="text-gray-900">{localLang === 'sq' ? 'menunë (3 pika)' : '3-dot menu'}</strong>.
+                  </p>
+                </div>
+                <div className="flex items-start gap-4">
+                  <Share size={20} className="text-amber-500 shrink-0 mt-0.5" />
+                  <p>
+                    {localLang === 'sq' ? 'Shtypni ' : 'Tap the '} 
+                    <strong className="text-gray-900">{localLang === 'sq' ? 'ikonën e shpërndarjes (Share)' : 'Share icon'}</strong>.
                   </p>
                 </div>
                 <div className="flex items-start gap-4">
