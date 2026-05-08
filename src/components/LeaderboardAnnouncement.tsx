@@ -116,7 +116,7 @@ export default function LeaderboardAnnouncement() {
               </button>
             </div>
           </div>
-        </</>
+        </>
       )}
 
       {/* STEP 2: Pointing down to the Trophy Navigation Icon */}
@@ -140,7 +140,7 @@ export default function LeaderboardAnnouncement() {
                 : 'Tap the Trophy icon down here in your menu to enter the Rankings tab.'}
             </p>
           </div>
-        </</>
+        </>
       )}
 
       {/* STEP 3: Pointing up to the Top Tab Selector */}
