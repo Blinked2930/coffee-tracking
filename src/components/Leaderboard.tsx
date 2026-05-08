@@ -14,22 +14,55 @@ interface LeaderboardProps {
 export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProps) {
   const { t } = useLanguage();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [rankedUsers, setRankedUsers] = useState<any[]>([]);
+  const [globalScores, setGlobalScores] = useState<any[]>([]);
+  const [monthlyScores, setMonthlyScores] = useState<any[]>([]);
   
-  const [viewMode, setViewMode] = useState<'global' | 'friends'>('friends');
+  const [viewMode, setViewMode] = useState<'friends' | 'monthly' | 'global'>('friends');
   const [friendships, setFriendships] = useState<any[]>([]);
   const [showFriendsModal, setShowFriendsModal] = useState(false);
 
   const fetchData = async () => {
+    // 1. Fetch All-Time Global Scores
     const { data: scores } = await supabase
       .from('leaderboard_scores')
       .select('*')
       .order('total_kafes', { ascending: false });
       
     if (scores) {
-      setRankedUsers(scores.filter(user => user.name !== 'Ghost' && user.name !== 'TestUser'));
+      setGlobalScores(scores.filter(user => user.name !== 'Ghost' && user.name !== 'TestUser'));
     }
 
+    // 2. Fetch Rolling 30-Day Global Scores
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const { data: recentKafes } = await supabase
+      .from('kafes')
+      .select('user_id')
+      .gte('created_at', thirtyDaysAgo.toISOString());
+
+    if (recentKafes && recentKafes.length > 0) {
+      const counts: Record<string, number> = {};
+      recentKafes.forEach(log => {
+        counts[log.user_id] = (counts[log.user_id] || 0) + 1;
+      });
+
+      const userIds = Object.keys(counts);
+      const { data: usersData } = await supabase.from('users').select('id, name').in('id', userIds);
+      const userMap = new Map(usersData?.map(u => [u.id, u.name]) || []);
+
+      const monthlyRanked = userIds.map(uid => ({
+        user_id: uid,
+        total_kafes: counts[uid],
+        name: userMap.get(uid) || 'Unknown'
+      }))
+      .filter(u => u.name !== 'Unknown' && u.name !== 'Ghost' && u.name !== 'TestUser')
+      .sort((a, b) => b.total_kafes - a.total_kafes);
+
+      setMonthlyScores(monthlyRanked);
+    }
+
+    // 3. Fetch Friendships
     const { data: friends } = await supabase
       .from('friendships')
       .select('*')
@@ -46,9 +79,14 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
     .filter(f => f.status === 'accepted')
     .map(f => f.requester_id === currentUser.id ? f.receiver_id : f.requester_id);
 
-  const visibleUsers = viewMode === 'friends'
-    ? rankedUsers.filter(u => acceptedFriendIds.includes(u.user_id) || u.user_id === currentUser.id)
-    : rankedUsers.slice(0, 5); 
+  let visibleUsers = [];
+  if (viewMode === 'friends') {
+    visibleUsers = globalScores.filter(u => acceptedFriendIds.includes(u.user_id) || u.user_id === currentUser.id);
+  } else if (viewMode === 'monthly') {
+    visibleUsers = monthlyScores.slice(0, 5);
+  } else {
+    visibleUsers = globalScores.slice(0, 5);
+  }
 
   const maxCount = Math.max(...visibleUsers.map(u => Number(u.total_kafes) || 0), 1);
 
@@ -68,7 +106,7 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
         
         <button 
           onClick={() => setShowFriendsModal(true)}
-          className="w-12 h-12 bg-white border border-gray-100 text-gray-600 rounded-2xl flex flex-col items-center justify-center shadow-sm hover:border-amber-200 active:scale-95 transition-all relative"
+          className="w-12 h-12 bg-white border border-gray-100 text-gray-600 rounded-2xl flex flex-col items-center justify-center shadow-sm hover:border-amber-200 active:scale-95 transition-all relative shrink-0"
         >
           <Users size={20} />
           {friendships.some(f => f.receiver_id === currentUser.id && f.status === 'pending') && (
@@ -80,15 +118,21 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
       <div className="flex bg-gray-200/50 p-1 rounded-xl mb-6">
         <button
           onClick={() => setViewMode('friends')}
-          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${viewMode === 'friends' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all ${viewMode === 'friends' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
         >
           My Friends
         </button>
         <button
-          onClick={() => setViewMode('global')}
-          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${viewMode === 'global' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          onClick={() => setViewMode('monthly')}
+          className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all ${viewMode === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
         >
-          Global Top 5
+          Rolling 30
+        </button>
+        <button
+          onClick={() => setViewMode('global')}
+          className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all ${viewMode === 'global' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          All-Time
         </button>
       </div>
 
@@ -98,6 +142,13 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
             <Users size={32} className="mx-auto text-gray-300 mb-3" />
             <p className="text-gray-500 font-medium text-sm">You haven't added any friends yet.</p>
             <button onClick={() => setShowFriendsModal(true)} className="mt-4 text-amber-600 font-bold text-sm">Find Friends</button>
+          </div>
+        )}
+
+        {visibleUsers.length === 0 && viewMode === 'monthly' && (
+          <div className="text-center p-8 bg-white rounded-3xl border border-dashed border-gray-200">
+            <Trophy size={32} className="mx-auto text-gray-300 mb-3" />
+            <p className="text-gray-500 font-medium text-sm">No kafes logged in the last 30 days!</p>
           </div>
         )}
 
