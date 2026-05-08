@@ -116,7 +116,7 @@ export default function LeaderboardAnnouncement() {
               </button>
             </div>
           </div>
-        </</>
+        </>
       )}
 
       {/* STEP 2: Pointing down to the Trophy Navigation Icon */}
