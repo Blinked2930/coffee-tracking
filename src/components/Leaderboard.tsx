@@ -126,7 +126,7 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
           onClick={() => setViewMode('monthly')}
           className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all ${viewMode === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
         >
-          {lang === 'sq' ? '30 Ditët e Fundit' : 'The Last 30 Days'}
+          {lang === 'sq' ? '30 Ditët e Fundit' : 'Last 30 Days'}
         </button>
         <button
           onClick={() => setViewMode('global')}
