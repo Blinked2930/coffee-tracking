@@ -6,6 +6,7 @@ import Feed from './components/Feed';
 import Leaderboard from './components/Leaderboard';
 import Profile from './components/Profile';
 import InstallPrompt from './components/InstallPrompt';
+import LeaderboardAnnouncement from './components/LeaderboardAnnouncement';
 import { User, KafeLog } from './types';
 import { supabase } from './lib/supabase';
 
@@ -157,6 +158,7 @@ function App() {
   return (
     <>
       <InstallPrompt onBypass={() => {}} />
+      <LeaderboardAnnouncement />
       <Layout 
         user={currentUser} 
         activeTab={activeTab} 
