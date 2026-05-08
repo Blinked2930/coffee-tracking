@@ -12,7 +12,7 @@ interface LeaderboardProps {
 }
 
 export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [globalScores, setGlobalScores] = useState<any[]>([]);
   const [monthlyScores, setMonthlyScores] = useState<any[]>([]);
@@ -120,19 +120,19 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
           onClick={() => setViewMode('friends')}
           className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all ${viewMode === 'friends' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
         >
-          My Friends
+          {lang === 'sq' ? 'Miqtë e Mi' : 'My Friends'}
         </button>
         <button
           onClick={() => setViewMode('monthly')}
           className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all ${viewMode === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
         >
-          Rolling 30
+          {lang === 'sq' ? '30 Ditët e Fundit' : 'The Last 30 Days'}
         </button>
         <button
           onClick={() => setViewMode('global')}
           className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all ${viewMode === 'global' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
         >
-          All-Time
+          {lang === 'sq' ? 'Gjithë Kohës' : 'All-Time'}
         </button>
       </div>
 
@@ -140,15 +140,21 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
         {visibleUsers.length === 0 && viewMode === 'friends' && (
           <div className="text-center p-8 bg-white rounded-3xl border border-dashed border-gray-200">
             <Users size={32} className="mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-500 font-medium text-sm">You haven't added any friends yet.</p>
-            <button onClick={() => setShowFriendsModal(true)} className="mt-4 text-amber-600 font-bold text-sm">Find Friends</button>
+            <p className="text-gray-500 font-medium text-sm">
+              {lang === 'sq' ? 'Nuk keni shtuar ende miq.' : "You haven't added any friends yet."}
+            </p>
+            <button onClick={() => setShowFriendsModal(true)} className="mt-4 text-amber-600 font-bold text-sm">
+              {lang === 'sq' ? 'Gjeni Miq' : 'Find Friends'}
+            </button>
           </div>
         )}
 
         {visibleUsers.length === 0 && viewMode === 'monthly' && (
           <div className="text-center p-8 bg-white rounded-3xl border border-dashed border-gray-200">
             <Trophy size={32} className="mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-500 font-medium text-sm">No kafes logged in the last 30 days!</p>
+            <p className="text-gray-500 font-medium text-sm">
+              {lang === 'sq' ? 'Nuk ka kafe të regjistruara në 30 ditët e fundit!' : 'No kafes logged in the last 30 days!'}
+            </p>
           </div>
         )}
 
@@ -187,7 +193,7 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
                       {/* ADDED 'YOU' BADGE */}
                       {user.user_id === currentUser.id && (
                         <span className="ml-1 text-[9px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md uppercase tracking-wider shrink-0">
-                          You
+                          {lang === 'sq' ? 'Ti' : 'You'}
                         </span>
                       )}
                       
