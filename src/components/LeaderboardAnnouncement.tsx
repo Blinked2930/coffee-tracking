@@ -116,17 +116,15 @@ export default function LeaderboardAnnouncement() {
               </button>
             </div>
           </div>
-        </>
+        </</>
       )}
 
       {/* STEP 2: Pointing down to the Trophy Navigation Icon */}
       {step === 2 && (
         <>
-          {/* Light blur that ALLOWS clicks through to the actual app */}
-          <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-[2px] pointer-events-none" />
+          {/* NO BLUR HERE: App looks completely normal so they can click the real tab naturally */}
           
-          {/* NOTE: Adjust the left-[50%] below to move the tooltip further left or right to align with your tab */}
-          <div id="tour-step-2-tooltip" className="absolute bottom-24 left-[50%] -translate-x-1/2 w-64 bg-white dark:bg-[#1c1c1c] rounded-3xl p-5 shadow-2xl animate-in slide-in-from-bottom-8 duration-300 border-2 border-amber-400 pointer-events-auto">
+          <div id="tour-step-2-tooltip" className="absolute bottom-24 left-[56%] -translate-x-1/2 w-64 bg-white dark:bg-[#1c1c1c] rounded-3xl p-5 shadow-2xl animate-in slide-in-from-bottom-8 duration-300 border-2 border-amber-400 pointer-events-auto">
             {/* Arrow pointing down */}
             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white dark:bg-[#1c1c1c] border-b-2 border-r-2 border-amber-400 transform rotate-45" />
             
@@ -146,9 +144,11 @@ export default function LeaderboardAnnouncement() {
       {/* STEP 3: Pointing up to the Top Tab Selector */}
       {step === 3 && (
         <>
+          {/* BLUR RETURNS: Dims the background to bring focus back to the top tabs */}
           <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-[2px] pointer-events-none" />
 
-          <div className="absolute top-[8.5rem] left-1/2 -translate-x-1/2 w-72 max-w-[90vw] bg-white dark:bg-[#1c1c1c] rounded-3xl p-5 shadow-2xl animate-in slide-in-from-top-8 duration-300 border-2 border-amber-400 pointer-events-auto">
+          {/* Tooltip moved down to top-[11rem] */}
+          <div className="absolute top-[11rem] left-1/2 -translate-x-1/2 w-72 max-w-[90vw] bg-white dark:bg-[#1c1c1c] rounded-3xl p-5 shadow-2xl animate-in slide-in-from-top-8 duration-300 border-2 border-amber-400 pointer-events-auto">
             {/* Arrow pointing up */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white dark:bg-[#1c1c1c] border-t-2 border-l-2 border-amber-400 transform rotate-45" />
             
