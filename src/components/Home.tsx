@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { Coffee, MapPin, Camera, Type } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import clsx from 'clsx';
+import imageCompression from 'browser-image-compression';
 import { KafeType, User } from '../types';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
-import { compressImage } from '../lib/imageUtils';
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -114,12 +114,30 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     let uploadedPhotoUrl = null;
     
     if (photoFile) {
-      const compressedFile = await compressImage(photoFile);
-      const fileExt = compressedFile.name.split('.').pop() || 'jpg';
-      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage.from('kafes').upload(fileName, compressedFile);
-      if (!uploadError && uploadData) {
-        uploadedPhotoUrl = supabase.storage.from('kafes').getPublicUrl(fileName).data.publicUrl;
+      try {
+        // 🚀 Compress the image before uploading to save Supabase bandwidth
+        const options = {
+          maxSizeMB: 0.4,          // Target max size is 400KB
+          maxWidthOrHeight: 1024,  // Cap dimensions to 1024px
+          useWebWorker: true       // Use a background worker so the UI doesn't freeze
+        };
+        
+        console.log(`Original file size: ${(photoFile.size / 1024 / 1024).toFixed(2)} MB`);
+        const compressedFile = await imageCompression(photoFile, options);
+        console.log(`Compressed file size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+
+        const fileExt = compressedFile.name.split('.').pop() || 'jpg';
+        const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('kafes')
+          .upload(fileName, compressedFile); // Upload the compressed version
+          
+        if (!uploadError && uploadData) {
+          uploadedPhotoUrl = supabase.storage.from('kafes').getPublicUrl(fileName).data.publicUrl;
+        }
+      } catch (error) {
+        console.error('Error compressing or uploading image:', error);
       }
     }
     
