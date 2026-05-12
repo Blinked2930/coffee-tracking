@@ -115,11 +115,10 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
     
     if (photoFile) {
       try {
-        // 🚀 Compress the image before uploading to save Supabase bandwidth
         const options = {
-          maxSizeMB: 0.4,          // Target max size is 400KB
-          maxWidthOrHeight: 1024,  // Cap dimensions to 1024px
-          useWebWorker: true       // Use a background worker so the UI doesn't freeze
+          maxSizeMB: 0.4,          
+          maxWidthOrHeight: 1024,  
+          useWebWorker: true       
         };
         
         console.log(`Original file size: ${(photoFile.size / 1024 / 1024).toFixed(2)} MB`);
@@ -131,7 +130,10 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('kafes')
-          .upload(fileName, compressedFile); // Upload the compressed version
+          .upload(fileName, compressedFile, {
+            cacheControl: '31536000', // 🚀 FIX: Tell browsers to cache this for 1 year!
+            upsert: false
+          });
           
         if (!uploadError && uploadData) {
           uploadedPhotoUrl = supabase.storage.from('kafes').getPublicUrl(fileName).data.publicUrl;
@@ -302,7 +304,6 @@ export default function Home({ user, onKafeLogged }: HomeProps) {
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100]" onClick={() => setIsAddingDetails(false)} />
       )}
       
-      {/* 🚀 THE FAIL-SAFE: Static pb-[120px]. No dynamic CSS. No React state races. It just pushes the inputs high enough to be completely usable no matter what Safari does. */}
       <div className={clsx(
         "fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-[0_-10px_50px_rgba(0,0,0,0.15)] z-[101] transition-transform duration-300 ease-out p-6 sm:p-8 border-t border-gray-100 max-w-2xl mx-auto flex flex-col pb-[120px]",
         isAddingDetails ? "translate-y-0" : "translate-y-[120%]"
