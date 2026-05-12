@@ -17,7 +17,10 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
   const [globalScores, setGlobalScores] = useState<any[]>([]);
   const [monthlyScores, setMonthlyScores] = useState<any[]>([]);
   
-  const [viewMode, setViewMode] = useState<'friends' | 'monthly' | 'global'>('friends');
+  // 🚀 Split into two dimensions: Scope (Who) and Timeframe (When)
+  const [scope, setScope] = useState<'friends' | 'global'>('friends');
+  const [timeframe, setTimeframe] = useState<'monthly' | 'all_time'>('monthly');
+  
   const [friendships, setFriendships] = useState<any[]>([]);
   const [showFriendsModal, setShowFriendsModal] = useState(false);
 
@@ -79,13 +82,15 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
     .filter(f => f.status === 'accepted')
     .map(f => f.requester_id === currentUser.id ? f.receiver_id : f.requester_id);
 
+  // 🚀 Apply the 2x2 Filter Matrix
+  const baseScores = timeframe === 'monthly' ? monthlyScores : globalScores;
+  
   let visibleUsers = [];
-  if (viewMode === 'friends') {
-    visibleUsers = globalScores.filter(u => acceptedFriendIds.includes(u.user_id) || u.user_id === currentUser.id);
-  } else if (viewMode === 'monthly') {
-    visibleUsers = monthlyScores.slice(0, 5);
+  if (scope === 'friends') {
+    visibleUsers = baseScores.filter(u => acceptedFriendIds.includes(u.user_id) || u.user_id === currentUser.id);
   } else {
-    visibleUsers = globalScores.slice(0, 5);
+    // Show top 10 for global to keep the UI clean
+    visibleUsers = baseScores.slice(0, 10);
   }
 
   const maxCount = Math.max(...visibleUsers.map(u => Number(u.total_kafes) || 0), 1);
@@ -115,46 +120,54 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
         </button>
       </div>
 
-      <div className="flex bg-gray-200/50 p-1 rounded-xl mb-6">
+      {/* 🚀 TOGGLE 1: Friends vs Global */}
+      <div className="flex bg-gray-200/50 p-1 rounded-xl mb-2">
         <button
-          onClick={() => setViewMode('friends')}
-          className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all ${viewMode === 'friends' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          onClick={() => setScope('friends')}
+          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${scope === 'friends' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
         >
-          {lang === 'sq' ? 'Miqtë e Mi' : 'My Friends'}
+          {lang === 'sq' ? 'Miqtë' : 'Friends'}
         </button>
         <button
-          onClick={() => setViewMode('monthly')}
-          className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all ${viewMode === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          onClick={() => setScope('global')}
+          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${scope === 'global' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          {lang === 'sq' ? 'Global' : 'Global'}
+        </button>
+      </div>
+
+      {/* 🚀 TOGGLE 2: 30-Day vs All-Time */}
+      <div className="flex bg-gray-100/50 p-1 rounded-xl mb-6">
+        <button
+          onClick={() => setTimeframe('monthly')}
+          className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${timeframe === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
         >
           {lang === 'sq' ? '30 Ditët e Fundit' : 'Last 30 Days'}
         </button>
         <button
-          onClick={() => setViewMode('global')}
-          className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all ${viewMode === 'global' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          onClick={() => setTimeframe('all_time')}
+          className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${timeframe === 'all_time' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
         >
           {lang === 'sq' ? 'Gjithë Kohës' : 'All-Time'}
         </button>
       </div>
 
       <div className="space-y-3 pb-20">
-        {visibleUsers.length === 0 && viewMode === 'friends' && (
+        {visibleUsers.length === 0 && (
           <div className="text-center p-8 bg-white rounded-3xl border border-dashed border-gray-200">
-            <Users size={32} className="mx-auto text-gray-300 mb-3" />
+            {scope === 'friends' ? (
+              <Users size={32} className="mx-auto text-gray-300 mb-3" />
+            ) : (
+              <Trophy size={32} className="mx-auto text-gray-300 mb-3" />
+            )}
             <p className="text-gray-500 font-medium text-sm">
-              {lang === 'sq' ? 'Nuk keni shtuar ende miq.' : "You haven't added any friends yet."}
+              {lang === 'sq' ? 'Nuk ka të dhëna ende.' : "No data available yet."}
             </p>
-            <button onClick={() => setShowFriendsModal(true)} className="mt-4 text-amber-600 font-bold text-sm">
-              {lang === 'sq' ? 'Gjeni Miq' : 'Find Friends'}
-            </button>
-          </div>
-        )}
-
-        {visibleUsers.length === 0 && viewMode === 'monthly' && (
-          <div className="text-center p-8 bg-white rounded-3xl border border-dashed border-gray-200">
-            <Trophy size={32} className="mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-500 font-medium text-sm">
-              {lang === 'sq' ? 'Nuk ka kafe të regjistruara në 30 ditët e fundit!' : 'No kafes logged in the last 30 days!'}
-            </p>
+            {scope === 'friends' && (
+              <button onClick={() => setShowFriendsModal(true)} className="mt-4 text-amber-600 font-bold text-sm">
+                {lang === 'sq' ? 'Gjeni Miq' : 'Find Friends'}
+              </button>
+            )}
           </div>
         )}
 
@@ -190,7 +203,6 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span className="font-bold text-gray-900 truncate">{user.name}</span>
                       
-                      {/* ADDED 'YOU' BADGE */}
                       {user.user_id === currentUser.id && (
                         <span className="ml-1 text-[9px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md uppercase tracking-wider shrink-0">
                           {lang === 'sq' ? 'Ti' : 'You'}

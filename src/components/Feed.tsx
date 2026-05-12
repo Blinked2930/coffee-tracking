@@ -6,6 +6,7 @@ import EditKafeModal from './EditKafeModal';
 import CommentsDrawer from './CommentsDrawer';
 import ReactionBar from './ReactionBar';
 import ManageFriendsModal from './ManageFriendsModal';
+import UserProfileDrawer from './UserProfileDrawer';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface FeedProps {
@@ -21,10 +22,10 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
   const { t } = useLanguage();
   const [editingLog, setEditingLog] = useState<KafeLog | null>(null);
   const [commentingOnLog, setCommentingOnLog] = useState<KafeLog | null>(null);
+  const [selectedProfileUser, setSelectedProfileUser] = useState<User | null>(null);
   const [showFriendsModal, setShowFriendsModal] = useState(false);
   const [friendships, setFriendships] = useState<any[]>([]);
 
-  // Fetch friendships so we know whose posts to show!
   useEffect(() => {
     const fetchFriendships = async () => {
       const { data } = await supabase
@@ -34,14 +35,12 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
       if (data) setFriendships(data);
     };
     fetchFriendships();
-  }, [currentUser.id, showFriendsModal]); // Refreshes if you accept a friend and close the modal
+  }, [currentUser.id, showFriendsModal]);
 
-  // Calculate exactly who your accepted friends are
   const acceptedFriendIds = friendships
     .filter(f => f.status === 'accepted')
     .map(f => f.requester_id === currentUser.id ? f.receiver_id : f.requester_id);
 
-  // Filter the global logs to ONLY show you and your friends
   const visibleLogs = logs.filter(log => log.user_id === currentUser.id || acceptedFriendIds.includes(log.user_id));
 
   return (
@@ -77,12 +76,16 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
               <div key={log.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100/80 flex flex-col w-full">
                 
                 <div className="flex justify-between items-center mb-4 gap-3">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-11 h-11 rounded-full bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-lg flex-shrink-0 border border-amber-100/50">
+                  {/* 🚀 Clicking this area now opens their profile! */}
+                  <div 
+                    className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer group active:scale-[0.98] transition-transform"
+                    onClick={() => user && setSelectedProfileUser(user)}
+                  >
+                    <div className="w-11 h-11 rounded-full bg-amber-50 text-amber-600 group-hover:bg-amber-100 transition-colors font-bold flex items-center justify-center text-lg flex-shrink-0 border border-amber-100/50">
                       {user?.name.charAt(0) || '?'}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-bold text-gray-900 truncate leading-tight">{user?.name}</p>
+                      <p className="font-bold text-gray-900 truncate leading-tight group-hover:text-amber-600 transition-colors">{user?.name}</p>
                       <p className="text-[11px] text-gray-400 font-medium truncate mt-0.5">
                         {dateStr} at {timeStr}
                       </p>
@@ -177,6 +180,16 @@ export default function Feed({ logs, getUserMap, currentUser, onLoadMore, hasMor
           getUserMap={getUserMap} 
           onClose={() => setCommentingOnLog(null)} 
           onUpdateCount={(delta) => onUpdateCommentCount?.(commentingOnLog.id, delta)} 
+        />
+      )}
+
+      {/* 🚀 New Drawer trigger */}
+      {selectedProfileUser && (
+        <UserProfileDrawer 
+          user={selectedProfileUser} 
+          currentUser={currentUser}
+          getUserMap={getUserMap} 
+          onClose={() => setSelectedProfileUser(null)} 
         />
       )}
 
