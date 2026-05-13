@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User } from '../types';
-import { Trophy, Medal, Award, Users, Lock } from 'lucide-react';
+import { Trophy, Medal, Award, Users, Lock, CalendarDays } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import UserProfileDrawer from './UserProfileDrawer';
 import ManageFriendsModal from './ManageFriendsModal';
@@ -17,7 +17,6 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
   const [globalScores, setGlobalScores] = useState<any[]>([]);
   const [monthlyScores, setMonthlyScores] = useState<any[]>([]);
   
-  // 🚀 Split into two dimensions: Scope (Who) and Timeframe (When)
   const [scope, setScope] = useState<'friends' | 'global'>('friends');
   const [timeframe, setTimeframe] = useState<'monthly' | 'all_time'>('monthly');
   
@@ -25,7 +24,6 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
   const [showFriendsModal, setShowFriendsModal] = useState(false);
 
   const fetchData = async () => {
-    // 1. Fetch All-Time Global Scores
     const { data: scores } = await supabase
       .from('leaderboard_scores')
       .select('*')
@@ -35,7 +33,6 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
       setGlobalScores(scores.filter(user => user.name !== 'Ghost' && user.name !== 'TestUser'));
     }
 
-    // 2. Fetch Rolling 30-Day Global Scores
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
@@ -65,7 +62,6 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
       setMonthlyScores(monthlyRanked);
     }
 
-    // 3. Fetch Friendships
     const { data: friends } = await supabase
       .from('friendships')
       .select('*')
@@ -82,21 +78,19 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
     .filter(f => f.status === 'accepted')
     .map(f => f.requester_id === currentUser.id ? f.receiver_id : f.requester_id);
 
-  // 🚀 Apply the 2x2 Filter Matrix
   const baseScores = timeframe === 'monthly' ? monthlyScores : globalScores;
   
   let visibleUsers = [];
   if (scope === 'friends') {
     visibleUsers = baseScores.filter(u => acceptedFriendIds.includes(u.user_id) || u.user_id === currentUser.id);
   } else {
-    // Show top 10 for global to keep the UI clean
     visibleUsers = baseScores.slice(0, 10);
   }
 
   const maxCount = Math.max(...visibleUsers.map(u => Number(u.total_kafes) || 0), 1);
 
   return (
-    <div className="p-4 sm:p-6 pb-24">
+    <div className="p-4 sm:p-6 pb-24 max-w-2xl mx-auto">
       
       <div className="mb-6 flex justify-between items-start">
         <div className="flex items-center gap-3">
@@ -120,36 +114,40 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
         </button>
       </div>
 
-      {/* 🚀 TOGGLE 1: Friends vs Global */}
-      <div className="flex bg-gray-200/50 p-1 rounded-xl mb-2">
+      {/* 🚀 REDESIGNED HIERARCHY */}
+      {/* Primary Navigation: Scope (Who) */}
+      <div className="flex border-b border-gray-200 mb-5">
         <button
           onClick={() => setScope('friends')}
-          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${scope === 'friends' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`flex-1 pb-3 text-sm font-black transition-all border-b-2 ${scope === 'friends' ? 'text-amber-600 border-amber-500' : 'text-gray-400 border-transparent hover:text-gray-600'}`}
         >
-          {lang === 'sq' ? 'Miqtë' : 'Friends'}
+          {lang === 'sq' ? 'Miqtë e Mi' : 'My Friends'}
         </button>
         <button
           onClick={() => setScope('global')}
-          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${scope === 'global' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`flex-1 pb-3 text-sm font-black transition-all border-b-2 ${scope === 'global' ? 'text-amber-600 border-amber-500' : 'text-gray-400 border-transparent hover:text-gray-600'}`}
         >
-          {lang === 'sq' ? 'Global' : 'Global'}
+          {lang === 'sq' ? 'Top 10 Global' : 'Top 10 Global'}
         </button>
       </div>
 
-      {/* 🚀 TOGGLE 2: 30-Day vs All-Time */}
-      <div className="flex bg-gray-100/50 p-1 rounded-xl mb-6">
-        <button
-          onClick={() => setTimeframe('monthly')}
-          className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${timeframe === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-        >
-          {lang === 'sq' ? '30 Ditët e Fundit' : 'Last 30 Days'}
-        </button>
-        <button
-          onClick={() => setTimeframe('all_time')}
-          className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${timeframe === 'all_time' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-        >
-          {lang === 'sq' ? 'Gjithë Kohës' : 'All-Time'}
-        </button>
+      {/* Secondary Filter: Timeframe (When) */}
+      <div className="flex justify-end mb-4">
+        <div className="bg-gray-100/80 p-1 rounded-xl inline-flex items-center gap-1 shadow-inner border border-gray-200/50">
+          <CalendarDays size={14} className="text-gray-400 ml-2" />
+          <button
+            onClick={() => setTimeframe('monthly')}
+            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${timeframe === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            {lang === 'sq' ? '30 Ditë' : '30 Days'}
+          </button>
+          <button
+            onClick={() => setTimeframe('all_time')}
+            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${timeframe === 'all_time' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            {lang === 'sq' ? 'Gjithmonë' : 'All-Time'}
+          </button>
+        </div>
       </div>
 
       <div className="space-y-3 pb-20">
@@ -164,8 +162,8 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
               {lang === 'sq' ? 'Nuk ka të dhëna ende.' : "No data available yet."}
             </p>
             {scope === 'friends' && (
-              <button onClick={() => setShowFriendsModal(true)} className="mt-4 text-amber-600 font-bold text-sm">
-                {lang === 'sq' ? 'Gjeni Miq' : 'Find Friends'}
+              <button onClick={() => setShowFriendsModal(true)} className="mt-4 text-amber-600 font-bold text-sm hover:underline">
+                {lang === 'sq' ? 'Shto Miq' : 'Add Friends'}
               </button>
             )}
           </div>
@@ -173,9 +171,9 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
 
         {visibleUsers.map((user, index) => {
           let RankIcon = null;
-          if (index === 0) RankIcon = <Trophy size={20} className="text-yellow-500" />;
-          if (index === 1) RankIcon = <Medal size={20} className="text-gray-400" />;
-          if (index === 2) RankIcon = <Award size={20} className="text-amber-700" />;
+          if (index === 0) RankIcon = <Trophy size={20} className="text-yellow-500 drop-shadow-sm" />;
+          if (index === 1) RankIcon = <Medal size={20} className="text-gray-400 drop-shadow-sm" />;
+          if (index === 2) RankIcon = <Award size={20} className="text-amber-700 drop-shadow-sm" />;
 
           const isFriendOrMe = acceptedFriendIds.includes(user.user_id) || user.user_id === currentUser.id;
 
@@ -190,16 +188,16 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
               }}
             >
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 relative z-10 transition-transform active:scale-[0.98] hover:border-amber-200">
-                <div className="w-8 flex justify-center font-bold text-gray-400">
+                <div className="w-8 flex justify-center font-black text-gray-300">
                   {RankIcon || (index + 1)}
                 </div>
 
-                <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 font-bold flex items-center justify-center text-sm flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gray-50 text-gray-600 font-bold flex items-center justify-center text-sm flex-shrink-0 border border-gray-100">
                   {user.name?.charAt(0) || '?'}
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-end mb-1 gap-2">
+                  <div className="flex justify-between items-end mb-1.5 gap-2">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span className="font-bold text-gray-900 truncate">{user.name}</span>
                       
@@ -209,13 +207,13 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
                         </span>
                       )}
                       
-                      {!isFriendOrMe && <Lock size={14} strokeWidth={2.5} className="text-gray-400 shrink-0" />}
+                      {!isFriendOrMe && <Lock size={12} strokeWidth={2.5} className="text-gray-300 shrink-0" />}
                     </div>
                     <span className="font-black text-amber-600 tabular-nums shrink-0">{Number(user.total_kafes)}</span>
                   </div>
-                  <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden border border-gray-100">
                     <div 
-                      className="h-full bg-amber-400 rounded-full transition-all duration-1000 ease-out"
+                      className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full transition-all duration-1000 ease-out"
                       style={{ width: `${(Number(user.total_kafes) / maxCount) * 100}%` }}
                     />
                   </div>
@@ -223,7 +221,7 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
               </div>
               
               {index === 0 && (
-                <div className="absolute inset-0 bg-yellow-400/20 rounded-2xl blur-xl -z-10" />
+                <div className="absolute inset-0 bg-yellow-400/10 rounded-2xl blur-xl -z-10" />
               )}
             </div>
           );
