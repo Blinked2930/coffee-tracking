@@ -21,22 +21,44 @@ function App() {
   const PAGE_SIZE = 20;
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('kafe_user');
-    if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
+    const savedUserStr = localStorage.getItem('kafe_user');
+    
+    if (savedUserStr) {
+      const savedUser = JSON.parse(savedUserStr);
+      setCurrentUser(savedUser); // 🚀 INSTANT UI LOAD
       
-      // 🚀 INSTANT LOAD CACHING (Stale-While-Revalidate)
-      // Load cached data immediately so the UI is fully populated at 0ms
       const cachedUsers = localStorage.getItem('kafe_users_cache');
       if (cachedUsers) setUsers(JSON.parse(cachedUsers));
       
       const cachedLogs = localStorage.getItem('kafe_logs_cache');
       if (cachedLogs) setLogs(JSON.parse(cachedLogs));
+
+      // 🚀 THE PHANTOM BRIDGE: Seamlessly log legacy users into the new secure Auth system
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
+        if (!session && savedUser.pin) {
+          let uname = savedUser.username;
+          // Fallback if older cache doesn't have username
+          if (!uname) {
+            const { data } = await supabase.from('users').select('username').eq('id', savedUser.id).single();
+            uname = data?.username;
+          }
+          
+          if (uname) {
+            await supabase.auth.signInWithPassword({
+              email: `${uname.toLowerCase()}@kafe.local`,
+              password: `${savedUser.pin}kafe`
+            });
+            console.log("Phantom Bridge Successful: Secure session generated.");
+          } else {
+            handleLogout(); // Force clean state if bridging fails
+          }
+        }
+      });
       
-      // Then, silently fetch the freshest data from Supabase in the background
-      supabase.from('users').select('id, name').then(({ data }) => {
+      // Fetch fresh background data
+      supabase.from('users').select('*').then(({ data }) => {
         if (data) {
-          setUsers(data);
+          setUsers(data as User[]);
           localStorage.setItem('kafe_users_cache', JSON.stringify(data));
         }
       });
@@ -88,7 +110,6 @@ function App() {
 
       if (isInitial || pageNum === 0) {
         setLogs(formattedData as KafeLog[]);
-        // Update the cache with the freshest Page 1 data
         localStorage.setItem('kafe_logs_cache', JSON.stringify(formattedData));
       } else {
         setLogs(prev => [...prev, ...(formattedData as KafeLog[])]);
@@ -104,37 +125,32 @@ function App() {
     fetchLogs(next);
   };
 
-  const handleLogin = async (name: string, pin: string) => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('name', name)
-      .eq('pin', pin)
-      .single();
-
-    if (data && !error) {
-      setCurrentUser(data);
-      localStorage.setItem('kafe_user', JSON.stringify(data));
+  // 🚀 Simplified Login: Supabase Auth handles the verification now
+  const handleLogin = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user?.email) {
+      const username = session.user.email.split('@')[0];
+      const { data } = await supabase.from('users').select('*').eq('username', username).single();
       
-      // Kick off initial fetches and populate cache on fresh login
-      supabase.from('users').select('id, name').then(({ data: userData }) => { 
-        if (userData) {
-          setUsers(userData);
-          localStorage.setItem('kafe_users_cache', JSON.stringify(userData));
-        }
-      });
-      fetchLogs(0, true);
-      
-      return true;
-    } else {
-      return false;
+      if (data) {
+        setCurrentUser(data);
+        localStorage.setItem('kafe_user', JSON.stringify(data));
+        
+        supabase.from('users').select('*').then(({ data: userData }) => { 
+          if (userData) {
+            setUsers(userData as User[]);
+            localStorage.setItem('kafe_users_cache', JSON.stringify(userData));
+          }
+        });
+        fetchLogs(0, true);
+      }
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut(); // 🚀 Destroy secure session
     setCurrentUser(null);
     localStorage.removeItem('kafe_user');
-    // Clear the cache so a new user doesn't briefly see the old user's feed
     localStorage.removeItem('kafe_logs_cache');
     localStorage.removeItem('kafe_users_cache');
     setActiveTab('home');
@@ -148,6 +164,7 @@ function App() {
     return (
       <>
         <InstallPrompt onBypass={() => {}} />
+        {/* 🚀 Pass the new parameter-less handleLogin */}
         <Login users={users} onLogin={handleLogin} />
       </>
     );

@@ -6,11 +6,10 @@ import { supabase } from '../lib/supabase';
 
 interface LoginProps {
   users: User[];
-  onLogin: (name: string, pin: string) => Promise<boolean>;
+  onLogin: () => void; // 🚀 Simplified: Supabase handles the session now!
 }
 
 export default function Login({ users, onLogin }: LoginProps) {
-  // We grab what we can from Context, but use local state for guaranteed UI updates
   const languageContext = useLanguage(); 
   const t = languageContext?.t || ((key: string) => key);
   
@@ -19,7 +18,6 @@ export default function Login({ users, onLogin }: LoginProps) {
   const handleLanguageToggle = () => {
     const newLang = localLang === 'en' ? 'sq' : 'en';
     setLocalLang(newLang);
-    // Try to update global context if it exists
     if (languageContext?.setLanguage) {
       languageContext.setLanguage(newLang);
     }
@@ -30,7 +28,7 @@ export default function Login({ users, onLogin }: LoginProps) {
   const [signupUsername, setSignupUsername] = useState('');
   const [pin, setPin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(true);
+  const [isSignUp, setIsSignUp] = useState(false); // Default to login for existing cohort
 
   const [errorConfig, setErrorConfig] = useState<{ show: boolean; title: string; message: string }>({
     show: false,
@@ -69,50 +67,78 @@ export default function Login({ users, onLogin }: LoginProps) {
         return;
       }
 
-      const { error } = await supabase.from('users').insert({
+      // 🚀 THE PHANTOM SIGNUP
+      const hiddenEmail = `${formattedUsername}@kafe.local`;
+      const hiddenPassword = `${pin}kafe`;
+
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: hiddenEmail,
+        password: hiddenPassword,
+      });
+
+      if (authError || !authData.user) {
+        console.error("Auth Signup Error:", authError);
+        showError("System Failure", authError?.message || "Could not create secure identity.");
+        return;
+      }
+
+      // 🚀 Add them to the public table using the secure Auth UUID
+      const { error: dbError } = await supabase.from('users').insert({
+        id: authData.user.id,
         name: formattedName,
         username: formattedUsername,
         pin: pin
       });
 
-      if (error) {
-        console.error("Signup Error:", error);
-        showError("System Failure", error.message);
-        return;
+      if (dbError) {
+        console.error("DB Insert Error:", dbError);
       }
 
-      const success = await onLogin(formattedName, pin);
       setIsLoading(false);
-      if (!success) {
-        setPin('');
-        showError(
-          localLang === 'sq' ? "Qasje e Refuzuar" : "Access Denied", 
-          localLang === 'sq' ? "PIN-i është i pasaktë." : "Credentials rejected by the mainframe."
-        );
-      }
+      onLogin(); // Tell App.tsx we are in!
       
     } else {
+      // 🚀 THE PHANTOM LOGIN
       const searchVal = loginIdentifier.trim().toLowerCase();
       if (!searchVal) {
         setIsLoading(false);
         return;
       }
 
+      // Find the user in the cache to get their exact username for the dummy email
       const match = users.find(u => 
         ((u as any).username && (u as any).username.toLowerCase() === searchVal) || 
         u.name.toLowerCase() === searchVal
       );
 
-      const nameToPass = match ? match.name : loginIdentifier.trim();
-      
-      const success = await onLogin(nameToPass, pin);
-      setIsLoading(false);
-      if (!success) {
+      if (!match || !(match as any).username) {
+        setIsLoading(false);
         setPin('');
         showError(
           localLang === 'sq' ? "Qasje e Refuzuar" : "Security Breach", 
-          localLang === 'sq' ? "Të dhënat janë të pasakta." : "Invalid credentials. You do not have authorization."
+          localLang === 'sq' ? "Përdoruesi nuk u gjet." : "Invalid credentials. User not found."
         );
+        return;
+      }
+
+      const hiddenEmail = `${(match as any).username.toLowerCase()}@kafe.local`;
+      const hiddenPassword = `${pin}kafe`;
+      
+      const { error } = await supabase.auth.signInWithPassword({
+        email: hiddenEmail,
+        password: hiddenPassword
+      });
+
+      setIsLoading(false);
+
+      if (error) {
+        setPin('');
+        showError(
+          localLang === 'sq' ? "Qasje e Refuzuar" : "Security Breach", 
+          localLang === 'sq' ? "PIN-i është i pasaktë." : "Invalid credentials. You do not have authorization."
+        );
+      } else {
+        onLogin(); // Tell App.tsx we are in!
       }
     }
   };
@@ -120,7 +146,6 @@ export default function Login({ users, onLogin }: LoginProps) {
   return (
     <div className="min-h-[100dvh] flex flex-col items-center bg-gray-50 p-6 relative overflow-y-auto custom-scrollbar">
       
-      {/* Floating Language Toggle - Fixed position so it never gets buried */}
       <button 
         onClick={handleLanguageToggle}
         className="fixed top-6 right-6 z-[100] px-4 py-2.5 bg-white/90 backdrop-blur-md border border-gray-100 shadow-sm hover:bg-gray-50 text-gray-600 rounded-full font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all flex items-center gap-2"
@@ -129,7 +154,6 @@ export default function Login({ users, onLogin }: LoginProps) {
         {localLang === 'en' ? 'SHQIP' : 'ENGLISH'}
       </button>
 
-      {/* Error Modal */}
       {errorConfig.show && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
           <div className="bg-white rounded-[2rem] p-6 sm:p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300 border border-white/20 relative overflow-hidden">
@@ -161,9 +185,7 @@ export default function Login({ users, onLogin }: LoginProps) {
         </div>
       )}
 
-      {/* Spacer to push card down naturally */}
       <div className="my-auto w-full flex flex-col items-center justify-center py-12">
-        {/* Main Login Interface */}
         <div className="w-full max-w-sm bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 p-8 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 z-10 border border-gray-100 shrink-0">
           <div className="flex flex-col items-center">
             <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-[1.5rem] flex items-center justify-center mb-5 shadow-inner">
@@ -270,7 +292,6 @@ export default function Login({ users, onLogin }: LoginProps) {
           </div>
         </div>
 
-        {/* In-flow disclaimer, never gets cut off */}
         <div className="w-full max-w-xs text-center opacity-60 mt-8 shrink-0">
           <p className="text-[8px] text-gray-400 font-bold uppercase tracking-[0.15em] leading-relaxed">
             {localLang === 'sq' 
