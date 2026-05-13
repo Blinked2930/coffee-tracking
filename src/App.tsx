@@ -21,14 +21,23 @@ function App() {
   const PAGE_SIZE = 20;
 
   useEffect(() => {
+    // 🚀 CRITICAL FIX: Load cached users immediately so Login screen has data
+    const cachedUsers = localStorage.getItem('kafe_users_cache');
+    if (cachedUsers) setUsers(JSON.parse(cachedUsers));
+    
+    // 🚀 CRITICAL FIX: Always fetch the public guest list, even if logged out!
+    supabase.from('users').select('*').then(({ data }) => {
+      if (data) {
+        setUsers(data as User[]);
+        localStorage.setItem('kafe_users_cache', JSON.stringify(data));
+      }
+    });
+
     const savedUserStr = localStorage.getItem('kafe_user');
     
     if (savedUserStr) {
       const savedUser = JSON.parse(savedUserStr);
       setCurrentUser(savedUser); // 🚀 INSTANT UI LOAD
-      
-      const cachedUsers = localStorage.getItem('kafe_users_cache');
-      if (cachedUsers) setUsers(JSON.parse(cachedUsers));
       
       const cachedLogs = localStorage.getItem('kafe_logs_cache');
       if (cachedLogs) setLogs(JSON.parse(cachedLogs));
@@ -37,7 +46,6 @@ function App() {
       supabase.auth.getSession().then(async ({ data: { session } }) => {
         if (!session && savedUser.pin) {
           let uname = savedUser.username;
-          // Fallback if older cache doesn't have username
           if (!uname) {
             const { data } = await supabase.from('users').select('username').eq('id', savedUser.id).single();
             uname = data?.username;
@@ -55,13 +63,6 @@ function App() {
         }
       });
       
-      // Fetch fresh background data
-      supabase.from('users').select('*').then(({ data }) => {
-        if (data) {
-          setUsers(data as User[]);
-          localStorage.setItem('kafe_users_cache', JSON.stringify(data));
-        }
-      });
       fetchLogs(0, true);
     }
     
@@ -133,13 +134,6 @@ function App() {
       if (data) {
         setCurrentUser(data);
         localStorage.setItem('kafe_user', JSON.stringify(data));
-        
-        supabase.from('users').select('*').then(({ data: userData }) => { 
-          if (userData) {
-            setUsers(userData as User[]);
-            localStorage.setItem('kafe_users_cache', JSON.stringify(userData));
-          }
-        });
         fetchLogs(0, true);
       }
     }
