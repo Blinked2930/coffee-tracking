@@ -33,7 +33,7 @@ function App() {
       const cachedLogs = localStorage.getItem('kafe_logs_cache');
       if (cachedLogs) setLogs(JSON.parse(cachedLogs));
 
-      // 🚀 THE PHANTOM BRIDGE: Seamlessly log legacy users into the new secure Auth system
+      // 🚀 THE PHANTOM BRIDGE
       supabase.auth.getSession().then(async ({ data: { session } }) => {
         if (!session && savedUser.pin) {
           let uname = savedUser.username;
@@ -45,7 +45,7 @@ function App() {
           
           if (uname) {
             await supabase.auth.signInWithPassword({
-              email: `${uname.toLowerCase()}@kafe.local`,
+              email: `${uname.toLowerCase()}@kafe.com`,
               password: `${savedUser.pin}kafe`
             });
             console.log("Phantom Bridge Successful: Secure session generated.");
@@ -65,7 +65,6 @@ function App() {
       fetchLogs(0, true);
     }
     
-    // Real-time subscription so new Kafes pop in live
     const channel = supabase.channel('custom-all-channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'kafes' }, (payload) => {
         if (payload.eventType === 'INSERT') {
@@ -125,7 +124,6 @@ function App() {
     fetchLogs(next);
   };
 
-  // 🚀 Simplified Login: Supabase Auth handles the verification now
   const handleLogin = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user?.email) {
@@ -148,7 +146,7 @@ function App() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut(); // 🚀 Destroy secure session
+    await supabase.auth.signOut(); 
     setCurrentUser(null);
     localStorage.removeItem('kafe_user');
     localStorage.removeItem('kafe_logs_cache');
@@ -164,7 +162,6 @@ function App() {
     return (
       <>
         <InstallPrompt onBypass={() => {}} />
-        {/* 🚀 Pass the new parameter-less handleLogin */}
         <Login users={users} onLogin={handleLogin} />
       </>
     );

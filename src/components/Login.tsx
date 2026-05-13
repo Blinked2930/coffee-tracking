@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 
 interface LoginProps {
   users: User[];
-  onLogin: () => void; // 🚀 Simplified: Supabase handles the session now!
+  onLogin: () => void;
 }
 
 export default function Login({ users, onLogin }: LoginProps) {
@@ -28,7 +28,7 @@ export default function Login({ users, onLogin }: LoginProps) {
   const [signupUsername, setSignupUsername] = useState('');
   const [pin, setPin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false); // Default to login for existing cohort
+  const [isSignUp, setIsSignUp] = useState(false);
 
   const [errorConfig, setErrorConfig] = useState<{ show: boolean; title: string; message: string }>({
     show: false,
@@ -67,8 +67,8 @@ export default function Login({ users, onLogin }: LoginProps) {
         return;
       }
 
-      // 🚀 THE PHANTOM SIGNUP
-      const hiddenEmail = `${formattedUsername}@kafe.local`;
+      // 🚀 THE PHANTOM SIGNUP (Swapped to .com to pass validation)
+      const hiddenEmail = `${formattedUsername}@kafe.com`;
       const hiddenPassword = `${pin}kafe`;
 
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -82,7 +82,6 @@ export default function Login({ users, onLogin }: LoginProps) {
         return;
       }
 
-      // 🚀 Add them to the public table using the secure Auth UUID
       const { error: dbError } = await supabase.from('users').insert({
         id: authData.user.id,
         name: formattedName,
@@ -95,7 +94,7 @@ export default function Login({ users, onLogin }: LoginProps) {
       }
 
       setIsLoading(false);
-      onLogin(); // Tell App.tsx we are in!
+      onLogin(); 
       
     } else {
       // 🚀 THE PHANTOM LOGIN
@@ -105,7 +104,6 @@ export default function Login({ users, onLogin }: LoginProps) {
         return;
       }
 
-      // Find the user in the cache to get their exact username for the dummy email
       const match = users.find(u => 
         ((u as any).username && (u as any).username.toLowerCase() === searchVal) || 
         u.name.toLowerCase() === searchVal
@@ -121,7 +119,7 @@ export default function Login({ users, onLogin }: LoginProps) {
         return;
       }
 
-      const hiddenEmail = `${(match as any).username.toLowerCase()}@kafe.local`;
+      const hiddenEmail = `${(match as any).username.toLowerCase()}@kafe.com`;
       const hiddenPassword = `${pin}kafe`;
       
       const { error } = await supabase.auth.signInWithPassword({
@@ -138,7 +136,7 @@ export default function Login({ users, onLogin }: LoginProps) {
           localLang === 'sq' ? "PIN-i është i pasaktë." : "Invalid credentials. You do not have authorization."
         );
       } else {
-        onLogin(); // Tell App.tsx we are in!
+        onLogin();
       }
     }
   };
