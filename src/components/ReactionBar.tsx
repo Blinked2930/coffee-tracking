@@ -20,7 +20,10 @@ export default function ReactionBar({ kafeId, currentUser }: Props) {
         if (data) setReactions(data);
       });
 
-    const channel = supabase.channel(`rxn_${kafeId}`)
+    // 🚀 FIX: Append a random hash so rapid React re-renders never pull a cached, busy channel
+    const uniqueChannelName = `rxn_${kafeId}_${Math.random().toString(36).substring(7)}`;
+
+    const channel = supabase.channel(uniqueChannelName)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reactions', filter: `kafe_id=eq.${kafeId}` }, (payload) => {
           setReactions(prev => {
             const exists = prev.some(r => r.emoji === payload.new.emoji && r.user_id === payload.new.user_id);
