@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User } from '../types';
-import { Trophy, Medal, Award, Users, Lock, CalendarDays } from 'lucide-react';
+import { Trophy, Medal, Award, Users, Lock } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import UserProfileDrawer from './UserProfileDrawer';
 import ManageFriendsModal from './ManageFriendsModal';
@@ -149,10 +149,9 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
         </button>
       </div>
 
-      {/* Secondary Filter: Timeframe (When) */}
+      {/* Secondary Filter: Timeframe (When) - Icon Removed */}
       <div className="flex justify-end mb-4">
         <div className="bg-gray-100/80 p-1 rounded-xl inline-flex items-center gap-1 shadow-inner border border-gray-200/50">
-          <CalendarDays size={14} className="text-gray-400 ml-2" />
           <button
             onClick={() => setTimeframe('monthly')}
             className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${timeframe === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
