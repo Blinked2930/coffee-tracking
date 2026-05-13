@@ -8,15 +8,17 @@ import { supabase } from '../lib/supabase';
 interface UserProfileDrawerProps {
   user: User;
   currentUser: User;
-  getUserMap: (id: string) => User | undefined; // <-- ADDED
+  getUserMap: (id: string) => User | undefined;
   onClose: () => void;
 }
 
 export default function UserProfileDrawer({ user, currentUser, getUserMap, onClose }: UserProfileDrawerProps) {
   const [userLogs, setUserLogs] = useState<KafeLog[]>([]);
-  const [commentingOnLog, setCommentingOnLog] = useState<KafeLog | null>(null); // <-- ADDED
+  const [commentingOnLog, setCommentingOnLog] = useState<KafeLog | null>(null);
 
   useEffect(() => {
+    if (!user?.id) return; // 🚀 FIX: Safely exit if user is somehow undefined
+
     supabase.from('kafes')
       .select('*, comments(count)')
       .eq('user_id', user.id)
@@ -30,9 +32,8 @@ export default function UserProfileDrawer({ user, currentUser, getUserMap, onClo
           setUserLogs(formatted as KafeLog[]);
         }
       });
-  }, [user.id]);
+  }, [user?.id]);
 
-  // Instantly updates the local feed
   const handleUpdateCommentCount = (kafeId: string, delta: number) => {
     setUserLogs(prev => prev.map(l => l.id === kafeId ? { ...l, comment_count: Math.max(0, (l.comment_count || 0) + delta) } : l));
   };
@@ -41,7 +42,9 @@ export default function UserProfileDrawer({ user, currentUser, getUserMap, onClo
     const total = userLogs.length;
 
     const typeCounts = userLogs.reduce((acc, log) => {
-      acc[log.type] = (acc[log.type] || 0) + 1;
+      // 🚀 FIX: Fallback to 'kafe' if type is missing from legacy data
+      const safeType = log.type || 'kafe';
+      acc[safeType] = (acc[safeType] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
     
@@ -49,11 +52,14 @@ export default function UserProfileDrawer({ user, currentUser, getUserMap, onClo
 
     const ratedLogs = userLogs.filter(l => l.rating && l.rating > 0);
     const avgRating = ratedLogs.length 
-      ? (ratedLogs.reduce((sum, l) => sum + l.rating!, 0) / ratedLogs.length).toFixed(1) 
+      ? (ratedLogs.reduce((sum, l) => sum + (l.rating || 0), 0) / ratedLogs.length).toFixed(1) 
       : null;
 
     return { total, favoriteType, avgRating };
   }, [userLogs]);
+
+  // 🚀 FIX: Prevent crash if user object is malformed
+  if (!user) return null;
 
   return (
     <>
@@ -69,10 +75,11 @@ export default function UserProfileDrawer({ user, currentUser, getUserMap, onClo
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-amber-500 text-white font-black flex items-center justify-center text-3xl shadow-md border-4 border-white">
-                {user.name.charAt(0)}
+                {/* 🚀 FIX: Safely grab first char */}
+                {(user.name || '?').charAt(0)}
               </div>
               <div>
-                <h2 className="text-2xl font-black text-gray-900 leading-tight">{user.name}</h2>
+                <h2 className="text-2xl font-black text-gray-900 leading-tight">{user.name || 'Unknown User'}</h2>
                 <p className="text-sm font-bold text-amber-600 tracking-wider uppercase">Kafe Log</p>
               </div>
             </div>
@@ -94,7 +101,10 @@ export default function UserProfileDrawer({ user, currentUser, getUserMap, onClo
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Top Choice</p>
-                <p className="font-black text-gray-800 capitalize leading-tight">{insights.favoriteType.replace(/_/g, ' ')}</p>
+                {/* 🚀 FIX: Safely call replace on favoriteType */}
+                <p className="font-black text-gray-800 capitalize leading-tight">
+                  {(insights.favoriteType || 'Unknown').replace(/_/g, ' ')}
+                </p>
               </div>
             </div>
 
@@ -133,8 +143,9 @@ export default function UserProfileDrawer({ user, currentUser, getUserMap, onClo
                       
                       <div className="flex flex-wrap items-center gap-3 mb-4">
                         <div className="px-2.5 py-1 bg-amber-50 rounded-lg border border-amber-100/50 inline-flex">
+                          {/* 🚀 FIX: Safely call replace on log.type */}
                           <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">
-                            {log.type.replace(/_/g, ' ')}
+                            {(log.type || 'kafe').replace(/_/g, ' ')}
                           </p>
                         </div>
                         <span className="text-[11px] font-medium text-gray-400">
@@ -171,7 +182,6 @@ export default function UserProfileDrawer({ user, currentUser, getUserMap, onClo
 
                       <div className="flex items-center gap-6 mt-1 pt-4 border-t border-gray-50">
                         
-                        {/* CHANGED THIS FROM A DIV TO A BUTTON */}
                         <button 
                           onClick={() => setCommentingOnLog(log)}
                           className="flex items-center gap-1.5 text-gray-400 hover:text-amber-500 transition-colors active:scale-95 group"
@@ -201,7 +211,6 @@ export default function UserProfileDrawer({ user, currentUser, getUserMap, onClo
         </div>
       </div>
 
-      {/* ADDED THE COMMENTS DRAWER HERE */}
       {commentingOnLog && (
         <CommentsDrawer 
           log={commentingOnLog} 
