@@ -24,15 +24,29 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
   const [showFriendsModal, setShowFriendsModal] = useState(false);
 
   const fetchData = async () => {
+    // 🚀 INSTANT LOAD: Check Cache First
+    const cachedGlobal = localStorage.getItem('kafe_leaderboard_global');
+    if (cachedGlobal) setGlobalScores(JSON.parse(cachedGlobal));
+
+    const cachedMonthly = localStorage.getItem('kafe_leaderboard_monthly');
+    if (cachedMonthly) setMonthlyScores(JSON.parse(cachedMonthly));
+
+    const cachedFriends = localStorage.getItem('kafe_friendships');
+    if (cachedFriends) setFriendships(JSON.parse(cachedFriends));
+
+    // 1. Fetch All-Time Global Scores (Background)
     const { data: scores } = await supabase
       .from('leaderboard_scores')
       .select('*')
       .order('total_kafes', { ascending: false });
       
     if (scores) {
-      setGlobalScores(scores.filter(user => user.name !== 'Ghost' && user.name !== 'TestUser'));
+      const filteredGlobal = scores.filter(user => user.name !== 'Ghost' && user.name !== 'TestUser');
+      setGlobalScores(filteredGlobal);
+      localStorage.setItem('kafe_leaderboard_global', JSON.stringify(filteredGlobal));
     }
 
+    // 2. Fetch Rolling 30-Day Global Scores (Background)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
@@ -60,14 +74,19 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
       .sort((a, b) => b.total_kafes - a.total_kafes);
 
       setMonthlyScores(monthlyRanked);
+      localStorage.setItem('kafe_leaderboard_monthly', JSON.stringify(monthlyRanked));
     }
 
+    // 3. Fetch Friendships (Background)
     const { data: friends } = await supabase
       .from('friendships')
       .select('*')
       .or(`requester_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`);
       
-    if (friends) setFriendships(friends);
+    if (friends) {
+      setFriendships(friends);
+      localStorage.setItem('kafe_friendships', JSON.stringify(friends));
+    }
   };
 
   useEffect(() => {
@@ -114,7 +133,6 @@ export default function Leaderboard({ currentUser, getUserMap }: LeaderboardProp
         </button>
       </div>
 
-      {/* 🚀 REDESIGNED HIERARCHY */}
       {/* Primary Navigation: Scope (Who) */}
       <div className="flex border-b border-gray-200 mb-5">
         <button
