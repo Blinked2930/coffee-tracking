@@ -21,11 +21,9 @@ function App() {
   const PAGE_SIZE = 20;
 
   useEffect(() => {
-    // 🚀 CRITICAL FIX: Load cached users immediately so Login screen has data
     const cachedUsers = localStorage.getItem('kafe_users_cache');
     if (cachedUsers) setUsers(JSON.parse(cachedUsers));
     
-    // 🚀 CRITICAL FIX: Always fetch the public guest list, even if logged out!
     supabase.from('users').select('*').then(({ data }) => {
       if (data) {
         setUsers(data as User[]);
@@ -37,12 +35,11 @@ function App() {
     
     if (savedUserStr) {
       const savedUser = JSON.parse(savedUserStr);
-      setCurrentUser(savedUser); // 🚀 INSTANT UI LOAD
+      setCurrentUser(savedUser); 
       
       const cachedLogs = localStorage.getItem('kafe_logs_cache');
       if (cachedLogs) setLogs(JSON.parse(cachedLogs));
 
-      // 🚀 THE PHANTOM BRIDGE
       supabase.auth.getSession().then(async ({ data: { session } }) => {
         if (!session && savedUser.pin) {
           let uname = savedUser.username;
@@ -58,7 +55,7 @@ function App() {
             });
             console.log("Phantom Bridge Successful: Secure session generated.");
           } else {
-            handleLogout(); // Force clean state if bridging fails
+            handleLogout(); 
           }
         }
       });
@@ -125,18 +122,20 @@ function App() {
     fetchLogs(next);
   };
 
-  const handleLogin = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user?.email) {
-      const username = session.user.email.split('@')[0];
-      const { data } = await supabase.from('users').select('*').eq('username', username).single();
-      
+  // 🚀 Explicitly receive the User object so it happens instantly
+  const handleLogin = (user: User) => {
+    setCurrentUser(user);
+    localStorage.setItem('kafe_user', JSON.stringify(user));
+    
+    // Refresh the public user list so the new signup is visible
+    supabase.from('users').select('*').then(({ data }) => {
       if (data) {
-        setCurrentUser(data);
-        localStorage.setItem('kafe_user', JSON.stringify(data));
-        fetchLogs(0, true);
+        setUsers(data as User[]);
+        localStorage.setItem('kafe_users_cache', JSON.stringify(data));
       }
-    }
+    });
+
+    fetchLogs(0, true);
   };
 
   const handleLogout = async () => {

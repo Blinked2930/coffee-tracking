@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 
 interface LoginProps {
   users: User[];
-  onLogin: () => void;
+  onLogin: (user: User) => void; // 🚀 Explicitly pass the user object
 }
 
 export default function Login({ users, onLogin }: LoginProps) {
@@ -67,7 +67,6 @@ export default function Login({ users, onLogin }: LoginProps) {
         return;
       }
 
-      // 🚀 THE PHANTOM SIGNUP (Swapped to .com to pass validation)
       const hiddenEmail = `${formattedUsername}@kafe.com`;
       const hiddenPassword = `${pin}kafe`;
 
@@ -78,7 +77,7 @@ export default function Login({ users, onLogin }: LoginProps) {
 
       if (authError || !authData.user) {
         console.error("Auth Signup Error:", authError);
-        showError("System Failure", authError?.message || "Could not create secure identity.");
+        showError("Auth Failure", authError?.message || "Could not create secure identity.");
         return;
       }
 
@@ -91,13 +90,22 @@ export default function Login({ users, onLogin }: LoginProps) {
 
       if (dbError) {
         console.error("DB Insert Error:", dbError);
+        await supabase.auth.signOut();
+        showError("Database Failure", dbError.message);
+        return;
       }
 
+      const newUser = {
+        id: authData.user.id,
+        name: formattedName,
+        username: formattedUsername,
+        pin: pin
+      };
+
       setIsLoading(false);
-      onLogin(); 
+      onLogin(newUser as User); // 🚀 Pass the new user straight through
       
     } else {
-      // 🚀 THE PHANTOM LOGIN
       const searchVal = loginIdentifier.trim().toLowerCase();
       if (!searchVal) {
         setIsLoading(false);
@@ -136,7 +144,7 @@ export default function Login({ users, onLogin }: LoginProps) {
           localLang === 'sq' ? "PIN-i është i pasaktë." : "Invalid credentials. You do not have authorization."
         );
       } else {
-        onLogin();
+        onLogin(match as User); // 🚀 Pass the matched user straight through
       }
     }
   };
