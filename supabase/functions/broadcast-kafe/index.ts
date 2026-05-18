@@ -2,6 +2,12 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import webpush from 'npm:web-push'
 
+// 🚀 Helper to format snake_case coffee types to Title Case
+const formatCoffeeType = (type: string) => {
+  if (!type) return 'Kafe';
+  return type.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+};
+
 serve(async (req) => {
   try {
     const payload = await req.json();
@@ -72,7 +78,8 @@ serve(async (req) => {
 
     const notificationPayload = JSON.stringify({
       title: 'New Kafe Alert! ☕️',
-      body: `${loggerName} logged a ${newKafe.type}!`,
+      // 🚀 Apply the formatting logic here!
+      body: `${loggerName} logged a ${formatCoffeeType(newKafe.type)}!`,
       icon: '/vite.svg',
       vibrate: [200, 100, 200],
       data: { url: 'https://kafe.emmettfrett.com/' }
